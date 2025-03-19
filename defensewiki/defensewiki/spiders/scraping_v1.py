@@ -12,6 +12,8 @@ class MostRevisionsSpider(scrapy.Spider):
     name = 'extract_defensewiki'
     start_urls = ['https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=20&offset=0']
     start_urls = ['https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=100&offset=0']
+    start_urls = ['https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2000&offset=0'] # Showing below up to 1,251 results in range #1 to #1,251.
+
 
     def parse(self, response):
         # Step 1: Extract all the links from the list
@@ -41,7 +43,7 @@ class MostRevisionsSpider(scrapy.Spider):
 
         # Save the HTML of the page to a file
         page_name = response.url.split('title=')[1].split('&')[0]  # Extract page name from URL
-        filename = f'/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/page_{page_name}.html'
+        filename = f'/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org/page_{page_name}.html'
 
         with open(filename, 'wb') as f:
             f.write(response.body)  # Write the HTML content to the file
