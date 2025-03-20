@@ -4,17 +4,16 @@
 # Computes a hash for versioning
 # Saves everything into the HTML file
 
-
-import requests
-from bs4 import BeautifulSoup
-import hashlib
-from datetime import datetime
-from langdetect import detect
-import re
 import os
-from urllib.parse import unquote
-import unicodedata
-import json
+import re # handles text
+import requests # get url info
+from bs4 import BeautifulSoup
+import hashlib # get hash
+from datetime import datetime
+from langdetect import detect # detect language
+from urllib.parse import unquote # text formating
+import unicodedata # text formating
+import json # save in json files
 import html2text # html2text: Faster, more configurable, widely used.
 from markdownify import markdownify as md # markdownify: Handles more complex HTML structures, better at preserving formatting.
 
@@ -22,11 +21,9 @@ from markdownify import markdownify as md # markdownify: Handles more complex HT
 # FUNCTIONS -------------------------
 
 def extract_webpage_html_from_url(url):
-    # Fetch the html of page in soup
-    response = requests.get(url)
+    response = requests.get(url) # Fetch the html of page in soup
     response.raise_for_status()  # Raise an error for failed requests
-    # Parse the HTML
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(response.text, "html.parser") # Parse the HTML
     return response, soup
 
 def get_all_links_from_url(url):
@@ -34,8 +31,8 @@ def get_all_links_from_url(url):
     response, soup = extract_webpage_html_from_url(url)
     links = []
     for a_tag in soup.select("ol.special li a"):
-        link = a_tag.get("href")
-        if '&action=history' not in link:
+        if '&action=history' not in a_tag.get('href', ''):
+            link = a_tag.get("href")
             links.append(link)
 
     # Convert relative URLs to absolute URLs
@@ -64,7 +61,6 @@ def get_last_edited_date(soup):
 
     return lastmod_li
 
-
 def define_page_name(link):
     # Decode the URL and get the page name
     page_name = unquote(link.split("title=")[1].split("&")[0].replace("/", "-"))
@@ -72,21 +68,9 @@ def define_page_name(link):
     page_name = unicodedata.normalize('NFKD', page_name).encode('ASCII', 'ignore').decode()
     return page_name
 
-# def add_metadata_to_html(soup, link):
-#
-#     soup.html['data-hash'] = generate_hash(str(soup))   # Add the hash
-#     soup.html['data-extracted'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     soup.html['data-last-edited'] = get_last_edited_date(soup)
-#     # soup.html['data-viewcount'] = soup.find('li', {'id': 'viewcount'})
-#     soup.html['data-language'] = detect(soup.get_text())
-#     soup.html['data-link'] = link
-#     soup.html['data-country'] = ""  # Add country for legal separation # TODO
-#     soup.html['data-type'] = "wiki"
-#     soup.html['data-title'] = define_page_name(link)
-#
-#     return str(soup)
-
 def metadata_in_dict(metadata_dict, response,soup, link, filename):
+    md_text = md(response.text)
+
     metadata_dict[link] = {
         'link': link,
         'title': define_page_name(link),
@@ -94,9 +78,12 @@ def metadata_in_dict(metadata_dict, response,soup, link, filename):
         'extracted': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'last-edited': get_last_edited_date(soup),
         'language': detect(soup.get_text()),
+        'viewcount': soup.find('li', {'id': 'viewcount'}),
         'type': "defensewiki_doc",
         'full_path': filename,
-        'content': md(response.text)
+        'nbr_of_lines': len(md_text.split()),
+        'nbr_of_words': len(md_text.splitlines()),
+        'content': md_text
         # Add country for legal separation # TODO
     }
     return metadata_dict
@@ -109,7 +96,6 @@ def html_to_markdown(html_content):
     markdown_text = text_maker.handle(html_content)
     print(markdown_text)
     return markdown_text
-
 
 def fetch_page_and_metadata(start_url, out_folder):
 
@@ -184,7 +170,8 @@ def get_internal_links(soup, page_name):
 # Example: Fetch and process a Wikipedia-style page
 start_url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=20&offset=0"
 start_urls = 'https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2000&offset=0'  # Showing below up to 1,251 results in range #1 to #1,251.
-out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org"
+pop_pages_url = "https://defensewiki.ibj.org/index.php?title=Special:PopularPages
+"out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org"
 os.makedirs(out_folder, exist_ok=True)
 fetch_page_and_metadata(start_url, out_folder)
 chile_url = "https://defensewiki.ibj.org/index.php?title=Chile/es"
