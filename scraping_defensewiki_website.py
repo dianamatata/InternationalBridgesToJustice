@@ -79,26 +79,6 @@ def define_page_name(link):
     page_name = unicodedata.normalize('NFKD', page_name).encode('ASCII', 'ignore').decode()
     return page_name
 
-def metadata_in_dict(metadata_dict, response,soup, link, filename):
-    md_text = md(response.text)
-
-    metadata_dict[link] = {
-        'link': link,
-        'title': define_page_name(link),
-        'extracted': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'hash': generate_hash(str(soup)),
-        'last-edited': get_last_edited_date(soup),
-        'language': detect(soup.get_text()),
-        'viewcount': soup.find('li', {'id': 'viewcount'}),
-        'type': "defensewiki_doc",
-        'full_path': filename,
-        'nbr_of_lines': len(md_text.split()),
-        'nbr_of_words': len(md_text.splitlines()),
-        'content': md_text
-        # Add country for legal separation # TODO
-    }
-    return metadata_dict
-
 def extract_webpage_html_from_url(url):
     response = requests.get(url) # Fetch the html of page in soup
     response.raise_for_status()  # Raise an error for failed requests
@@ -120,30 +100,6 @@ def save_file(filename, content, file_type="json"):
     except Exception as e:
         print(f"Error saving file {filename}: {e}")
 
-def build_link_tree(url, depth=2, visited=None, base_url="https://defensewiki.ibj.org"):
-    """Recursively builds a tree of links up to a certain depth."""
-
-    if visited is None:
-        visited = set()
-
-    if depth == 0 or url in visited:
-        return {}
-
-    visited.add(url)
-    links = get_links(url)
-
-    tree = {url: {}}
-
-    for link_i in links:
-        link_type = "internal" if link_i.startswith(base_url) else "external"
-        tree[url][link_i] = {"type": link_type,
-                             "status": get_link_status(link_i),
-                             }
-        if depth > 1:
-            subtree = build_link_tree(link_i, depth - 1, visited)
-            tree[url][link_i]["subtree"] = subtree
-
-    return tree
 
 def build_complex_link_tree(url, depth=1, visited=None, base_url="https://defensewiki.ibj.org",
                             out_folder="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"):
@@ -206,44 +162,103 @@ def remove_content_field(tree):
         for item in tree:
             remove_content_field(item)  # Recurse into lists
 
-# Example usage get all the links from the defensewiki(refs,and all)
-link_tree = build_link_tree("https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3", depth=2)
-print(f"\033[92m{json.dumps(link_tree, indent=4)}\033[0m")  # green color
 
-# Example usage to map defense wiki
+def link_exists_in_tree(link_tree, target_link):
+    tree_str = json.dumps(link_tree, ensure_ascii=False) # Convert the tree to a string
+    return target_link in tree_str # Check if the target link exists in the string representation of the tree
+
+
+def build_link_tree_3(url, depth=1, visited=None, base_url="https://defensewiki.ibj.org",
+                      out_folder="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"):
+    """Recursively builds a tree of links up to a certain depth."""
+
+    if visited is None:
+        visited = set()
+
+    if depth == 0 or url in visited:
+        return {}, visited
+
+    visited.add(url)
+    links = get_links(url)
+    tree = {url: {}}
+
+    for link_i in links:
+        if link_i in visited:  # Skip if already visited
+            print(f"Skipping already present link: {link_i}")
+            continue
+        print(f"Processing: {link_i}")
+
+        link_type = "internal" if link_i.startswith(base_url) else "external"
+        link_status = get_link_status(link_i)
+        tree[url][link_i] = {"type": link_type, "status": link_status}
+
+        if depth > 1:
+            subtree, visited = build_link_tree_3(link_i, depth - 1, visited, base_url, out_folder)
+            tree[url][link_i]["subtree"] = subtree
+
+    return tree, visited
+
+
+
+
+# MAIN --------------------------------------
+out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
+
+# Example usage get all the links from the defensewiki(refs,and all)
+# tree_links_validity define already
+start_time = time.time()
+tree_links_validity = build_link_tree_3("https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3", depth=2, tree=tree_links_validity)
+elapsed_time = time.time() - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
+print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
+
+
+
+# Get all the links from the defensewiki(refs,and all) ----------------------------
+
+# with open(f"{out_folder}/defensewiki1_functional_outdated_links.json", "r") as f:
+#     tree = json.load(f)
+# print(f"\033[93m{json.dumps(tree, indent=4)}\033[0m")  # yellow color
+
+# first iteration
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=5&offset=0"
+tree_links_validity, visited_links = build_link_tree_3(url, visited=None, depth=2)
+
+# second iteration:
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=20&offset=0"
+start_time = time.time()
+tree_links_validity2, visited_links2 = build_link_tree_3(url, visited=visited_links, depth=2)
+elapsed_time = time.time() - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
+
+# save tree
+print(f"\033[92m{json.dumps(tree_links_validity2, indent=4)}\033[0m")  # green color
+save_file(f"{out_folder}/defensewiki1_functional_outdated_links_2.json", tree_links_validity2, file_type="json")
+
+# save visited links
+with open(f"{out_folder}/defensewiki1_visited_links.txt", "w") as file:
+    file.write("\n".join(visited_links))
+
+
+
+# Example usage to map defense wiki -----------------------------
+
 link_tree_defensewiki_test = build_complex_link_tree("https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3", depth=1)
-print(f"\033[92m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")  # green color
+print(f"\033[92m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")
 out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
 save_file(f"{out_folder}/link_tree_defensewiki.json", link_tree_defensewiki_test, file_type="json")
 remove_content_field(link_tree_defensewiki_test)
-print(f"\033[93m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")  # green color
+print(f"\033[93m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")
 save_file(f"{out_folder}/link_tree_defensewiki1.json", link_tree_defensewiki_test, file_type="json")
 
 
 
-# MAP ALL defensewiki
+# MAP ALL defensewiki -----------------------------
 
 link_tree_defensewiki = build_complex_link_tree("https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0", depth=1)
-out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
 save_file(f"{out_folder}/defensewiki_all.json", link_tree_defensewiki, file_type="json")
 remove_content_field(link_tree_defensewiki)
 save_file(f"{out_folder}/defensewiki1_no_content.json", link_tree_defensewiki, file_type="json")
 
 
 
-# Main ------------
-
-root_url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=5&offset=0"
-root_url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1&offset=15"  # only one entry
-
-start_time = time.time()
-link_tree = build_link_tree(root_url, depth=2)
-print(f"\033[92m ✅ Saved Tree \033[0m")  # Green color
-elapsed_time = time.time() - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-
-# TODO visit all the websites level0 get md direct,level1 get md if text, get pdf to markdown otherwise,  check if website exists, download files + metadata, check if file exists
-
-link = 'https://defensewiki.ibj.org/index.php?title=Chile/es'
-build_link_tree(link, 1, visited=None)
