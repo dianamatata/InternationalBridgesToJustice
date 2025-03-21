@@ -20,3 +20,17 @@ Additionally, this project will lay the foundation for the future development of
 6. Pick a LLM good a verifying claims
 7. Verify facts with a LLM comparing them to ground truth
 8. RAG
+
+
+## Repository overview
+
+### 1. [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
+Scrap the Defense Wiki and save content and metadata in a json file
+
+*TODO: check links that are working and outdated*
+
+### 2. [ibj_statistics.py](ibj_statistics.py)
+Run statistics on the data extracted on the DefenseWiki website
+
+### 3. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
+Extract content from pdf files to markdown and save them with metadata for ground truth

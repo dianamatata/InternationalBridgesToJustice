@@ -91,6 +91,8 @@ plt.title('Language Distribution')
 plt.xlabel('Language')
 plt.ylabel('Count')
 ax.set_xticklabels([lang_map.get(lang, lang) for lang in summary_defensewiki['Language'].unique()], rotation=45)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
 plt.subplots_adjust(bottom=0.3)
 plt.yscale('log')
 plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Languages.png"), dpi=300)
@@ -111,19 +113,6 @@ plt.show()
 
 
 
-
-summary_defensewiki_sorted = summary_defensewiki.sort_values(by="Viewcount", ascending=False).head(50)
-plt.figure(figsize=(20, 20))
-palette = sns.color_palette("husl", n_colors=30)
-sns.barplot(x="Viewcount", y="Title", data=summary_defensewiki_sorted,
-            label="Viewcount", color="b")
-plt.subplots_adjust(left=0.4)
-plt.xticks(rotation=90)
-plt.title('Pages sorted by Viewcount')
-plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Viewcounts.png"), dpi=300)
-plt.show()
-
-
 # Plot nbr_of_lines ----------------------
 summary_defensewiki_sorted_lines = summary_defensewiki.sort_values(by="nbr_of_lines", ascending=False).head(50)
 plt.figure(figsize=(20, 18))
@@ -133,8 +122,8 @@ sns.barplot(y="nbr_of_lines", x="Title", data=summary_defensewiki_sorted_lines,
 plt.subplots_adjust(bottom=0.4)
 plt.xticks(rotation=90)
 plt.title('Pages sorted by Number of Lines')
-plt.show()
 plt.savefig(os.path.join(dir_plots, "plot_defensewiki_nbr_of_lines.png"), dpi=300)
+plt.show()
 
 
 # https://defensewiki.ibj.org/index.php?title=Code_de_Proc%C3%A9dure_P%C3%A9nale_du_B%C3%A9nin_(B%C3%A9nin_Criminal_Procedure_Code)
