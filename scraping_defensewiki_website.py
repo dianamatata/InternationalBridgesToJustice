@@ -1,13 +1,19 @@
 # This scripts build a tree of the links with depth =2 in the https://defensewiki.ibj.org/
 # and checks the quality of the links
 
-import requests
-from bs4 import BeautifulSoup
-import json
+
 import time
+import re # handles text
+import requests # get url info
+from bs4 import BeautifulSoup
+import hashlib # get hash
 from datetime import datetime
-from markdownify import markdownify as md # markdownify: Handles more complex HTML structures, better at preserving formatting.
 from langdetect import detect # detect language
+from urllib.parse import unquote # text formating
+import unicodedata # text formating
+import json # save in json files
+from markdownify import markdownify as md # markdownify: Handles more complex HTML structures, better at preserving formatting.
+
 
 
 def get_link_status(url):
@@ -138,8 +144,8 @@ def build_complex_link_tree(url, depth=1, visited=None, base_url="https://defens
                                  'viewcount': viewcount,
                                  'type': "defensewiki_doc",
                                  'full_path': filename,
-                                 'nbr_of_lines': len(md_text.split()),
-                                 'nbr_of_words': len(md_text.splitlines()),
+                                 'nbr_of_words': len(md_text.split()),
+                                 'nbr_of_lines': len(md_text.splitlines()),
                                  'content': md_text
                                  }
 

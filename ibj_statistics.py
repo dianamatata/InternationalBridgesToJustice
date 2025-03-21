@@ -21,23 +21,23 @@ def extract_info(link_tree_defensewiki):
     global language_counts
     if isinstance(link_tree_defensewiki, dict):
         for key, value_dict in link_tree_defensewiki.items():
-            print(key)
             if isinstance(value_dict, dict):
                 for key, value in value_dict.items():
-                    print(key)
                     if isinstance(value, dict):
-                        print(value["viewcount"])
                         if type(value["viewcount"]) is not str:
                             viewcount = float('nan')
                         else:
                             match = re.search(r"(\d[\d,]*)", value["viewcount"])
                             viewcount = int(match.group(1).replace(",", "")) if match else 0
-                        data_list.append([value['title'], value['language'], value['nbr_of_lines'],value['nbr_of_words'],viewcount])
+                        data_list.append([value['title'], value['language'], value['nbr_of_lines'],value['nbr_of_words'],viewcount]) # to know it has been swapped nbr of lines and nbr of words
 
         # Create DataFrame
-        df = pd.DataFrame(data_list, columns=["Title", "Language", "Viewcount", "nbr_of_lines", "nbr_of_words"])
+        df = pd.DataFrame(data_list, columns=["Title", "Language", "nbr_of_words", "nbr_of_lines","Viewcount"])
         df.set_index("Title", inplace=True)  # Set Title as index
         return df
+
+# TODO it hasn't been annotated well, rerun the scraping_file? or replace strings ...
+
 
 
 dir_plots = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Plots"
@@ -107,6 +107,7 @@ sns.barplot(y="Viewcount", x="Title", data=summary_defensewiki_sorted,
             label="Viewcount", color="b")
 plt.subplots_adjust(bottom=0.4)
 plt.xticks(rotation=90)
+plt.yscale('log')
 plt.title('Pages sorted by Viewcount')
 plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Viewcounts.png"), dpi=300)
 plt.show()
