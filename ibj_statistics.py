@@ -47,11 +47,11 @@ with open("/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_
 
 summary_defensewiki = extract_info(link_tree_defensewiki)
 summary_defensewiki = summary_defensewiki.reset_index() # [1252 rows x 5 columns]
-summary_defensewiki.to_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/summary_defensewiki.csv', index=False)
+summary_defensewiki.to_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Data/summary_defensewiki.csv', index=False)
 
 
 # load and stats
-summary_defensewiki = pd.read_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/summary_defensewiki.csv')
+summary_defensewiki = pd.read_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Data/summary_defensewiki.csv')
 
 # Sort languages by decreasing count
 summary_defensewiki['Language'].value_counts()
