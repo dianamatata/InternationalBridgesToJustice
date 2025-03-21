@@ -4,36 +4,21 @@
 # number of links, functional or not: how well documented is the page #TODO
 # count how represented are languages across pages  - in metadata
 
-# TODOLIST
-
-# 1: scrape all IBJ:
-     # 0: check if link working or not?
-# 2: plot statistics
-
 import json
 import re
+import os
 from collections import defaultdict
 import pandas as pd
-import seaborn as sns
+import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
+import seaborn as sns
+print(matplotlib.get_backend()) # module://backend_interagg
 
 
-# Load JSON file
-with open("/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json/defensewiki1_no_content.json", "r") as f:
-    link_tree_defensewiki = json.load(f)
-
-# Initialize counters
 language_counts = defaultdict(int)
-total_views = 0
-page_counts = 0
-viewcounts = []
-
-# Recursive function to extract data
-
 def extract_info(link_tree_defensewiki):
     data_list = []
-    global total_views, page_counts, language_counts,viewcounts
+    global language_counts
     if isinstance(link_tree_defensewiki, dict):
         for key, value_dict in link_tree_defensewiki.items():
             print(key)
@@ -55,85 +40,124 @@ def extract_info(link_tree_defensewiki):
         return df
 
 
+dir_plots = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Plots"
+# Load JSON file
+with open("/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json/defensewiki1_no_content.json", "r") as f:
+    link_tree_defensewiki = json.load(f)
+
 summary_defensewiki = extract_info(link_tree_defensewiki)
-
-summary_defensewiki['Language'].value_counts()
-
+summary_defensewiki = summary_defensewiki.reset_index() # [1252 rows x 5 columns]
 summary_defensewiki.to_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/summary_defensewiki.csv', index=False)
 
-# Language
-# en       925
-# es       163
-# fr       115
-# ru        24
-# ar        10
-# zh-cn      7
-# pt         4
-# ko         1
-# it         1
-# fa         1
-# vi         1
 
-# es – Spanish
-# fr – French
-# ru – Russian
-# ar – Arabic
-# zh-cn – Chinese (Simplified)
-# pt – Portuguese
-# ko – Korean
-# it – Italian
-# fa – Persian (Farsi)
-# vi – Vietnamese
-import matplotlib
-matplotlib.use('Qt5Agg')  # Switch to Qt5Agg backend after installing PyQt5 or PySide2
-import matplotlib.pyplot as plt
-import seaborn as sns
+# load and stats
+summary_defensewiki = pd.read_csv('/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/summary_defensewiki.csv')
 
-plt.show()
+# Sort languages by decreasing count
+summary_defensewiki['Language'].value_counts()
+language_counts = summary_defensewiki['Language'].value_counts().reset_index()
+language_counts.columns = ['Language', 'Count']
 
-# Set up the plot with a clear size
+lang_map = {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "ru": "Russian",
+    "ar": "Arabic",
+    "zh-cn": "Chinese (Simplified)",
+    "pt": "Portuguese",
+    "ko": "Korean",
+    "it": "Italian",
+    "fa": "Persian (Farsi)",
+    "vi": "Vietnamese"
+}
+
+# Plot languages ----------------------
 plt.figure(figsize=(10, 6))
-sns.countplot(x='Language', data=summary_defensewiki, palette="Set2", hue='Viewcount')
+palette = sns.color_palette("husl", n_colors= 12 ) # len(language_counts['Language'])
+ax = sns.barplot(
+    x='Language', y='Count', data=language_counts,
+    palette=palette, order=language_counts['Language'], hue='Language')
+
+for i, count in enumerate(language_counts['Count']):
+    ax.annotate(
+        format(count, ','),  # Format count with commas
+        (i, count),  # Use index position for x-axis
+        ha='center', va='bottom',
+        fontsize=10
+    )
+
 plt.title('Language Distribution')
 plt.xlabel('Language')
 plt.ylabel('Count')
-# Rotate the x-axis labels for better readability if needed
-plt.xticks(rotation=45)
-# Display the plot
+ax.set_xticklabels([lang_map.get(lang, lang) for lang in summary_defensewiki['Language'].unique()], rotation=45)
+plt.subplots_adjust(bottom=0.3)
+plt.yscale('log')
+plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Languages.png"), dpi=300)
+plt.show()
+
+
+# Plot Viewcount ----------------------
+summary_defensewiki_sorted = summary_defensewiki.sort_values(by="Viewcount", ascending=False).head(50)
+plt.figure(figsize=(20, 18))
+palette = sns.color_palette("husl", n_colors=30)
+sns.barplot(y="Viewcount", x="Title", data=summary_defensewiki_sorted,
+            label="Viewcount", color="b")
+plt.subplots_adjust(bottom=0.4)
+plt.xticks(rotation=90)
+plt.title('Pages sorted by Viewcount')
+plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Viewcounts.png"), dpi=300)
 plt.show()
 
 
 
-sns.set_color_codes("pastel")
-plt = sns.barplot(x="Viewcount", y="Title", data=summary_defensewiki,
-            label="Title", color="b")            # Recurse into nested structures
+
+summary_defensewiki_sorted = summary_defensewiki.sort_values(by="Viewcount", ascending=False).head(50)
+plt.figure(figsize=(20, 20))
+palette = sns.color_palette("husl", n_colors=30)
+sns.barplot(x="Viewcount", y="Title", data=summary_defensewiki_sorted,
+            label="Viewcount", color="b")
+plt.subplots_adjust(left=0.4)
+plt.xticks(rotation=90)
+plt.title('Pages sorted by Viewcount')
+plt.savefig(os.path.join(dir_plots, "plot_defensewiki_Viewcounts.png"), dpi=300)
 plt.show()
 
-# print 10 first items
-print(json.dumps(dict(list(link_tree_defensewiki.items())[:1]), indent=4))
+
+# Plot nbr_of_lines ----------------------
+summary_defensewiki_sorted_lines = summary_defensewiki.sort_values(by="nbr_of_lines", ascending=False).head(50)
+plt.figure(figsize=(20, 18))
+palette = sns.color_palette("husl", n_colors=30)
+sns.barplot(y="nbr_of_lines", x="Title", data=summary_defensewiki_sorted_lines,
+            label="nbr_of_lines", color="b")
+plt.subplots_adjust(bottom=0.4)
+plt.xticks(rotation=90)
+plt.title('Pages sorted by Number of Lines')
+plt.show()
+plt.savefig(os.path.join(dir_plots, "plot_defensewiki_nbr_of_lines.png"), dpi=300)
+
+
+# https://defensewiki.ibj.org/index.php?title=Code_de_Proc%C3%A9dure_P%C3%A9nale_du_B%C3%A9nin_(B%C3%A9nin_Criminal_Procedure_Code)
+
+# TODO: check why nbr of words do not work and we have NaNs
 
 
 
-print(f"\033[93m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")  # green color
 
-# Run the function
-extract_info(link_tree_defensewiki_test)
+# # print 10 first items
+# print(json.dumps(dict(list(link_tree_defensewiki.items())[:1]), indent=4))
+#
+# print(f"\033[93m{json.dumps(link_tree_defensewiki, indent=4)}\033[0m")  # green color
+#
+# # Run the function
+# extract_info(link_tree_defensewiki)
 
 
-# Compute statistics
-avg_views = total_views / page_counts if page_counts > 0 else 0
-
-# Print results
-print(f"Total Pages: {page_counts}")
-print(f"Total Views: {total_views}")
-print(f"Average Views per Page: {avg_views:.2f}")
-print("Language Distribution:", dict(language_counts))
-
-url="https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0"
 # key = "https://defensewiki.ibj.org/index.php?title=Core_Value_8:_Uses_proportionality_and_reflects_the_goals_of_reformation_and_rehabilitation/es"
 # value_dict = link_tree_defensewiki[url][key]
+#
+# # Keep summary_defensewiki and clear all other variables
+# for name in list(globals().keys()):
+#     if name != 'summary_defensewiki':
+#         del globals()[name]
 
-# Keep summary_defensewiki and clear all other variables
-for name in list(globals().keys()):
-    if name != 'summary_defensewiki':
-        del globals()[name]
