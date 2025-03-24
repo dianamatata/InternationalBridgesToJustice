@@ -153,7 +153,7 @@ def build_complex_link_tree(url, depth=1, visited=None, base_url="https://defens
             tree[url][link_i] = {"type": link_type,
                                  "status": get_link_status(link_i)}
         if depth > 1:
-            subtree = build_link_tree(link_i, depth - 1, visited)
+            subtree = build_complex_link_tree(link_i, depth - 1, visited)
             tree[url][link_i]["subtree"] = subtree
 
     return tree
