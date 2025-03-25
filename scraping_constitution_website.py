@@ -36,6 +36,8 @@ for country_year, link in list(country_links.items())[:10]:
 
         with open(f"{out_folder}/{country_year}.md", "w") as file:
             file.write(cleaned_md_text)
+# TODO: I forgot to add all the metadata for the constitutions!
+# TODO: do we want to save the metadatata and content in json format?
 
 
 # ---------

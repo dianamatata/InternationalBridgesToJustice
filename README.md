@@ -32,5 +32,8 @@ Scrap the Defense Wiki and save content and metadata in a json file
 ### 2. [ibj_statistics.py](ibj_statistics.py)
 Run statistics on the data extracted on the DefenseWiki website
 
-### 3. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
+### 3. [scraping_constitution_website.py](scraping_constitution_website.py)
+
+### 4. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
 Extract content from pdf files to markdown and save them with metadata for ground truth
+
