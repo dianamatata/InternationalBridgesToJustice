@@ -2,9 +2,18 @@
 
 import os
 import json
-from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader # TODO: uninstall
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
+
+# ¨!!!!!!! recommendation: better than PyPDFDirectoryLoader
+from langchain_pymupdf4llm import PyMuPDF4LLMLoader, PyMuPDF4LLMParser
+
+
+loader = PyMuPDF4LLMLoader("example.pdf")
+docs = loader.load()
+print(docs[0].page_content)  # Extracted text
+
 
 def load_documents(DATA_PATH):
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
