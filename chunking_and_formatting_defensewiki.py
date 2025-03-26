@@ -38,6 +38,8 @@ for page in range(1, len(defense_wiki_all)):
 
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 
+import re
+
 # 1 - Create chunk class
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
@@ -59,36 +61,6 @@ class Chunk:
         return f"Title: {self.title}\nContent: {self.content[:100]}..."  # Shows the first 100 characters of content
         # Title: Chapter 1: Introduction
         # Content: This is the introduction content of the chapter....
-
-# Example of usage
-header_line = "Chapter 1: Introduction"
-processed_chunk_text = "This is the introduction content of the chapter."
-current_chapters = ["Chapter 1"]
-
-chunk = Chunk(
-    title=header_line,
-    content=processed_chunk_text,
-    mime_type="text/markdown",
-    metadata={"chapters": current_chapters.copy()},
-)
-
-# Print chunk to see output
-print(chunk)
-
-
-# 2 - Create chunking function
-import re
-with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
-    defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
-
-    document = defense_wiki_all[1]["content"] # Singapore
-
-
-
-
-chunks: list[Chunk] = []
-current_chapters: list[str] = []
-markdown = document
 
 def normalize_newlines(text: str) -> str:
     """normalize_newlines removes single newlines within paragraphs while preserving paragraph breaks."""
@@ -117,64 +89,36 @@ def extract_chapters(document):
     matches = list(header_pattern.finditer(document))
 
     for i, match in enumerate(matches):
-        print(f"\033[93m{i}:{match}\033[0m")  # green color
+        # print(f"\033[93m{i}:{match}\033[0m")
 
         if i == len(matches) - 1:
             end_idx = len(markdown)
         else:
             end_idx = matches[i + 1].start()
-        print(end_idx)
 
         length_paragraph = end_idx - matches[i].end() - 2
         if length_paragraph > 5:  # if it is a real paragraph
             start_idx = match.start()
-            print(f"\033[92m{match.start()}:{end_idx}\033[0m")  # green color
+            # print(f"\033[92m{match.start()}:{end_idx}\033[0m")
             chunk_text = markdown[match.start():end_idx]
             header_text = match.group(1) or match.group(2) or match.group(3)
             if header_text.strip() not in headers_to_exclude_from_chunks:
                 document_sections[header_text.strip()] = chunk_text
-                print(chunk_text[1:100])
+                # print(chunk_text[1:100])
 
     return document_sections
 
-
-#processed_text = normalize_newlines(document)
-document_sections = extract_chapters(document)
-
-# TODO: check chunk size, if it is + than threshold, chunk into smaller chunk
-# TODO inherit metadata
-
-document_sections['HISTORICAL CONTEXT']
-
-max_chunk_size = 1500
-separators=["\n\n"]  # Splits by paragraphs
-
-text = normalize_newlines(document_sections['HISTORICAL CONTEXT'])
-
-
-# -------
-text = normalize_newlines(document_sections['HISTORICAL CONTEXT'])
-
-len(chunk_text) #  3340
-separator="\n\n"
-paragraphs = text.split(separator)
-chunks = []
-current_chunk = ""
-
-
-# cut this in paragraphs
-def split_text_into_chunks(text, max_chunk_size=1500, separator="\n\n"):
+def split_text_into_chunks(text, parent_dict, max_chunk_size=1500, separator="\n\n"):
     # Split the text by paragraphs
     paragraphs = text.split(separator)
     chunks = []
     current_chunk = ""
 
     for para in paragraphs:
-        print(para)
         # If adding the paragraph exceeds the max_chunk_size, create a new chunk
         if len(current_chunk) + len(para) + len(separator) > max_chunk_size:
-            chunks.append(current_chunk.strip())
-            current_chunk = para
+            chunks.append(current_chunk.strip()) # add current chunk
+            current_chunk = para # update new chunk with para
         else:
             if current_chunk:  # Add separator between paragraphs if chunk is not empty
                 current_chunk += separator
@@ -182,25 +126,74 @@ def split_text_into_chunks(text, max_chunk_size=1500, separator="\n\n"):
 
     if current_chunk:  # Add any remaining chunk
         chunks.append(current_chunk.strip())
-        # TODO: get rid of empty paragraphs!!
-        # TODO: why text = normalize_newlines(document_sections['HISTORICAL CONTEXT']) do not work
-        # TODO: metadata handling
-        # TODO save in jsonl
 
     return chunks
 
 
+# MAIN --------------------
 
-# Example usage:
-sections = split_text(chunk_text, max_chunk_size)
-for i, section in enumerate(sections):
-    print(f"Section {i+1}: {len(section)} chars\n{section}\n{'-'*50}")
+MAX_CHUNK_SIZE = 700
+
+# 2 - Create chunking function
+with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
+    defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
+    keys = defense_wiki_all[1].keys()
+    document = defense_wiki_all[1]["content"] # Singapore
+
+
+document_sections = extract_chapters(document)
+text = document_sections['HISTORICAL CONTEXT']
+parent_dict = defense_wiki_all[1]
+
+# chunks = split_text_into_chunks(text, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n")
+chunks = []
+for section in document_sections:
+    new_chunks = split_text_into_chunks(document_sections[section], max_chunk_size=700, separator="\n\n")
+    chunks.extend(new_chunks)
+
+chunk = Chunk(
+    title=header_line,
+    content=processed_chunk_text,
+    mime_type="text/markdown",
+    metadata={"chapters": current_chapters.copy()},
+)
+# TODO: why text = normalize_newlines(document_sections['HISTORICAL CONTEXT']) do not work
+# TODO save in jsonl
+# TODO inherit metadata
 
 
 
 
-# put all the content in one huge chunk. we would expect to break it into paragraphs
 
+
+
+
+
+
+
+
+
+
+# Example of usage
+header_line = "Chapter 1: Introduction"
+processed_chunk_text = "This is the introduction content of the chapter."
+current_chapters = ["Chapter 1"]
+
+chunk = Chunk(
+    title=header_line,
+    content=processed_chunk_text,
+    mime_type="text/markdown",
+    metadata={"chapters": current_chapters.copy()},
+)
+
+# Print chunk to see output
+print(chunk)
+
+
+
+
+
+# --------
 if not matches:
     processed_text = normalize_newlines(markdown)
     chunk = Chunk(title="", content=processed_text, mime_type="text/markdown", metadata={"chapters": []})
