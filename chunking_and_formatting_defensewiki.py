@@ -2,7 +2,7 @@
 
 import re
 import json # save in json files
-MAX_CHUNK_SIZE = 700
+MAX_CHUNK_SIZE = 500
 
 # FUNCTIONS --------------------
 
@@ -87,7 +87,9 @@ def split_text_into_chunks(text, section, parent_dict, max_chunk_size=MAX_CHUNK_
 
     for para in paragraphs:
         # If adding the paragraph exceeds the max_chunk_size, create a new chunk
-        if len(current_chunk) + len(para) + len(separator) > max_chunk_size:
+        # if we want the character count: if len(current_chunk) + len(para) + len(separator) > max_chunk_size:
+        # if we want word count:
+        if len(current_chunk.split()) + len(para.split()) + len(separator) > max_chunk_size:
             add_chunk()
         else:
             if current_chunk:  # Add separator between paragraphs if chunk is not empty
@@ -137,4 +139,11 @@ with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
 
 
 # TODO: check if we have cases with no matches and cut in chunks
-
+# debug
+page=1
+section="HISTORICAL CONTEXT"
+text = document_sections[section]
+paragraphs = text.split("\n\n")
+para = paragraphs[1]
+separator="\n\n"
+# we check and around 500 words in veriscore chunks
