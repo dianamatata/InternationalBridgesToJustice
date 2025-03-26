@@ -1,48 +1,10 @@
-# >>> - Transform the json file in jsonl file
-
-import json # save in json files
-input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
-
-# 1 - Load JSON
-with open(input_data, "r", encoding="utf-8") as json_file:
-    data = json.load(json_file)
-
-records = data["https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0"]
-
-# 2 - Write each dictionary as a new line in JSONL format
-with open(f"{input_data}l", "w", encoding="utf-8") as jsonl_file:
-    for record in records:
-        jsonl_file.write(json.dumps(records[record]) + "\n")
-
-# 3 - Read JSONL file line by line
-with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
-    defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
-
-# 4 - Now `data1` is a list of dictionaries
-print(len(defense_wiki_all))  # Should print 1252 if correctly processed
-print(f"{json.dumps(defense_wiki_all[0], indent=4)}")
-
-# 5 - Loop over Defensewiki to extract all the pages as markdown
-path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/defensewiki.ibj.org"
-
-with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
-    defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
-
-for page in range(1, len(defense_wiki_all)):
-    title_value = defense_wiki_all[page]["title"]
-    filename = f"{path}/{title_value}.md"
-    with open(filename, "w", encoding="utf-8") as file:
-        file.write(defense_wiki_all[page]["content"])
-
-
-
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 
 import re
 import json # save in json files
 MAX_CHUNK_SIZE = 700
 
-# 1 - Create chunk class
+# FUNCTIONS --------------------
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
@@ -62,12 +24,6 @@ class Chunk:
         return f"Title: {self.title}\nContent: {self.content[:100]}..."  # Shows the first 100 characters of content
         # Title: Chapter 1: Introduction
         # Content: This is the introduction content of the chapter....
-
-def normalize_newlines(text: str) -> str:
-    """normalize_newlines removes single newlines within paragraphs while preserving paragraph breaks."""
-    paragraphs = text.split("\n\n")
-    processed_paragraphs = [para.replace("\n", " ") for para in paragraphs]
-    return "\n\n".join(processed_paragraphs)
 
 def extract_chapters(document):
 
@@ -143,11 +99,13 @@ def split_text_into_chunks(text, section, parent_dict, max_chunk_size=MAX_CHUNK_
     return chunks
 
 
+# FOLDERS --------------------
+
+input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
+path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
+
 # MAIN --------------------
 
-
-# 2 - Create chunking function
-input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
 with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
     keys = defense_wiki_all[1].keys()
@@ -167,7 +125,6 @@ with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
             chunks.extend(new_chunks)
 
 # Save chunks with metadata of all defense wiki
-path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
 
 with open(f"{path}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
     for chunk in chunks:
@@ -179,51 +136,5 @@ with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
         json_file.write(json.dumps(chunk.__dict__) + "\n")
 
 
-
-# ext = document_sections[section]
-# chunks = split_text_into_chunks(text, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n")
-# for section in list(document_sections.keys())[0:3]:
-
-
-
-
-# TODO save in jsonl
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Example of usage
-header_line = "Chapter 1: Introduction"
-processed_chunk_text = "This is the introduction content of the chapter."
-current_chapters = ["Chapter 1"]
-
-chunk = Chunk(
-    title=header_line,
-    content=processed_chunk_text,
-    metadata={"chapters": current_chapters.copy()},
-)
-
-# Print chunk to see output
-print(chunk)
-
-
-
-
-
-# --------
-if not matches:
-    processed_text = normalize_newlines(markdown)
-    chunk = Chunk(title="", content=processed_text, mime_type="text/markdown", metadata={"chapters": []})
-    # TODO : cut the chunks, should we look at paragraphs? otherwise arbitrary chunking?
-    return [chunk]
+# TODO: check if we have cases with no matches and cut in chunks
 
