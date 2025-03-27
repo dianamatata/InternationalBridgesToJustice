@@ -1,6 +1,6 @@
 # >>> - Transform the json file in jsonl file
 
-import json # save in json files
+import json
 input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
 
 # 1 - Load JSON
