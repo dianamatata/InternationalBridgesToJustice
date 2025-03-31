@@ -33,7 +33,7 @@ for title in data_title_list[5:15]:
 claim_extractor = ClaimExtractor(model_name, cache_dir, use_external_model = False)
 
 with open(output_file, "a") as f: # a appends, w overwrites
-    for dict_item in tqdm(data[5:15]):
+    for dict_item in tqdm(data[15:52]): # 5:52
         print(dict_item["title"])
         response = dict_item['content']
         prompt_source = dict_item['title']
@@ -59,7 +59,7 @@ print(f"extracted claims are saved at {output_file}")
 # read claims
 with open(f"{output_file}", "r", encoding="utf-8") as jsonl_file:
     data_out = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
-
+# len(data_out) 47: from 5 to 52
 # data_out[0]['claim_list']
 # data_out[0]['all_claims']
 
@@ -69,14 +69,23 @@ with open('./test_veriscore/output/claims_chunks.json', "w", encoding="utf-8") a
 
 
 # Open the output file where you want to save the text
-with open("./test_veriscore/output/output_responses.txt", "w", encoding="utf-8") as txt_file:
+with open("./test_veriscore/output/output_responses.txt", "w", encoding="utf-8") as response_file, \
+        open("./test_veriscore/output/output_all_claims.txt", "w", encoding="utf-8") as claims_file:
     for i in range(15):  # Iterate over the first 15 entries
         if i < len(data_out):  # Ensure the index is within the available range
-            # Get the response, strip any extra spaces, and add double newlines between paragraphs
-            response = data_out[i]["response"].strip()
-            txt_file.write(response + "\n\n")  # Write the response followed by two newlines
 
-print("Responses saved to 'output_responses.txt'")
+            # Get and write the response
+            response_file.write(f"Entry {i + 1}:\n")
+            response = data_out[i]["response"].strip()
+            response_file.write(response + "\n\n")  # Write the response followed by two newlines
+
+            # Get and write all_claims
+            all_claims = data_out[i]["all_claims"]
+            claims_file.write(f"Entry {i + 1}:\n")
+            claims_file.write(
+                "\n".join(all_claims) + "\n\n")  # Write each claim on a new line, separate entries with double newlines
+
+print("Responses saved to 'output_responses.txt' and claims saved to 'output_all_claims.txt'.")
 
 # dict_keys(['prompt_source', 'response', 'prompt_tok_cnt', 'response_tok_cnt', 'model', 'abstained', 'claim_list', 'all_claim_lst', 'claim_search_results', 'claim_verification_result'])
 
