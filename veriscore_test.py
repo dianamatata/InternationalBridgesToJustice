@@ -30,7 +30,7 @@ data_title_list = [entry["title"] for entry in data]
 for title in data_title_list[5:15]:
     print(title)
 
-claim_extractor = ClaimExtractor(model_name, cache_dir, use_external_model = False)
+claim_extractor = ClaimExtractor(model_name=model_name, cache_dir=cache_dir, use_external_model=False)
 
 with open(output_file, "a") as f: # a appends, w overwrites
     for dict_item in tqdm(data[15:52]): # 5:52
