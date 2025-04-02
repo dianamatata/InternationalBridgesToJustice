@@ -41,7 +41,7 @@ for country_year, link in list(country_links.items())[10:]:
         # re.MULTILINE → Ensures the regex applies to each line separately.
 
         file_info = {"link": link,
-                    "country": country_year.split("_")[0],
+                    "country": '_'.join(country_year.split("_")[:-1]),
                     "year": country_year.split("_")[1],
                     "path": f"{out_folder}/{country_year}.md",
                     "filename": f"{country_year}.md",
