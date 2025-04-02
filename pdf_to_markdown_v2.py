@@ -2,17 +2,12 @@
 
 import os
 import json
-from langchain_community.document_loaders import PyPDFDirectoryLoader # TODO: uninstall
+from langchain_community.document_loaders import PyPDFDirectoryLoader  # TODO: uninstall
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 
-# ¨!!!!!!! recommendation: better than PyPDFDirectoryLoader
+# ¨!!!!!!! recommendation SDSC: better than PyPDFDirectoryLoader
 from langchain_pymupdf4llm import PyMuPDF4LLMLoader, PyMuPDF4LLMParser
-
-
-loader = PyMuPDF4LLMLoader("example.pdf")
-docs = loader.load()
-print(docs[0].page_content)  # Extracted text
 
 
 def load_documents(DATA_PATH):
@@ -21,9 +16,9 @@ def load_documents(DATA_PATH):
 
 
 # 1. Load the PDF
-# legal_pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/raw_pdfs"
-legal_pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/raw_pdfs_2pages"
-output_doc_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
+# pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/raw_pdfs"
+legal_pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/legal_countries_docs_pdfs_2pages"
+output_doc_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/legal_countries_docs"
 
 
 # Print the list of PDFs
@@ -35,6 +30,54 @@ documents = load_documents(legal_pdf_path)
 
 full_content = ""
 metadata = []
+
+doc = documents[0]
+# get doc.page_content
+# chunking
+# put in jsonl with metadata
+# chunks inherit info from page
+
+file = f"{legal_pdf_path}/{pdf_files[0]}"
+path = legal_pdf_path
+
+
+def load_pdf_documents(path):
+    dict_documents = []
+
+    # Print the list of PDFs
+    pdf_files = [f for f in os.listdir(path) if f.endswith(".pdf")]
+    print("PDF Files:", pdf_files)
+    for file in pdf_files:
+        input_file = f"{legal_pdf_path}/{file}"
+
+        print(input_file)
+        loader = PyMuPDF4LLMLoader(input_file)
+
+        docs = loader.load()
+        for page in range(len(docs)):  # eqch page is a new doc
+            print(page)
+            file_info = {
+                "file_path": docs[page].metadata["file_path"],
+                "title": file,
+                "page": page,
+                "creationDate": docs[page].metadata["creationDate"],
+                # 'hash': generate_hash(str(soup)),
+                # 'language': detect(soup.get_text()),
+                "type": "constitution",
+                "content": docs[page].page_content,
+            }
+            dict_documents.append(file_info)
+
+    return dict_documents
+
+
+def chunk_document(document):
+    return document.chunks
+
+
+def save_document(document, path):
+    return print("file saved")
+
 
 for doc in documents:
     # each page of the pdf is a doc, meaning
@@ -54,10 +97,18 @@ for doc in documents:
     del doc.metadata["creator"]
 
     # 4. Save content to a Markdown file
-    name = os.path.basename(meta["source"]).replace('.pdf', '') +  "_"  + str(meta["page"]) + "_" + str(meta["total_pages"])
+    name = (
+        os.path.basename(meta["source"]).replace(".pdf", "")
+        + "_"
+        + str(meta["page"])
+        + "_"
+        + str(meta["total_pages"])
+    )
     markdown_name = os.path.join(output_doc_path, name + ".md")
     with open(markdown_name, "w", encoding="utf-8") as md_file:
-        md_file.write(f"# Full Document\n\n{doc.page_content}")  # Adds a title header for the whole document
+        md_file.write(
+            f"# Full Document\n\n{doc.page_content}"
+        )  # Adds a title header for the whole document
 
     # # 5. Save metadata of single page to a JSON file
     # metafile = os.path.join(output_doc_path, "metadata.json")
@@ -71,7 +122,6 @@ with open(metafile, "w", encoding="utf-8") as json_file:
     json.dump(metadata, json_file, indent=4)
 
     print(f"\033[91m{json.dumps(metadata, indent=4)}\033[0m")  # Red color
-
 
 
 print("Full PDF saved as Markdown and metadata saved as JSON.")
@@ -93,7 +143,7 @@ from langchain.chat_models import ChatOpenAI  # Replace with your preferred LLM
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,  # Adjust based on your needs
     chunk_overlap=50,  # Optional: Overlap for better context
-    separators=["\n\n"]  # Splits by paragraphs
+    separators=["\n\n"],  # Splits by paragraphs
 )
 
 docs = text_splitter.split_documents(documents)
@@ -108,4 +158,3 @@ for doc in docs:
 with open("output.md", "w", encoding="utf-8") as f:
     for doc in documents:
         f.write(f"## Paragraph\n\n{doc.page_content}\n\n")
-

@@ -1,10 +1,12 @@
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 
 import re
-import json # save in json files
-MAX_CHUNK_SIZE = 500 # todo is it words or characters
+import json  # save in json files
+
+MAX_CHUNK_SIZE = 500  # todo is it words or characters
 
 # FUNCTIONS --------------------
+
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
@@ -25,6 +27,7 @@ class Chunk:
         # Title: Chapter 1: Introduction
         # Content: This is the introduction content of the chapter....
 
+
 def extract_chapters(document, headers_to_exclude_from_chunks=None):
 
     document_sections = {}
@@ -35,7 +38,7 @@ def extract_chapters(document, headers_to_exclude_from_chunks=None):
         ^\*\*(.*?)\*\*\s*[\r\n]+[-=]+$ |       # Bold headers followed by ----- or =====
         ^([\w\s().,:'’-]+)[ \t]*[\r\n]+[-=]+$  # Underlined headers (Header ----)
         """,
-        re.MULTILINE | re.VERBOSE
+        re.MULTILINE | re.VERBOSE,
     )
 
     matches = list(header_pattern.finditer(document))
@@ -52,15 +55,21 @@ def extract_chapters(document, headers_to_exclude_from_chunks=None):
         if length_paragraph > 5:  # if it is a real paragraph
             start_idx = match.start()
             # print(f"\033[92m{match.start()}:{end_idx}\033[0m")
-            chunk_text = document[match.start():end_idx]
+            chunk_text = document[match.start() : end_idx]
             header_text = match.group(1) or match.group(2) or match.group(3)
-            if headers_to_exclude_from_chunks is None or header_text.strip() not in headers_to_exclude_from_chunks:
+            if (
+                headers_to_exclude_from_chunks is None
+                or header_text.strip() not in headers_to_exclude_from_chunks
+            ):
                 document_sections[header_text.strip()] = chunk_text
                 # print(chunk_text[1:100])
 
     return document_sections
 
-def split_text_into_chunks(text, section, parent_dict, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n"):
+
+def split_text_into_chunks(
+    text, section, parent_dict, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n"
+):
     # Split the text by paragraphs
     paragraphs = text.split(separator)
     chunks = []
@@ -71,20 +80,34 @@ def split_text_into_chunks(text, section, parent_dict, max_chunk_size=MAX_CHUNK_
         nonlocal current_chunk, chunk_count
         # non local: defined in the enclosing split_text_into_chunks , not local to add_chunks
         if current_chunk:
-            chunks.append(Chunk(
-                title=f"{parent_dict['title']}.{section}.{chunk_count}",
-                content=current_chunk.strip(),
-                metadata={key: parent_dict[key] for key in ["title", "link", "extracted", "hash", "last-edited", "language"]}
-            ))
+            chunks.append(
+                Chunk(
+                    title=f"{parent_dict['title']}.{section}.{chunk_count}",
+                    content=current_chunk.strip(),
+                    metadata={
+                        key: parent_dict[key]
+                        for key in [
+                            "title",
+                            "link",
+                            "extracted",
+                            "hash",
+                            "last-edited",
+                            "language",
+                        ]
+                    },
+                )
+            )
             chunk_count += 1
             current_chunk = ""
-
 
     for para in paragraphs:
         # If adding the paragraph exceeds the max_chunk_size, create a new chunk
         # if we want the character count: if len(current_chunk) + len(para) + len(separator) > max_chunk_size:
         # if we want word count:
-        if len(current_chunk.split()) + len(para.split()) + len(separator) > max_chunk_size:
+        if (
+            len(current_chunk.split()) + len(para.split()) + len(separator)
+            > max_chunk_size
+        ):
             add_chunk()
         else:
             if current_chunk:  # Add separator between paragraphs if chunk is not empty
@@ -97,7 +120,9 @@ def split_text_into_chunks(text, section, parent_dict, max_chunk_size=MAX_CHUNK_
 
 
 # split into chunks but passing all the metadata
-def split_text_into_chunks_with_metadata(text, section, metadata, title, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n"):
+def split_text_into_chunks_with_metadata(
+    text, section, metadata, title, max_chunk_size=MAX_CHUNK_SIZE, separator="\n\n"
+):
     # Split the text by paragraphs
     paragraphs = text.split(separator)
     chunks = []
@@ -106,14 +131,18 @@ def split_text_into_chunks_with_metadata(text, section, metadata, title, max_chu
 
     def add_chunk():
         nonlocal current_chunk, chunk_count
-        filtered_metadata = {key: metadata.get(key) for key in metadata if key != 'content'}
+        filtered_metadata = {
+            key: metadata.get(key) for key in metadata if key != "content"
+        }
 
         if current_chunk:
-            chunks.append(Chunk(
-                title=f"{metadata.get(title, 'Untitled')}.{section}.{chunk_count}",
-                content=current_chunk.strip(),
-                metadata=filtered_metadata  # Pass all received metadata
-            ))
+            chunks.append(
+                Chunk(
+                    title=f"{metadata.get(title, 'Untitled')}.{section}.{chunk_count}",
+                    content=current_chunk.strip(),
+                    metadata=filtered_metadata,  # Pass all received metadata
+                )
+            )
             # print(current_chunk.strip())
             chunk_count += 1
             current_chunk = ""
@@ -122,7 +151,10 @@ def split_text_into_chunks_with_metadata(text, section, metadata, title, max_chu
         # If adding the paragraph exceeds the max_chunk_size, create a new chunk
         # if we want the character count: if len(current_chunk) + len(para) + len(separator) > max_chunk_size:
         # if we want word count:
-        if len(current_chunk.split()) + len(para.split()) + len(separator) > max_chunk_size:
+        if (
+            len(current_chunk.split()) + len(para.split()) + len(separator)
+            > max_chunk_size
+        ):
             add_chunk()
         else:
             if current_chunk:  # Add separator between paragraphs if chunk is not empty
@@ -133,33 +165,48 @@ def split_text_into_chunks_with_metadata(text, section, metadata, title, max_chu
 
     return chunks
 
+
 # FOLDERS --------------------
 
 input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
 path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
 
 headers_to_exclude_from_chunks = {
-    "REFERENCES", "Referencias", "References", "Navigation menu", "Page actions", "Personal tools",
-    "Navigation", "Search", "Glossary", "Tools"
+    "REFERENCES",
+    "Referencias",
+    "References",
+    "Navigation menu",
+    "Page actions",
+    "Personal tools",
+    "Navigation",
+    "Search",
+    "Glossary",
+    "Tools",
 }
 # MAIN --------------------
 
 with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
-    defense_wiki_all = [json.loads(line) for line in jsonl_file]  # Convert each line to a dictionary
+    defense_wiki_all = [
+        json.loads(line) for line in jsonl_file
+    ]  # Convert each line to a dictionary
     keys = defense_wiki_all[1].keys()
     chunks = []
 
-    for page in range(0,len(defense_wiki_all)):
+    for page in range(0, len(defense_wiki_all)):
         document = defense_wiki_all[page]["content"]
-        document_sections = extract_chapters(document, headers_to_exclude_from_chunks=headers_to_exclude_from_chunks)
+        document_sections = extract_chapters(
+            document, headers_to_exclude_from_chunks=headers_to_exclude_from_chunks
+        )
         parent_dict = defense_wiki_all[page]
         for section in document_sections:
             # print(section)
-            new_chunks = split_text_into_chunks(document_sections[section],
-                                                section,
-                                                parent_dict,
-                                                max_chunk_size=MAX_CHUNK_SIZE,
-                                                separator="\n\n")
+            new_chunks = split_text_into_chunks(
+                document_sections[section],
+                section,
+                parent_dict,
+                max_chunk_size=MAX_CHUNK_SIZE,
+                separator="\n\n",
+            )
             chunks.extend(new_chunks)
 
 # Save chunks with metadata of all defense wiki
