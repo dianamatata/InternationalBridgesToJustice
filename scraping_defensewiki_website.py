@@ -1,7 +1,7 @@
 # This scripts build a tree of the links with depth =2 in the https://defensewiki.ibj.org/
 # and checks the quality of the links
 
-
+import os
 import time
 import re  # handles text
 import requests  # get url info
@@ -15,7 +15,10 @@ import json  # save in json files
 from markdownify import (
     markdownify as md,
 )  # markdownify: Handles more complex HTML structures, better at preserving formatting.
+import pandas as pd
 
+
+# Functions -------------------
 
 def get_link_status(url):
     """Checks the status of a link (functional or error)."""
@@ -191,13 +194,6 @@ def remove_content_field(tree):
             remove_content_field(item)  # Recurse into lists
 
 
-def link_exists_in_tree(link_tree, target_link):
-    tree_str = json.dumps(link_tree, ensure_ascii=False)  # Convert the tree to a string
-    return (
-        target_link in tree_str
-    )  # Check if the target link exists in the string representation of the tree
-
-
 def build_link_tree_3(
     url,
     depth=1,
@@ -235,21 +231,89 @@ def build_link_tree_3(
 
     return tree, visited
 
+def save_as_html(tree_links_validity, output_file):
+    html_template = """<html>
+    <head>
+        <title>Tree Links Validity</title>
+        <style>
+            body {{ background-color: white; color: black; }}
+            .functional {{ color: LimeGreen; }}
+            .error {{ color: red; font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <h2>Tree Links Validity</h2>
+        <pre>{}</pre>
+    </body>
+    </html>"""
+
+    def format_json_with_colors(data):
+        json_str = json.dumps(data, indent=4)
+        json_str = json_str.replace('"status": "functional"',
+                                    '"status": "<span class=\'functional\'>functional link</span>"')
+        json_str = json_str.replace('"status": "error"', '"status": "<span class=\'error\'>error - link broken</span>"')
+        return json_str
+
+    formatted_json = format_json_with_colors(tree_links_validity)
+
+    # Write to an HTML file
+    with open(output_file, "w") as f:
+        f.write(html_template.format(formatted_json))
+
+    print(f"HTML file created: {output_file}")
+
+def save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.csv"):
+    # Extract the root key (first level)
+    root_key = list(tree_links_validity.keys())[0]
+    # Extract principal pages
+    principal_pages = tree_links_validity[root_key]
+
+    data = []
+    # Loop through each principal page and extract its links
+    for principal_page, links in principal_pages.items():
+        print(principal_page)
+        if 'subtree' in links and principal_page in links['subtree']:
+            links_2 = links['subtree'][principal_page]
+            for link, details in links_2.items():
+                print(link)
+                data.append({
+                    "Principal Page": principal_page,
+                    "Link": link,
+                    "Status": details["status"]
+                })
+
+    df = pd.DataFrame(data)
+
+    print(df)
+    df.to_csv(output_file, index=False)
+
 
 # MAIN --------------------------------------
-out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
+os.getcwd()
+folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 
-# Example usage get all the links from the defensewiki(refs,and all)
-# tree_links_validity define already
+
+# Get all the links from the defensewiki(refs,and all) as functional/not functional -----------------
+# and save them as html and csv files
+
 start_time = time.time()
-tree_links_validity = build_link_tree_3(
-    "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3",
-    depth=2,
-    tree=tree_links_validity,
-)
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3" # 2 pages
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=100&offset=0" # 100 pages
+
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
+
+tree_links_validity, visited_links = build_link_tree_3(url=url, visited=None, depth=2)
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
+with open("data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
+    json.dump(tree_links_validity, f, indent=4)
+
+save_as_html(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.html")
+save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.csv")
+
+
+
 
 
 # Get all the links from the defensewiki(refs,and all) ----------------------------
@@ -259,13 +323,9 @@ print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green co
 # print(f"\033[93m{json.dumps(tree, indent=4)}\033[0m")  # yellow color
 
 # first iteration
-url = (
-    "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=5&offset=0"
-)
 tree_links_validity, visited_links = build_link_tree_3(url, visited=None, depth=2)
 
 # second iteration:
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=20&offset=0"
 start_time = time.time()
 tree_links_validity2, visited_links2 = build_link_tree_3(
     url, visited=visited_links, depth=2
@@ -274,15 +334,15 @@ elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 # save tree
-print(f"\033[92m{json.dumps(tree_links_validity2, indent=4)}\033[0m")  # green color
+print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
 save_file(
-    f"{out_folder}/defensewiki1_functional_outdated_links_2.json",
+    f"{folder_defense_wiki_raw}/defensewiki1_functional_outdated_links_2.json",
     tree_links_validity2,
     file_type="json",
 )
 
 # save visited links
-with open(f"{out_folder}/defensewiki1_visited_links.txt", "w") as file:
+with open(f"{folder_defense_wiki_raw}/defensewiki1_visited_links.txt", "w") as file:
     file.write("\n".join(visited_links))
 
 
@@ -293,16 +353,15 @@ link_tree_defensewiki_test = build_complex_link_tree(
     depth=1,
 )
 print(f"\033[92m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")
-out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json"
 save_file(
-    f"{out_folder}/link_tree_defensewiki.json",
+    f"{folder_defense_wiki_raw}/link_tree_defensewiki.json",
     link_tree_defensewiki_test,
     file_type="json",
 )
 remove_content_field(link_tree_defensewiki_test)
 print(f"\033[93m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")
 save_file(
-    f"{out_folder}/link_tree_defensewiki1.json",
+    f"{folder_defense_wiki_raw}/link_tree_defensewiki1.json",
     link_tree_defensewiki_test,
     file_type="json",
 )
@@ -314,10 +373,10 @@ link_tree_defensewiki = build_complex_link_tree(
     "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0",
     depth=1,
 )
-save_file(f"{out_folder}/defensewiki_all.json", link_tree_defensewiki, file_type="json")
+save_file(f"{folder_defense_wiki_raw}/defensewiki_all.json", link_tree_defensewiki, file_type="json")
 remove_content_field(link_tree_defensewiki)
 save_file(
-    f"{out_folder}/defensewiki1_no_content.json",
+    f"{folder_defense_wiki_raw}/defensewiki1_no_content.json",
     link_tree_defensewiki,
     file_type="json",
 )
