@@ -7,7 +7,7 @@ MAX_CHUNK_SIZE = 500
 # FUNCTIONS --------------------
 
 # adapt this code
-out_folder_2 = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/constituteproject.org"
+out_folder_2 = "data/processed/constituteproject.org"
 with open(
     f"{out_folder_2}/constituteproject.jsonl", "r", encoding="utf-8"
 ) as jsonl_file:
@@ -91,7 +91,7 @@ with open(f"{out_folder_2}/constitution_chunks.jsonl", "r", encoding="utf-8") as
 
 # debug
 
-# file_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/constituteproject.org/Singapore_2016.md"
+# file_path = "data/raw/constituteproject.org/Singapore_2016.md"
 # with open(file_path, "r", encoding="utf-8") as file:
 #     document = file.read()
 

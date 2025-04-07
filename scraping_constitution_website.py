@@ -9,8 +9,8 @@ import os
 
 
 # extract all the constitutions
-out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/constituteproject.org"
-out_folder_2 = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/constituteproject.org"
+out_folder = "data/raw/constituteproject.org"
+out_folder_2 = "data/processed/constituteproject.org"
 
 start_url = "https://www.constituteproject.org/constitutions?lang=en&status=in_force&status=is_draft"
 base_url = "https://www.constituteproject.org"

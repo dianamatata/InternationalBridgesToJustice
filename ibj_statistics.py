@@ -56,10 +56,10 @@ def extract_info(link_tree_defensewiki):
 # TODO it hasn't been annotated well, rerun the scraping_file? or replace strings ...
 
 
-dir_plots = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Plots"
+dir_plots = "Plots"
 # Load JSON file
 with open(
-    "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json/defensewiki1_no_content.json",
+    "IBJ_documents/legal_country_documents/docs_in_md_json/defensewiki1_no_content.json",
     "r",
 ) as f:
     link_tree_defensewiki = json.load(f)
@@ -67,14 +67,14 @@ with open(
 summary_defensewiki = extract_info(link_tree_defensewiki)
 summary_defensewiki = summary_defensewiki.reset_index()  # [1252 rows x 5 columns]
 summary_defensewiki.to_csv(
-    "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Data/summary_defensewiki.csv",
+    "Data/summary_defensewiki.csv",
     index=False,
 )
 
 
 # load and stats
 summary_defensewiki = pd.read_csv(
-    "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/Data/summary_defensewiki.csv"
+    "Data/summary_defensewiki.csv"
 )
 
 # Sort languages by decreasing count

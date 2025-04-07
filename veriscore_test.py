@@ -4,7 +4,7 @@ from tqdm import tqdm  # make your loops show a smart progress meter
 import sys
 
 sys.path.append(
-    "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/VeriScore-main/veriscore"
+    "VeriScore-main/veriscore"
 )
 from veriscore.claim_extractor import ClaimExtractor
 
@@ -15,7 +15,7 @@ os.environ["OPENAI_API_KEY_PERSONAL"] = (
 
 # initialize objects
 
-input_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
+input_path = "data/processed/defensewiki.ibj.org"
 input_file_name = "chunks"
 input_file = f"{input_path}/{input_file_name}.jsonl"
 output_dir = "./test_veriscore/output"

@@ -16,9 +16,9 @@ def load_documents(DATA_PATH):
 
 
 # 1. Load the PDF
-# pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/raw_pdfs"
-legal_pdf_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/legal_countries_docs_pdfs_2pages"
-output_doc_path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/legal_countries_docs"
+# pdf_path = "IBJ_documents/legal_country_documents/raw_pdfs"
+legal_pdf_path = "data/raw/legal_countries_docs_pdfs_2pages"
+output_doc_path = "data/processed/legal_countries_docs"
 
 
 # Print the list of PDFs

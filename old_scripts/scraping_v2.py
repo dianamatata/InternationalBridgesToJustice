@@ -171,7 +171,7 @@ def get_internal_links(soup, page_name):
 start_url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=20&offset=0"
 start_urls = 'https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2000&offset=0'  # Showing below up to 1,251 results in range #1 to #1,251.
 pop_pages_url = "https://defensewiki.ibj.org/index.php?title=Special:PopularPages
-"out_folder = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org"
+"out_folder = "html_pages/defensewiki.ibj.org"
 os.makedirs(out_folder, exist_ok=True)
 fetch_page_and_metadata(start_url, out_folder)
 chile_url = "https://defensewiki.ibj.org/index.php?title=Chile/es"
@@ -182,16 +182,16 @@ print(json.dumps(metadata_dict, indent=2))
 # <ul><li><a class="internal" href="/images/8/86/Constitution_Chile_1980.pdf" title="Constitution Chile 1980.pdf"> Constitución de Chile</a></li> # https://defensewiki.ibj.org/images/8/86/Constitution_Chile_1980.pdf
 # <li><a class="internal" href="/images/6/6c/Criminal_Procedure_Chile.pdf" title="Criminal Procedure Chile.pdf"> Código Procesal Penal de Chile</a></li></ul>
 
-filename="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org/test.md"
+filename="html_pages/defensewiki.ibj.org/test.md"
 with open(filename, "w", encoding="utf-8") as f:
     f.write(html_to_markdown(response.text)) # simpler but better?
 
 # TODO: keep this one, save as content, we need to keep response
-filename="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org/test1.md"
+filename="html_pages/defensewiki.ibj.org/test1.md"
 with open(filename, "w", encoding="utf-8") as f:
     f.write(md(response.text))
 
-filename="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/html_pages/defensewiki.ibj.org/test2.md"
+filename="html_pages/defensewiki.ibj.org/test2.md"
 with open(filename, "w", encoding="utf-8") as f:
     f.write(response.text) # too much
 

@@ -1,13 +1,13 @@
 import json
 
 
-path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
+path = "data/processed/defensewiki.ibj.org"
 
 with open(f"{path}/chunks.jsonl", "r", encoding="utf-8") as jsonl_file:
     line_count = sum(1 for line in jsonl_file)
     print(f"Number of lines in the jsonl file: {line_count}")
 
-path2 = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/constituteproject.org"
+path2 = "data/processed/constituteproject.org"
 with open(f"{path2}/constitution_chunks.jsonl", "r", encoding="utf-8") as jsonl_file:
     line_count2 = sum(1 for line in jsonl_file)
     print(f"Number of lines in the jsonl file: {line_count2}")

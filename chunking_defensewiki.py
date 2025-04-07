@@ -7,8 +7,8 @@ MAX_CHUNK_SIZE = 500  # these are words
 
 # FOLDERS --------------------
 
-input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
-path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/processed/defensewiki.ibj.org"
+input_data = "data/interim/defensewiki_all.json"
+path = "data/processed/defensewiki.ibj.org"
 
 headers_to_exclude_from_chunks = {
     "REFERENCES",
