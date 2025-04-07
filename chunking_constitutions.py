@@ -1,9 +1,8 @@
 import json  # save in json files
+from chunking_functions import extract_chapters, split_text_into_chunks_with_metadata
+from tqdm import tqdm
 
 MAX_CHUNK_SIZE = 500
-from chunking_and_formatting_defensewiki import extract_chapters, split_text_into_chunks
-from chunking_and_formatting_defensewiki import split_text_into_chunks_with_metadata
-from tqdm import tqdm
 
 # FUNCTIONS --------------------
 
