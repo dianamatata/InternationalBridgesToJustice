@@ -24,15 +24,30 @@ Additionally, this project will lay the foundation for the future development of
 
 ## Repository overview
 
-### 1. [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
+### 1a. [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file
-
-*TODO: check reference links that are working and outdated*
-
-### 2. [ibj_statistics.py](ibj_statistics.py)
++ Check reference links that are working and outdated
++ [ibj_statistics.py](ibj_statistics.py)
 Run statistics on the data extracted on the DefenseWiki website
 
-### 3. [scraping_constitution_website.py](scraping_constitution_website.py)
+### 1b. [scraping_constitution_website.py](scraping_constitution_website.py)
+Scrap the Constitution website and save content and metadata in a json file
+
+### 1c. [scraping_unodc.py](scraping_unodc.py)
+TODO!!!
+
+### 2 [chunking_functions.py](chunking_functions.py)
+create functions to cut markrdown text into smaller chunks
+
+### 2a. [chunking_defensewiki.py](chunking_defensewiki.py)
+Chunk the Defense Wiki content into smaller pieces and save them in a json file
+
+### 2b. [chunking_constitutions.py](chunking_constitutions.py)
+Chunk the Constitution content into smaller pieces and save them in a json file
+
+### 3. [extract_claims.py](extract_claims.py)
+Extract claims from the content of the Defense Wiki and save them in a json file
+Right now done for Singapore and 2 pages of Burundi out of 12 files
 
 ### 4. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
 Extract content from pdf files to markdown and save them with metadata for ground truth
