@@ -2,7 +2,7 @@
 
 import json
 
-input_data = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/defensewiki_all.json"
+input_data = "data/interim/defensewiki_all.json"
 
 # 1 - Load JSON
 with open(input_data, "r", encoding="utf-8") as json_file:
@@ -28,7 +28,7 @@ print(len(defense_wiki_all))  # Should print 1252 if correctly processed
 print(f"{json.dumps(defense_wiki_all[0], indent=4)}")
 
 # 5 - Loop over Defensewiki to extract all the pages as markdown
-path = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/defensewiki.ibj.org"
+path = "data/raw/defensewiki.ibj.org"
 
 with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [
@@ -40,3 +40,21 @@ for page in range(1, len(defense_wiki_all)):
     filename = f"{path}/{title_value}.md"
     with open(filename, "w", encoding="utf-8") as file:
         file.write(defense_wiki_all[page]["content"])
+
+
+
+# open jsonl
+data = []
+with open(f"{path}/chunks.jsonl", "r", encoding="utf-8") as json_file:
+    for line in jsonl_file:
+        data.append(json.loads(line))
+
+# write jsonl
+with open(f"{path}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
+    for record in data:
+        jsonl_file.write(json.dumps(record) + "\n")
+
+# write json
+with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
+    for record in data:
+        json_file.write(json.dumps(record) + "\n")
