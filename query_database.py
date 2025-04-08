@@ -2,53 +2,12 @@
 import chromadb
 import openai
 import os
-import json
-
-
-# functions ------------
-def openai_embed(texts: list[str], model="text-embedding-3-large") -> list[list[float]]:
-    # It’s a helper function to generate embeddings using OpenAI’s API.
-    response = openai.embeddings.create(
-        model=model,
-        input=texts
-    )
-    return [d.embedding for d in response.data]
-
-# main ---------------------
-os.environ["OPENAI_API_KEY"] = (
-    "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"
-)
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 CHROMA_PATH = "data/chroma_db"
-
-# Load the client from disk
-client = chromadb.PersistentClient(path=CHROMA_PATH)
-
-# Load your previously saved collection
-collection = client.get_collection("legal_collection")
-
-query_text = "Until proven innocent, the accused has to remain in prison."
-
-
-# 1 - Embed the query text python Copier Modifier
-query_embedding = openai_embed([query_text])[0]
-
-# 2. Query Chroma
-
-results = collection.query(
-    query_embeddings=[query_embedding],
-    n_results=5,
-    include=["documents", "distances"]  # optionally: metadatas, ids
-)
-
-# 3. Build the context string
-documents = results["documents"][0]
-scores = results["distances"][0]
-
-# Combine documents and scores if needed
-context_text = "\n\n---\n\n".join(doc for doc in documents)
-
-
+COLLECTION_NAME = "legal_collection"
 PROMPT_TEMPLATE = """Use the context below to verify a claim:
 
 You need to judge whether a claim is supported or contradicted by the information in the database, or whether there is not enough information to make the judgement. You can cite a specific law or legal chapter to explain your decision.
@@ -68,6 +27,49 @@ Claim: {claim}
 Context: {context}
 
 Answer:"""
+
+
+# functions ------------
+def openai_embed(texts: list[str], model="text-embedding-3-large") -> list[list[float]]:
+    # It’s a helper function to generate embeddings using OpenAI’s API.
+    response = openai.embeddings.create(
+        model=model,
+        input=texts
+    )
+    return [d.embedding for d in response.data]
+
+# main ---------------------
+
+CHROMA_PATH = "data/chroma_db"
+
+# Load the client from disk
+client = chromadb.PersistentClient(path=CHROMA_PATH)
+
+# Load your previously saved collection
+collection = client.get_collection("legal_collection")
+
+query_text = "Until proven innocent, the accused has to remain in prison."
+
+# 1 - Embed the query text python Copier Modifier
+query_embedding = openai_embed([query_text])[0]
+
+# 2. Query Chroma
+
+results = collection.query(
+    query_embeddings=[query_embedding],
+    n_results=5,
+    include=["documents", "distances"]
+)
+
+# 3. Build the context string
+documents = results["documents"][0]
+scores = results["distances"][0]
+
+# Combine documents and scores if needed
+context_text = "\n\n---\n\n".join(doc for doc in documents)
+
+
+
 
 #format prompt
 prompt = PROMPT_TEMPLATE.format(context=context_text, claim=query_text)
@@ -106,4 +108,3 @@ for source in sources:
 sources = results['ids'][0]
 formatted_response = f"Response: {answer}\n\n\nSources: {chunks_for_answer}"
 print(formatted_response)
-    return response_text

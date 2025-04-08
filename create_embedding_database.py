@@ -2,11 +2,9 @@ import chromadb
 import openai
 import os
 import json
-
-# Set  API key (ideally use env variable)
-os.environ["OPENAI_API_KEY"] = (
-    "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"
-)
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 CHROMA_PATH = "data/chroma_db"
 

@@ -4,15 +4,13 @@ from tqdm import tqdm  # make your loops show a smart progress meter
 import sys
 from veriscore.claim_extractor import ClaimExtractor
 import numpy as np
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 sys.path.append(
     "VeriScore-main/veriscore"
 )
-
-os.environ["OPENAI_API_KEY_PERSONAL"] = (
-    "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"
-)
-
 
 # initialize objects
 input_path = "data/processed/defensewiki.ibj.org"
