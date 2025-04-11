@@ -1,7 +1,9 @@
 import chromadb
-import openai
+from openai import OpenAI
+client = OpenAI()
 import os
-
+import json
+from create_embedding_database import load_legal_chunks
 # The API key is stored in an environment file (.env), added to .gitignore for security reasons.
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
@@ -12,41 +14,35 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 CHROMA_PATH = "data/chroma_db"
 COLLECTION_NAME = "legal_collection"
-PROMPT_TEMPLATE2 = (
-    "You need to judge whether a claim is supported or contradicted by the information in the database, "
-    "or whether there is not enough information to make the judgement. You can cite a specific law or legal chapter to explain your decision."
-    "Mark your answer with ### signs.\n\n"
-    "Below are the definitions of the three categories:\n\n"
-    "Supported: A claim is supported by the database if everything in the claim is supported and nothing is "
-    "contradicted by the information in the database. There can be some results that are not fully related to the claim.\n\n"
-    "Contradicted: A claim is contradicted by the results if something in the claim is contradicted by some results. "
-    "There should be no result that supports the same part.\n\n"
-    "Inconclusive: A claim is inconclusive based on the results if:\n"
-    "- a part of a claim cannot be verified by the results,\n"
-    "- a part of a claim is supported and contradicted by different pieces of evidence,\n"
-    "- the entity/person mentioned in the claim has no clear referent (e.g., 'the approach', 'Emily', 'a book').\n\n"
+
+PROMPT_TEMPLATE = (
+    "You need to determine whether the database contains enough information to fact-check the claim, "
+    "and then decide whether the claim is **Supported**, **Contradicted**, or **Inconclusive** based on that information. "
+    "You can cite specific laws or legal chapters to justify your decision.\n\n"
+
+    "Very important: Make sure that the information used for verification comes from the correct country. "
+    "You can find the country name in the 'metadata':'title' or 'metadata':'country' fields of the context.\n\n"
+
+    "Does the database provide enough information to fact-check the claim? \n"
+    "If no, label claim as ###Inconclusive###\n"
+    "If yes, state the judgment as one of the following categories, marked with ###:\n\n"
+
+    "###Supported###\n"
+    "A claim is supported by the database if everything in the claim is supported and nothing is contradicted by the information in the database. "
+    "There can be some results that are not fully related to the claim.\n\n"
+
+    "###Contradicted###\n"
+    "A claim is contradicted if some part of it directly conflicts with information in the database, and no supporting evidence is provided for that part.\n\n"
+
+    "###Inconclusive###\n"
+    "A claim is inconclusive if:\n"
+    "- A part of the claim cannot be verified with the available information,\n"
+    "- A part of the claim is both supported and contradicted by different sources,\n"
+    "- The claim contains unclear references (e.g., 'the person', 'the law', 'they').\n\n"
+
     "Claim: {claim}\n\n"
     "Context: {context}"
 )
-
-PROMPT_TEMPLATE = """Use the context below to verify a claim:
-
-You need to judge whether a claim is supported or contradicted by the information in the database, or whether there is not enough information to make the judgement. 
-Mark your answer with ### signs.
-
-Below are the definitions of the three categories:
-
-Supported: A claim is supported by the database if everything in the claim is supported and nothing is contradicted by the information in the database. There can be some results that are not fully related to the claim.
-Contradicted: A claim is contradicted by the results if something in the claim is contradicted by some results. There should be no result that supports the same part.
-Inconclusive: A claim is inconclusive based on the results if:
-- a part of a claim cannot be verified by the results,
-- a part of a claim is supported and contradicted by different pieces of evidence,
-- the entity/person mentioned in the claim has no clear referent (e.g., "the approach", "Emily", "a book").
-
-    "Claim: {claim}\n\n"
-    "Context: {context}"
-
-"""
 
 # --- HELPER FUNCTIONS ---
 
@@ -54,7 +50,7 @@ def openai_embed(texts: list[str], model="text-embedding-3-large") -> list[list[
     """
     Generate embeddings for a list of texts using OpenAI's embedding API.
     """
-    response = openai.embeddings.create(
+    response = client.embeddings.create(
         model=model,
         input=texts
     )
@@ -82,8 +78,9 @@ def perform_similarity_search(collection, query_text: str, n_results: int = 5):
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=n_results,
-        include=["documents", "distances", "ids"]
+        include=["documents", "metadatas", "distances"] #collection.query() always returns the ids
     )
+
     return results
 
 def build_context_text(results: dict) -> str:
@@ -105,17 +102,20 @@ def format_prompt(prompt_template: str, claim: str, context: str) -> str:
     """
     return prompt_template.format(claim=claim, context=context)
 
-def get_openai_response(prompt: str, model="gpt-4") -> str:
+def get_openai_response(client, prompt: str, model="gpt-4") -> str:
     """
     Send the prompt to OpenAI's chat API and return the answer.
     """
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are a legal assistant."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+
+    # Create the chat completion
+    response = client.chat.completions.create(model=model,
+    messages=[
+        {"role": "system", "content": "You are a legal assistant."},
+        {"role": "user", "content": prompt}
+    ])
+
+    # Accessing the response
+    print(response.choices[0].message.content)
     return response.choices[0].message.content
 
 def retrieve_source_titles(results: dict, all_chunks: list[dict]) -> list[str]:
@@ -141,10 +141,21 @@ def retrieve_source_titles(results: dict, all_chunks: list[dict]) -> list[str]:
 
 
 def main():
+
+    chunks = load_legal_chunks()    # Get chunks
+    #     chunks = chunks1[0:100]     # for testing
+    #     add_to_chroma(chunks)
+
+    # Initialize the client
+    client = OpenAI()
+
     QUERY_TEXT = "Until proven innocent, the accused has to remain in prison."
+    QUERY_TEXT = "In India, Until proven innocent, the accused has to remain in prison."
+
 
     # Load the Chroma collection
     collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
+    print(f"Collection contains {collection.count()} documents.")
 
     # Perform similarity search with the query text
     results = perform_similarity_search(collection, QUERY_TEXT, n_results=5)
@@ -154,19 +165,34 @@ def main():
 
     # Format the final prompt to send to OpenAI
     prompt = format_prompt(PROMPT_TEMPLATE, claim=QUERY_TEXT, context=context_text)
-    print("Formatted prompt:\n", prompt)
+    # print("Formatted prompt:\n", prompt)
 
     # Get the answer from OpenAI
-    answer = get_openai_response(prompt)
+    answer = get_openai_response(client, prompt)
     print("\nOpenAI response:\n", answer)
 
-    source_titles = retrieve_source_titles(results, chunks1) # TODO load chunks
+    source_titles = retrieve_source_titles(results, chunks) # TODO load chunks
     formatted_response = f"Response: {answer}\n\nSources: {source_titles}"
 
-    print("\nFinal formatted response:\n", formatted_response)
+    claim_data = {
+        "claim": QUERY_TEXT,
+        "decision": answer.split("###")[1].strip(),  # Strip to remove whitespace
+        "full_answer": answer,
+        "sources": source_titles,
+        "document_ids": results.get("ids", [[]])[0],
+        "distances": results.get("distances", [[]])[0],
+    }
 
-# results.get("ids", [[]])[0]
-# sources = results['ids'][0]
+    print(f"\033[93m{json.dumps(claim_data, indent=4)}\033[0m")
+
+    with open(f"data/verified_claims/claims.jsonl", "a", encoding="utf-8") as jsonl_file:
+        jsonl_file.write(json.dumps(claim_data) + "\n")
+
+    with open(f"data/verified_claims/claims.json", "a", encoding="utf-8") as json_file:
+        json.dump(claim_data, json_file, ensure_ascii=False, indent=4)
+
+
+# TODO integrate https://github.com/Yixiao-Song/VeriScore/blob/main/veriscore/claim_verifier.py
 
 
 if __name__ == "__main__":
