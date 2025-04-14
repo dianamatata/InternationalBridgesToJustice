@@ -83,6 +83,24 @@ def perform_similarity_search(collection, query_text: str, n_results: int = 5):
 
     return results
 
+def perform_similarity_search_with_country_filter(collection, query_text: str,  country: str, n_results: int = 5):
+    """
+    Get the query embedding using OpenAI, then query the collection for similar documents.
+    """
+    # Generate query embedding (note: openai_embed returns a list, so take the first element)
+    query_embedding = openai_embed([query_text])[0]
+
+    # Query Chroma and include documents and distances (also include ids if you need to retrieve source info later)
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=n_results,
+        include=["documents", "metadatas", "distances"], #collection.query() always returns the ids
+        where={"country": country}
+    )
+
+    return results
+
+
 def build_context_text(results: dict) -> str:
     """
     Build a context string from the retrieved documents.
@@ -158,7 +176,12 @@ def main():
     print(f"Collection contains {collection.count()} documents.")
 
     # Perform similarity search with the query text
-    results = perform_similarity_search(collection, QUERY_TEXT, n_results=5)
+    # results = perform_similarity_search(collection=collection, query_text=QUERY_TEXT, n_results=5)
+
+    # Perform similarity search with the query text
+    results = perform_similarity_search_with_country_filter(collection=collection, query_text=QUERY_TEXT, country="India", n_results=5)
+    res_summary = [r['title_bis'] for r in results['metadatas'][0]]
+    print(f"Results summary: {res_summary}")
 
     # Build the context from the similarity search results
     context_text = build_context_text(results)
@@ -185,10 +208,10 @@ def main():
 
     print(f"\033[93m{json.dumps(claim_data, indent=4)}\033[0m")
 
-    with open(f"data/verified_claims/claims.jsonl", "a", encoding="utf-8") as jsonl_file:
+    with open(f"data/verified_claims/claims_1.jsonl", "a", encoding="utf-8") as jsonl_file:
         jsonl_file.write(json.dumps(claim_data) + "\n")
 
-    with open(f"data/verified_claims/claims.json", "a", encoding="utf-8") as json_file:
+    with open(f"data/verified_claims/claims_1.json", "a", encoding="utf-8") as json_file:
         json.dump(claim_data, json_file, ensure_ascii=False, indent=4)
 
 
