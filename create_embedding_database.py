@@ -20,7 +20,7 @@ def openai_embed(texts: list[str], model="text-embedding-3-large") -> list[list[
 
 def load_legal_chunks():
     # get all paths where chunks are stored
-    path1 = "data/processed/defensewiki.ibj.org/chunks.jsonl"
+    path1 = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
     path2 = "data/processed/constituteproject.org/constitution_chunks.jsonl"
 
     chunks = []
