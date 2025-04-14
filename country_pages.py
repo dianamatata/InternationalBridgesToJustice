@@ -1,11 +1,10 @@
-# We want to get all the country names and links from url which is the "country pages" section
-# The links we want are in this structure:
+# We want to add as metadata the country in all the defense wiki pages.
+# Get country names, some are written in different languages, so creating title_to_country dictionary
+# Update also chunks and collection of chromadb
+# if title contains American_... > "United States", Chinese... > China
+# some countries have duplicated pages, we have hashes that are not unique
 
-# <h2><span class="mw-headline" id="Country_Pages">Country Pages</span></h2>
-# <div style="float: left; width: 33%">
 
-import requests  # get url info
-from bs4 import BeautifulSoup
 import json
 import numpy as np
 
@@ -68,7 +67,9 @@ title_to_country = {
     "Congo": "Congo, Democratic Republic of the", # not sure for this one
     "Inglaterra": "England and Wales",
     "Japon": "Japan",
-    "Malasia": "Malaysia"
+    "Malasia": "Malaysia",
+    "Kenia": "Kenya",
+    "Francais": "France",
 }
 
 substring_to_country = {
@@ -79,7 +80,6 @@ substring_to_country = {
     "Cairo": "Egypt",
 }
 
-# if title contains American_... > "United States", Chinese... > China
 
 for d in defense_wiki_all:
     # Check if any country name is in the title, in this direction because 'Thailand-es' in 'Thailand'
@@ -106,38 +106,19 @@ for c in check1:
     print(c)
 
 
-
 # 4. check problems
 # with Urugay
-entry_to_check = [d for d in defense_wiki_all if "Urugay" in d['title']]
+entry_to_check = [d for d in defense_wiki_all if 'Congo,_Democratic_Republic_of_the' in d['title']]
 check1 = [[e['title'], e['country']] for e in entry_to_check]
 for c in check1:
     print(c)
 
-d['country'] = next((country for key, country in substring_to_country.items() if key in d['title']), None)
-
-
-
-
-
-
-
+# save pages without countries
 with open(f"data/interim/no_countries.txt", "w", encoding="utf-8") as file:
     for c in check1:
         file.write(f"{c}\n")
 
-
-country = 'Congo, Democratic Republic of the'
-a = 'Congo,_Democratic_Republic_of_the'
-cleaned_title = a.replace('_', ' ').strip()
-country.lower() in cleaned_title.lower()
-
-but  'Congo, Republic of the' in country_names
-
-
-
-
-
+# save defense wiki with countries
 with open("data/interim/defensewiki_all_1.json", "w", encoding="utf-8") as file:
     json.dump(defense_wiki_all,file, indent=4)  # Save JSON content
 
@@ -151,12 +132,6 @@ with (open("data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json
     defense_wiki_all = json.load(json_file)
 
 
-
-
-
-
-
-
 # load the chunks
 path1 = "data/processed/defensewiki.ibj.org/chunks.jsonl"
 chunks = []
@@ -166,52 +141,114 @@ for path in [path1]:
         print(f"Number of lines in the jsonl file {path}: {len(lines)}")
         for line in lines:
             chunks.append(json.loads(line))
+        for chunk in chunks:
+            # get original page, get title and country and update!
+            chunk['metadata']['country'] = [d['country'] for d in defense_wiki_all if d['title'] == chunk['metadata']['title']]
     print(f"Total number of chunks: {len(chunks)}")
 
-# chunk = chunks[21]
-
-for chunk in chunks:
-    if chunk['metadata']['title'].replace('_', ' ') in country_names:
-        chunk['metadata']['country'] = chunk['metadata']['title'].replace('_', ' ')
-    else:
-        chunk['metadata']['country'] = None
-
 with open("data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8") as file:
-    json.dump(chunks,file, indent=4)  # Save JSON content
+    json.dump(chunks, file, indent=4)  # Save JSON content
 
 with open("data/processed/defensewiki.ibj.org/chunks_1.jsonl", "w", encoding="utf-8") as jsonl_file:
     for record in chunks:
         jsonl_file.write(json.dumps(record) + "\n")
 
+
+# change embeddings and remove duplicates ----------------------------------------
+import json
+from collections import Counter
+import pandas as pd
+import chromadb
+import numpy as np
+
+
+input_data = "data/processed/defensewiki.ibj.org/chunks_1.json"
+with open(input_data, "r", encoding="utf-8") as json_file:
+    chunks = json.load(json_file)
+
+# get duplicated hashes
+titles = [chunk["title"] for chunk in chunks]
+len(titles)  == len(np.unique(titles))
+# len(np.unique(titles)) 10605
+# len(titles) 10941
+duplicated_hash = [item for item, count in Counter(titles).items() if count > 1]
+# get all duplicated chunks
+duplicated_chunks = [d for d in chunks if d['title'] in duplicated_hash]
+len(duplicated_chunks)
+# extract pages names
+duplicated_pages_data = [[d['title'], d['metadata']['title'], d['metadata']['link'],d['metadata']['title_bis']] for d in duplicated_chunks]
+df_duplicates = pd.DataFrame(duplicated_pages_data, columns=['Hash Title', 'Page Title', 'Link', 'Title Bis'])
+
+output_file = "data/interim/duplicated_hashes_and_pages.csv"
+df_duplicates.to_csv(output_file, sep="\t", index=False)
+
+# TODO: if duplicate, only keep first hash
+
 # In ChromaDB, embeddings and metadata are separate
 # you don’t have to re-embed your text just to update or add metadata
-import chromadb
+
+
+from collections import defaultdict
 CHROMA_PATH = "data/chroma_db"
 client = chromadb.PersistentClient(
         path=CHROMA_PATH)
 collection = client.get_or_create_collection(name="legal_collection")
 
+# Group chunks by title
+title_to_chunk = defaultdict(list)
+for chunk in chunks:
+    title_to_chunk[chunk["title"]].append(chunk)
+
+# Take only the first chunk per unique title
+unique_chunks = [chunks[0] for chunks in title_to_chunk.values()]
+
+# country None not accepted
+cleaned_chunks = []
+for chunk in unique_chunks:
+    country = chunk["metadata"].get("country", "Unknown")
+    # Ensure it's a string, not list or None
+    chunk["metadata"]["country"] = str(country) if country is not None else "Unknown"
+    cleaned_chunks.append(chunk)
+
+len(cleaned_chunks)
+
 collection.upsert(
-    ids=[chunk["title"] for chunk in chunks],
-    documents=None,
-    metadatas=[{"country": chunk["metadata"]["country"]} for chunk in chunks]
+    ids=[chunk["title"] for chunk in unique_chunks],
+    documents=[chunk["content"] for chunk in cleaned_chunks],
+    metadatas=[{"country": chunk["metadata"]["country"]} for chunk in cleaned_chunks]
 )
 
-# Get all the IDs from the collection
-documents = collection.get()
-existing_ids = [doc["id"] for doc in documents["documents"]]
-len(np.unique(documents['ids'])) == len(documents['ids'])
+# how we declared it
+if new_chunks:
+    texts = [c["content"] for c in new_chunks]
+    ids = [c["title"] for c in new_chunks]
+    metadata = [c.get("metadata", {}) for c in new_chunks]
+    metadata = [clean_metadata(m) for m in metadata]
+
+    # Compute embeddings
+    embeddings = openai_embed(texts)
+    # Add to collection
+    collection.add(documents=texts, ids=ids, embeddings=embeddings, metadatas=metadata)
 
 
-titles = [chunk["title"] for chunk in chunks]
-len(titles)  == len(np.unique(titles))
 
-from collections import Counter
+# # Get all the IDs from the collection
+# documents = collection.get()
+# existing_ids = [doc["id"] for doc in documents["documents"]]
+# len(np.unique(documents['ids'])) == len(documents['ids'])
+#
+#
 
-duplicates = [item for item, count in Counter(titles).items() if count > 1]
+
+
+
+
+
+
 target_title = "7d6aaa2ea99efdc4a1e112e4ec25c5df4200472f73796f09f24592fc58e030f3"
 target_title = 'd8a727cf0fd04fe135157f5471f144954d633653037a153c41161a22ce9d21cc'
 matching_chunks = [chunk for chunk in chunks if chunk["title"] == target_title]
+len(matching_chunks)
 print(matching_chunks)
 # TODO: solve problem page 'Thailand-es' and Tailandia, which are the same.
 #
