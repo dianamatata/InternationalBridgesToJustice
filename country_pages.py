@@ -219,62 +219,17 @@ collection.upsert(
 )
 
 
+# Error executing model: Unable to compute the prediction using a neural network model.
+# It can be an invalid input data or broken/unsupported model (error code: -1).
+
+# ✅ Option 1: Switch to CPU-based inference
+# ✅ Option 2: Check for invalid content
+valid_chunks = [chunk for chunk in cleaned_chunks if isinstance(chunk["content"], str) and chunk["content"].strip() != ""]
+len(valid_chunks)
+len(cleaned_chunks)
+
 
 # # Get all the IDs from the collection
 # documents = collection.get()
 # existing_ids = [doc["id"] for doc in documents["documents"]]
 # len(np.unique(documents['ids'])) == len(documents['ids'])
-#
-#
-
-
-
-
-
-
-
-target_title = "7d6aaa2ea99efdc4a1e112e4ec25c5df4200472f73796f09f24592fc58e030f3"
-target_title = 'd8a727cf0fd04fe135157f5471f144954d633653037a153c41161a22ce9d21cc'
-matching_chunks = [chunk for chunk in chunks if chunk["title"] == target_title]
-len(matching_chunks)
-print(matching_chunks)
-# TODO: solve problem page 'Thailand-es' and Tailandia, which are the same.
-#
-
-
-#
-# for d in defense_wiki_all:
-#     if d['title'].replace('_', ' ') in country_names:
-#         d['country'] = d['title'].replace('_', ' ')
-#     else:
-#         d['country'] = None
-
-
-print("Duplicate titles:", duplicates)
-# Check for duplicates, why do we have duplicates?
-
-len(existing_ids)  # Total number of existing IDs
-len(np.unique(existing_ids))  # Number of unique IDs
-
-import numpy as np
-a = [chunk["title"] for chunk in chunks]
-len(a)
-len(np.unique(a)) # 111
-# filter on country first
-
-
-
-# check what is the country for Antigua and Barbuda, check missing countries
-
-
-
-# chunks = load_legal_chunks()    # Get chunks
-
-# update metadata with the country name
-# resave the chunks
-
-# 6 - Run RAG with selecting the chunks with the country name first
-
-# 7- Run over 1 full country
-
-
