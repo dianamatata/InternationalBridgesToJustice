@@ -218,18 +218,6 @@ collection.upsert(
     metadatas=[{"country": chunk["metadata"]["country"]} for chunk in cleaned_chunks]
 )
 
-# how we declared it
-if new_chunks:
-    texts = [c["content"] for c in new_chunks]
-    ids = [c["title"] for c in new_chunks]
-    metadata = [c.get("metadata", {}) for c in new_chunks]
-    metadata = [clean_metadata(m) for m in metadata]
-
-    # Compute embeddings
-    embeddings = openai_embed(texts)
-    # Add to collection
-    collection.add(documents=texts, ids=ids, embeddings=embeddings, metadatas=metadata)
-
 
 
 # # Get all the IDs from the collection
