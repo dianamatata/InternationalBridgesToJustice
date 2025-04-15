@@ -14,7 +14,7 @@ sys.path.append(
 
 # initialize objects
 input_path = "data/processed/defensewiki.ibj.org"
-input_file_name = "chunks"
+input_file_name = "chunks_1"
 input_file = f"{input_path}/{input_file_name}.jsonl"
 output_dir = "data/extracted_claims"
 output_file = f"{output_dir}/claims_{input_file_name}.jsonl"
@@ -34,26 +34,65 @@ with open(input_file, "r", encoding="utf-8") as jsonl_file:
 #     title_list.append(item['metadata']['title'])
 # np.unique(title_list[6:54])
 
-# extract 2 countries
-title_list_to_extract = []
-country_list = ['Burundi'] # 'Singapore', 'Burundi'
+# extract 1 or many countries and all the links
+links_list_to_extract = []
+country_list = ['India'] # 'Singapore', 'Burundi', 'India'
 
 for item in data:
-    title = item['metadata']['title']
+    title = item['metadata']['country']
     if any(country in title for country in country_list):
-        title_list_to_extract.append(title)
-        print(item['metadata']["link"])
+        links_list_to_extract.append(item['metadata']["link"])
 
-title_list_to_extract = np.unique(title_list_to_extract)
+links_list_to_extract = np.unique(links_list_to_extract)
+print(links_list_to_extract)
 
 claim_extractor = ClaimExtractor(
     model_name=model_name, cache_dir=cache_dir, use_external_model=False
 )
 
-country_list = ['Burundi']
-for dict_item in tqdm(data):  # 6:54 for Singapore
+# extract a page -------------------------------------
+# debug
+# chunk = chunks_to_extract[3]
+page = links_list_to_extract[1]
+chunks_to_extract = []
+for dict_item in tqdm(data):
+    if dict_item['metadata']["link"] == page:
+        chunks_to_extract.append(dict_item)
+        for chunk in chunks_to_extract:
+            response = chunk["content"]
+            prompt_source = chunk["title"]
+            print(prompt_source)
+            title = chunk['metadata']['title']
+            question = ""
+            snippet_lst, claim_list, all_claims, prompt_tok_cnt, response_tok_cnt = (
+                claim_extractor.non_qa_scanner_extractor(response)
+            )
+            output_dict = {
+                "question": question.strip(),
+                "prompt_source": prompt_source,
+                "response": response.strip(),
+                "prompt_tok_cnt": prompt_tok_cnt,
+                "response_tok_cnt": response_tok_cnt,
+                "model": model_name,
+                "abstained": False,  # "abstained": False, "abstained": True
+                "claim_list": claim_list,
+                "all_claims": all_claims,
+            }
+            filename = f"{title.replace(' ', '_').replace('/', '_').replace(':', '_')}.jsonl"
+            output_file = os.path.join(output_dir, filename)  # Specify your output directory
+            with open(output_file, "a") as jsonl_file:  # a appends, w overwrites
+                jsonl_file.write(json.dumps(output_dict) + "\n")
+        print(f"extracted claims are saved at {output_file}")
+
+
+
+
+# extract a country ----------------------------------
+country_list = ['India']
+for dict_item in tqdm(data):  # data from 6 to 54 for Singapore
     title = dict_item['metadata']['title']
     if any(country in title for country in country_list):
+        print(title)
         response = dict_item["content"]
         prompt_source = dict_item["title"]
         print(prompt_source)
