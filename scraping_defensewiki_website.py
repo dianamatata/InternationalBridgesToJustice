@@ -16,6 +16,7 @@ from markdownify import (
     markdownify as md,
 )  # markdownify: Handles more complex HTML structures, better at preserving formatting.
 import pandas as pd
+import glob
 
 
 # Functions -------------------
@@ -131,7 +132,7 @@ def build_complex_link_tree(
     depth=1,
     visited=None,
     base_url="https://defensewiki.ibj.org",
-    out_folder="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json",
+    out_folder="IBJ_documents/legal_country_documents/docs_in_md_json",
 ):
     """Recursively builds a tree of links up to a certain depth."""
 
@@ -199,7 +200,7 @@ def build_link_tree_3(
     depth=1,
     visited=None,
     base_url="https://defensewiki.ibj.org",
-    out_folder="/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/IBJ_documents/legal_country_documents/docs_in_md_json",
+    out_folder="IBJ_documents/legal_country_documents/docs_in_md_json",
 ):
     """Recursively builds a tree of links up to a certain depth."""
 
@@ -275,7 +276,6 @@ def save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj
         if 'subtree' in links and principal_page in links['subtree']:
             links_2 = links['subtree'][principal_page]
             for link, details in links_2.items():
-                print(link)
                 data.append({
                     "Principal Page": principal_page,
                     "Link": link,
@@ -284,7 +284,6 @@ def save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj
 
     df = pd.DataFrame(data)
 
-    print(df)
     df.to_csv(output_file, index=False)
 
 
@@ -298,23 +297,46 @@ folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 
 start_time = time.time()
 url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3" # 2 pages
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=100&offset=0" # 100 pages
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000" # 500 pages
 
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
+# url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
 tree_links_validity, visited_links = build_link_tree_3(url=url, visited=None, depth=2)
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
-print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
+# print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
 with open("data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
     json.dump(tree_links_validity, f, indent=4)
 
-save_as_html(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.html")
-save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.csv")
+save_as_html(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html")
+save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv")
+print("files saved")
 
+# merge all the subdocuments:
 
+# Define the path pattern for your CSV files
+csv_files = glob.glob("data/processed/defensewiki.ibj.org/tree_links_validity_*.csv")
 
+df_list = []
+for file in csv_files:
+    print(file)
+    try:
+        df = pd.read_csv(file, sep=";", engine="python")  # Tab-separated
+        df_list.append(df)
+    except Exception as e:
+        print(f"Error reading {file}: {e}")
 
+# Concatenate all DataFrames into one big DataFrame
+df_merged = pd.concat(df_list, ignore_index=True)
+
+# Save merged file
+output_file = "data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
+df_merged.to_csv(output_file, sep="\t", index=False)
+
+print(f"Merged file saved as {output_file}")
+
+# Display first few rows to check
+print(df_merged.head())
 
 # Get all the links from the defensewiki(refs,and all) ----------------------------
 
