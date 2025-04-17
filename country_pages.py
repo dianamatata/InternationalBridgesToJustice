@@ -14,7 +14,7 @@ country_names1 = [country.name for country in pycountry.countries]
 len(country_names1) # 249
 
 # 2 - Get country names from the Defense Wiki Country pages
-file_country_names = "/Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/interim/country_names_1.txt"
+file_country_names = "data/interim/country_names_1.txt"
 with open(f"{file_country_names}", "r", encoding="utf-8") as f:
     country_names = f.read().splitlines()
     len(country_names) # 204
