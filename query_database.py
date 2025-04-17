@@ -101,6 +101,26 @@ def perform_similarity_search_with_country_filter(collection, query_text: str,  
     return results
 
 
+def perform_similarity_search_metadata_filter(collection, query_text: str,  metadata_param: str, metadata_value: str, n_results: int = 5):
+    """
+    Get the query embedding using OpenAI, then query the collection for similar documents.
+    """
+    # Generate query embedding (note: openai_embed returns a list, so take the first element)
+    query_embedding = openai_embed([query_text])[0]
+
+
+    # Query Chroma and include documents and distances (also include ids if you need to retrieve source info later)
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=n_results,
+        include=["documents", "metadatas", "distances"],    # collection.query() always returns the ids
+        where={metadata_param: metadata_value}
+    )
+
+    return results
+
+
+
 def build_context_text(results: dict) -> str:
     """
     Build a context string from the retrieved documents.
