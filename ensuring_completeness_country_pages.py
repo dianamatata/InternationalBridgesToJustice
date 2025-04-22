@@ -53,12 +53,35 @@ def format_prompt(prompt_template: str, keypoint: str, wiki_content: str, databa
     return prompt_template.format(keypoint=keypoint, wiki_content=wiki_content, database_content=database_content)
 
 
-def check_keypoint_covered(country, chapter, point):
+def check_keypoint_covered(collection, client, country, chapter, point, PROMPT_KEYPOINT_COUNTRY_v2):
+
+    keypoint_to_check = f"{chapter}: {point}"
+
+    # Query wiki_content for the 5 most relevant chunks looking for that country and this specific point
+    wiki_content = perform_similarity_search_metadata_filter(collection,
+                                                             query_text=keypoint_to_check,
+                                                             metadata_param="link",
+                                                             metadata_value=f"https://defensewiki.ibj.org/index.php?title={country}",
+                                                             n_results=5)
+
     # Query database for the 5 most relevant chunks looking for that country and this specific point
-    # check if the point is covered in the database, if yes extract relevant lawys and legal chapters
-    # check if the input data on document covers the point
-    # with all this info "re"formulate an answer and assess whether we answered well the question
-# result = check_keypoint_covered(country, chapter, point)
+    database_content = perform_similarity_search_metadata_filter(collection,
+                                                                 query_text=keypoint_to_check,
+                                                                 metadata_param="country",
+                                                                 metadata_value=country,
+                                                                 n_results=5)
+
+    context_database = build_context_text(database_content)
+    context_wiki = build_context_text(wiki_content)
+
+    prompt = format_prompt(PROMPT_KEYPOINT_COUNTRY_v2, keypoint=f"{chapter}: {point}", wiki_content=context_wiki,
+                           database_content=context_database)
+
+    answer = get_openai_response(client, prompt)
+    # pprint(prompt)
+    # pprint(answer)
+    return answer
+
 
 def save_answer(country, keypoint_to_check, wiki_content, database_content, answer):
     """
@@ -109,20 +132,18 @@ keypoints = get_completeness_checklist()
 with open("prompt_completeness.md", "r") as f:
     PROMPT_KEYPOINT_COUNTRY_v2 = f.read()
 
-# debug
 countries = ["Burundi"] # TODO remove this line to run for all countries
 chapter = ""
 for country in countries:
-    # for point in tqdm(keypoints):
-    for point in tqdm(keypoints[9:12]): # TODO remove this line to run for all keypoints
-
+    for point in tqdm(keypoints):
+    # for point in tqdm(keypoints[10:15]): # TODO remove this line to run for all keypoints
         # if point is not a new chapter
         indent = len(point) - len(point.lstrip())  # Capture the indentation (number of leading spaces)
         if indent == 0:
             chapter = point
         if indent > 0:
-            keypoint_to_check = f"{chapter}: {point}"
             print(f"\033[93m{chapter}:\033[0m\033[94m{point}\033[0m")
+            keypoint_to_check = f"{chapter}: {point}"
 
             wiki_content = perform_similarity_search_metadata_filter(collection,
                                                                      query_text=keypoint_to_check,
@@ -143,50 +164,14 @@ for country in countries:
                                    database_content=context_database)
 
             answer = get_openai_response(client, prompt)
-            # pprint(prompt) # pprint(answer)
             completeness_assessment = re.split(r':|\n', answer.split("**")[2])[1]
-
-            # save as md file
-            with open(f"data/completeness/{country}_answer.md", "a", encoding="utf-8") as f:
-                f.write(f"# {country}\n\n")
-                f.write(f"## {keypoint_to_check}\n\n")
-                f.write(answer)
-                f.write("\n\n\n\n")
-
-            # save as json file
-            save_answer(country, keypoint_to_check, wiki_content, database_content, answer)
-
-            # create dict or file with country, keypoint and completeness assessment
-            with open(f"data/completeness/{country}_summary.md", "a", encoding="utf-8") as f:
+            save_answer(country, keypoint_to_check, wiki_content, database_content, answer) # save as json file and md file
+            with open(f"data/completeness/{country}_summary.md", "a", encoding="utf-8") as f: # save summary
                 f.write(f"Keypoint '{point}' covered?  {completeness_assessment} \n\n")
 
 
 # debug
 # chapter = keypoints[10]
 # point = keypoints[11]
-# keypoint_to_check = f"{chapter}: {point}" # '2. Rights of the Accused:    1. Right Against Unlawful Arrests, Searches and Seizures'
-# country = "Burundi"
-#
-# print(f"keypoint: {keypoint_to_check}, country: {country}")
-#
-# wiki_content = perform_similarity_search_metadata_filter(collection,
-#                                                              query_text=keypoint_to_check,
-#                                                              metadata_param="link",
-#                                                              metadata_value="https://defensewiki.ibj.org/index.php?title=Burundi",
-#                                                              n_results=5)
-#
-# database_content = perform_similarity_search_metadata_filter(collection,
-#                                                          query_text=keypoint_to_check,
-#                                                          metadata_param="country",
-#                                                          metadata_value="Burundi",
-#                                                          n_results=5)
-#
-# context_database = build_context_text(database_content)
-# context_wiki = build_context_text(wiki_content)
-#
-# prompt = format_prompt(PROMPT_KEYPOINT_COUNTRY_v2, keypoint=f"{chapter}: {point}", wiki_content=context_wiki, database_content=context_database)
-#
-# answer = get_openai_response(client, prompt)
-# pprint(answer)
-#
-# save_answer(country, keypoint_to_check, wiki_content, database_content, answer)
+# all in one function? need to return database_content and more things, no for the moment
+# answer = check_keypoint_covered(collection, client, country, chapter, point, PROMPT_KEYPOINT_COUNTRY_v2)
