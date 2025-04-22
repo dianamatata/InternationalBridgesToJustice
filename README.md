@@ -24,31 +24,72 @@ Additionally, this project will lay the foundation for the future development of
 
 ## Repository overview
 
-### 1a. [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
+### 1 - Data Collection and Preparation
+
+To ensure the reliability of the Defense Wiki, it is essential to create a structured legal database to verify and cross-check its content. Since the platform is open and collaborative, and legal frameworks evolve over time, some entries may be incomplete, outdated, or inaccurate. Therefore, it is essential that all legal information in the Defense Wiki remains precise, verifiable, and current, supported by trustworthy sources and rigorous fact-checking.
+
+#### 1 - Establish a comprehensive list of sources from which legal information can be retrieved. 
+
+#### 2 - Scrape the content of these sources and save it in a structured format (JSON, JSONL) for easy access and analysis.
+
+Important Metadata: When integrating a document, add its publication date, its country of application/ legal type/ source type, its legal status (in force, amended, draft, its legal relevance (national vs. regional laws, soft law vs. hard law), its original language, the website from where the document has been retrieved.
+
+#### 1a. [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file
 + Check reference links that are working and outdated
 + [ibj_statistics.py](ibj_statistics.py)
 Run statistics on the data extracted on the DefenseWiki website
 
-### 1b. [scraping_constitution_website.py](scraping_constitution_website.py)
+#### 1b. [scraping_constitution_website.py](scraping_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
-### 1c. [scraping_unodc.py](scraping_unodc.py)
+#### 1c. [scraping_unodc.py](scraping_unodc.py)
 TODO!!!
 
-### 2 [chunking_functions.py](chunking_functions.py)
+#### 2 [chunking_functions.py](chunking_functions.py)
 create functions to cut markrdown text into smaller chunks
 
-### 2a. [chunking_defensewiki.py](chunking_defensewiki.py)
+#### 2a. [chunking_defensewiki.py](chunking_defensewiki.py)
 Chunk the Defense Wiki content into smaller pieces and save them in a json file
 
-### 2b. [chunking_constitutions.py](chunking_constitutions.py)
+#### 2b. [chunking_constitutions.py](chunking_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
-### 3. [extract_claims.py](extract_claims.py)
+
+#### 4. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
+Extract content from pdf files to markdown and save them with metadata for ground truth
+
+### 2 - Preprocessing
+
+A further challenge lies in content redundancy and divergence. The Defense Wiki contains duplicated pages or sections that could be edited independently, leading to inconsistencies or even contradictory claims.
+
+Detection of duplicates
+* Not unique hashes
+* Compute similarity looking at the distance between embeddings
+* Duplicates: Paragraphs or whole pages? Some countries have duplicated pages, but also some chunks (often the Contents one, which can be ignored)
+* Apply many pages for one country protocol (below)
+
+
+Many pages for one country (duplicates or multilingual): 
+* Translate all pages in English. 
+* Unify and Synthesize content paragraph-wise using LLM. Ensure alignment of facts and level of detail. Indeed, there might be discrepancies in page details or facts across languages (e.g., Chile in English vs. Spanish)? 
+* Careful to preserve references during synthesis.
+
+### 3 - Processing: Key points for each country page
+
+#### A - Completeness
+* [ensuring_completeness_country_pages.py](ensuring_completeness_country_pages.py)
+* 
+
+#### B - Accuracy
+
+*  [extract_claims.py](extract_claims.py)
 Extract claims from the content of the Defense Wiki and save them in a json file
 Right now done for Singapore and 2 pages of Burundi out of 12 files
 
-### 4. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
-Extract content from pdf files to markdown and save them with metadata for ground truth
+* [verify_claims_one_country.py](verify_claims_one_country.py)
+* 
+#### C -  Source credibility 
+#### D - Legal relevance
+#### E - Language accessibility
 
