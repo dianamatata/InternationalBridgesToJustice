@@ -140,20 +140,21 @@ def format_prompt(prompt_template: str, claim: str, context: str) -> str:
     """
     return prompt_template.format(claim=claim, context=context)
 
-def get_openai_response(client, prompt: str, model="gpt-4") -> str:
+def get_openai_response(client, categorize_system_prompt:str, prompt: str, model="gpt-4o-mini", temperature=0.1) -> str:
     """
     Send the prompt to OpenAI's chat API and return the answer.
     """
-
     # Create the chat completion
-    response = client.chat.completions.create(model=model,
-    messages=[
-        {"role": "system", "content": "You are a legal assistant."},
-        {"role": "user", "content": prompt}
-    ])
+    # default temp is 1. Burundi has been run with 1. Values can be from 0 through 2.
+    response = client.chat.completions.create(
+        model=model,
+        temperature=temperature,
+        messages=[
+            {"role": "system", "content": categorize_system_prompt},
+            {"role": "user", "content": prompt}
+        ])
 
-    # Accessing the response
-    print(response.choices[0].message.content)
+    # Accessing the response # print(response.choices[0].message.content)
     return response.choices[0].message.content
 
 def retrieve_source_titles(results: dict, all_chunks: list[dict]) -> list[str]:
