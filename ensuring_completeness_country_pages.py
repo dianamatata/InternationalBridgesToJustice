@@ -8,8 +8,9 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 from openai import OpenAI
 import chromadb
 import json
+from tqdm import tqdm  # make your loops show a smart progress meter
 from pprint import pprint
-
+import re
 import importlib # Use importlib.reload() to re-import your module after editing it
 import query_database
 importlib.reload(query_database)
@@ -57,155 +58,135 @@ def check_keypoint_covered(country, chapter, point):
     # check if the point is covered in the database, if yes extract relevant lawys and legal chapters
     # check if the input data on document covers the point
     # with all this info "re"formulate an answer and assess whether we answered well the question
+# result = check_keypoint_covered(country, chapter, point)
 
-PROMPT_KEYPOINT_COUNTRY = (
-    "Your task is to critically assess whether the following wiki chapter contains sufficient information to address the point: **{keypoint}**.\n\n"
-    "Based on your analysis, classify the wiki chapter as one of the following:\n"
-    "- **Complete**: The wiki chapter directly and sufficiently addresses the point.\n"
-    "- **Needs refinement**: The point is mentioned but lacks clarity, depth, or specificity.\n"
-    "- **Missing**: The point is not addressed at all.\n\n"
-    "To support your reasoning, consult the database content. It may contain legal references or authoritative information related to the point, but this is not guaranteed.\n"
-    "Cite specific laws or legal chapters from the database when relevant to justify your decision.\n\n"
-    "Wiki_content (to be evaluated):\n{wiki_content}\n\n"
-    "Database_content (for reference and legal support):\n{database_content}\n"
-)
+def save_answer(country, keypoint_to_check, wiki_content, database_content, answer):
+    """
+    Save the answer to a JSON file.
+    """
+    country_keypoint = {
+        "country": country,
+        "keypoint": keypoint_to_check,
+        "wiki_content": {
+            "ids": wiki_content.get("ids", [[]])[0],
+            "title_bis": wiki_content.get("metadatas", [[]])[0],
+            "distances": wiki_content.get("distances", [[]])[0],
+        },
+        "database_content": {
+            "ids": database_content.get("ids", [[]])[0],
+            "title_bis": database_content.get("metadatas", [[]])[0],
+            "distances": database_content.get("distances", [[]])[0],
+        },
+        "answer": answer,
+        "completeness_assessment" : answer.split("**")[1]
+    }
 
-# V2: we want: Emphasis on legal grounding, Guidance on how to use the database: not just citation, but summarization + relevance
-PROMPT_KEYPOINT_COUNTRY = (
-    "You are tasked with evaluating whether the following wiki chapter provides sufficient, focused, and legally grounded information to address the key point: **{keypoint}**.\n\n"
-    "Classify the wiki chapter as one of the following:\n"
-    "- **Complete**: The chapter directly addresses the point with adequate legal detail (e.g., cites laws, explains protections or procedures).\n"
-    "- **Needs refinement**: The chapter touches on the topic but lacks clear definitions, specific legal references, or concrete details. In this case, specify **what is missing**, and use the database to **suggest how the wiki could be improved**, e.g., by summarizing or citing relevant laws.\n"
-    "- **Missing**: The chapter does not address the point at all.\n\n"
-    "Your analysis should be critical. Avoid generic affirmations. Focus on whether the wiki clearly defines the legal concepts involved, cites relevant protections, and aligns with the key point.\n\n"
-    "If available, use the database content to extract **specific legal articles or provisions** that clarify or strengthen the wiki's coverage. Explain **what these laws say**, and how they relate to the key point. Don't just mention a law — summarize its relevance.\n\n"
-    "Wiki_content (chapter to be evaluated):\n{wiki_content}\n\n"
-    "Database_content (legal text for potential support):\n{database_content}\n"
-)
+    # save the answer in a json file
+    with open(f"data/completeness/{country}.json", "a", encoding="utf-8") as json_file:
+        json.dump(country_keypoint, json_file, indent=4)
+
+    """
+        Save the answer to a MD file.
+    """
+
+    with open(f"data/completeness/{country}_answer.md", "a", encoding="utf-8") as f:
+        f.write(f"# {country}\n\n")
+        f.write(f"## {keypoint_to_check}\n\n")
+        f.write(answer)
+        f.write("\n\n\n\n")
+
 
 # MAIN ---------------------------------------------------
 client = OpenAI()
 
+CHROMA_PATH = "data/chroma_db"
+COLLECTION_NAME = "legal_collection"
+collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
+
 countries = get_countries()
 keypoints = get_completeness_checklist()
 
+with open("prompt_completeness.md", "r") as f:
+    PROMPT_KEYPOINT_COUNTRY_v2 = f.read()
+
+# debug
+countries = ["Burundi"] # TODO remove this line to run for all countries
 chapter = ""
 for country in countries:
-    for point in keypoints:
+    # for point in tqdm(keypoints):
+    for point in tqdm(keypoints[9:12]): # TODO remove this line to run for all keypoints
+
         # if point is not a new chapter
         indent = len(point) - len(point.lstrip())  # Capture the indentation (number of leading spaces)
         if indent == 0:
             chapter = point
         if indent > 0:
-            result = check_keypoint_covered(country, chapter, point)
-            if result:
-                print(f"Keypoint '{point}' is covered in {country}.")
-            else:
-                print(f"Keypoint '{point}' is NOT covered in {country}.")
-                # check in database
-                # check on internet
+            keypoint_to_check = f"{chapter}: {point}"
+            print(f"\033[93m{chapter}:\033[0m\033[94m{point}\033[0m")
+
+            wiki_content = perform_similarity_search_metadata_filter(collection,
+                                                                     query_text=keypoint_to_check,
+                                                                     metadata_param="link",
+                                                                     metadata_value=f"https://defensewiki.ibj.org/index.php?title={country}",
+                                                                     n_results=5)
+
+            database_content = perform_similarity_search_metadata_filter(collection,
+                                                                         query_text=keypoint_to_check,
+                                                                         metadata_param="country",
+                                                                         metadata_value=country,
+                                                                         n_results=5)
+
+            context_database = build_context_text(database_content)
+            context_wiki = build_context_text(wiki_content)
+
+            prompt = format_prompt(PROMPT_KEYPOINT_COUNTRY_v2, keypoint=f"{chapter}: {point}", wiki_content=context_wiki,
+                                   database_content=context_database)
+
+            answer = get_openai_response(client, prompt)
+            # pprint(prompt) # pprint(answer)
+            completeness_assessment = re.split(r':|\n', answer.split("**")[2])[1]
+
+            # save as md file
+            with open(f"data/completeness/{country}_answer.md", "a", encoding="utf-8") as f:
+                f.write(f"# {country}\n\n")
+                f.write(f"## {keypoint_to_check}\n\n")
+                f.write(answer)
+                f.write("\n\n\n\n")
+
+            # save as json file
+            save_answer(country, keypoint_to_check, wiki_content, database_content, answer)
+
+            # create dict or file with country, keypoint and completeness assessment
+            with open(f"data/completeness/{country}_summary.md", "a", encoding="utf-8") as f:
+                f.write(f"Keypoint '{point}' covered?  {completeness_assessment} \n\n")
+
 
 # debug
-chapter = keypoints[10]
-point = keypoints[11]
-keypoint_to_check = f"{chapter}: {point}" # '2. Rights of the Accused:    1. Right Against Unlawful Arrests, Searches and Seizures'
-country = "Burundi"
-COLLECTION_NAME = "legal_collection"
-CHROMA_PATH = "data/chroma_db"
-collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
-print(f"keypoint: {keypoint_to_check}, country: {country}")
-
-wiki_content = perform_similarity_search_metadata_filter(collection,
-                                                             query_text=keypoint_to_check,
-                                                             metadata_param="link",
-                                                             metadata_value="https://defensewiki.ibj.org/index.php?title=Burundi",
-                                                             n_results=5)
-
-database_content = perform_similarity_search_metadata_filter(collection,
-                                                         query_text=keypoint_to_check,
-                                                         metadata_param="country",
-                                                         metadata_value="Burundi",
-                                                         n_results=5)
-
-context_database = build_context_text(database_content)
-context_wiki = build_context_text(wiki_content)
-
-prompt = format_prompt(PROMPT_KEYPOINT_COUNTRY, keypoint=f"{chapter}: {point}", wiki_content=context_wiki, database_content=context_database)
-
-answer = get_openai_response(client, prompt)
-pprint(answer)
-
-# SAVE ---------------------------------------------------
-
-country_keypoint = {
-    "country": country,
-    "keypoint": keypoint_to_check,
-    "wiki_content": {
-        "ids": wiki_content.get("ids", [[]])[0],
-        "title_bis": wiki_content.get("metadatas", [[]])[0],
-        "distances": wiki_content.get("distances", [[]])[0],
-    },
-    "database_content": {
-        "ids": database_content.get("ids", [[]])[0],
-        "title_bis": database_content.get("metadatas", [[]])[0],
-        "distances": database_content.get("distances", [[]])[0],
-    },
-    "answer": answer
-}
-
-# TODO save the answer in a json file
-with open(f"data/completeness/{country}.json", "a", encoding="utf-8") as json_file:
-    json.dump(country_keypoint, json_file, indent=4)
-
-# v2
-"""
-('**Complete**: The chapter directly addresses the key point - Right Against '
- 'Unlawful Arrests, Searches, and Seizures - with adequate legal detail.\n'
- '\n'
- 'The wiki chapter provides a comprehensive breakdown of the procedural '
- 'safeguards against unlawful arrests, searches, and seizures, with references '
- 'to relevant sections in the Constitution and the Code of Criminal Procedure. '
- 'It includes a detailed discussion of the right to be informed of the motives '
- 'for arrest, the right to be presumed innocent, and the right to be assisted '
- 'by a lawyer. Police procedures are also covered, with specific emphasis on '
- 'the rights of the accused during the pre-jurisdictional phase and police '
- 'custody.\n'
- '\n'
- "The wiki chapter could be enhanced by referencing the database's legal "
- 'provisions. For instance, it could cite Article 39 about ensuring freedom in '
- 'accordance with provisions of law, Article 43 about protection against '
- 'arbitrary interference in private life, and Article 40 about presumption of '
- 'innocence for a person accused of a criminal act. These articles could '
- "provide additional backing to the wiki's coverage of the right against "
- 'unlawful arrests, and searches, and seizures.\n'
- '\n'
- 'Overall, however, the wiki chapter is in line with the key point and '
- 'provides detailed explanations, legal references, and specifics on the legal '
- 'protections of the accused. It offers a clear view of the legal framework '
- 'surrounding arrests, searches, seizures, and the rights of the accused in '
- 'the process.')
-
-
-# v1
-('**Needs refinement**: The wiki chapter does provide an overview and address '
- 'the right against unlawful arrests, searches, and seizures but it lacks '
- 'specific detail and depth on this point. There is no direct mention of what '
- 'constitutes an "unlawful" arrest, search, or seizure, or the guarantees '
- 'under the code of criminal procedure, constitution, or any other relevant '
- 'laws that specifically protect individuals against them. \n'
- '\n'
- 'What is available in the wiki is valuable information about overall rights '
- 'of the accused, such as the right to be informed of reasons for arrest, to '
- 'be presumed innocent, to be assisted by a lawyer, not to be subjected to '
- 'torture, to be judged within a reasonable time, to a public trial, to an '
- 'interpreter, to silence, and to know the content of the case-file. However, '
- 'the specific topic of rights against unlawful arrests, searches, and '
- 'seizures needs a more focused definition and elaboration.\n'
- '\n'
- 'In justifying this, even from the database content, *Article 39* is a direct '
- 'legal reference for the protection against deprivation of freedom, and '
- '*Article 43* also mentions protection against arbitrary interference and '
- 'infringement, which can provide key details for the right against unlawful '
- 'arrests, searches, and seizures. This valuable information can be used to '
- 'refine the given point in the wiki chapter.')
- """
+# chapter = keypoints[10]
+# point = keypoints[11]
+# keypoint_to_check = f"{chapter}: {point}" # '2. Rights of the Accused:    1. Right Against Unlawful Arrests, Searches and Seizures'
+# country = "Burundi"
+#
+# print(f"keypoint: {keypoint_to_check}, country: {country}")
+#
+# wiki_content = perform_similarity_search_metadata_filter(collection,
+#                                                              query_text=keypoint_to_check,
+#                                                              metadata_param="link",
+#                                                              metadata_value="https://defensewiki.ibj.org/index.php?title=Burundi",
+#                                                              n_results=5)
+#
+# database_content = perform_similarity_search_metadata_filter(collection,
+#                                                          query_text=keypoint_to_check,
+#                                                          metadata_param="country",
+#                                                          metadata_value="Burundi",
+#                                                          n_results=5)
+#
+# context_database = build_context_text(database_content)
+# context_wiki = build_context_text(wiki_content)
+#
+# prompt = format_prompt(PROMPT_KEYPOINT_COUNTRY_v2, keypoint=f"{chapter}: {point}", wiki_content=context_wiki, database_content=context_database)
+#
+# answer = get_openai_response(client, prompt)
+# pprint(answer)
+#
+# save_answer(country, keypoint_to_check, wiki_content, database_content, answer)
