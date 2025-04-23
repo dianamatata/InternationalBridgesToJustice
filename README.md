@@ -55,7 +55,7 @@ Chunk the Defense Wiki content into smaller pieces and save them in a json file
 Chunk the Constitution content into smaller pieces and save them in a json file
 
 
-* 4. [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
+* [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
 Extract content from pdf files to markdown and save them with metadata for ground truth
 
 * [documents_to_extract.py](documents_to_extract.py) <font color="yellow">*TODO: documents we need to scrape and add to the collection as well*</font>
