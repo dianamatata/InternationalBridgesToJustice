@@ -31,7 +31,7 @@ with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
     keys = defense_wiki_all[1].keys()
     chunks = []
 
-    for page in tqdm(range(0,len(defense_wiki_all))):
+    for page in tqdm(range(0, len(defense_wiki_all))):
         document = defense_wiki_all[page]["content"]
         document_sections = extract_chapters(
             document, headers_to_exclude_from_chunks=headers_to_exclude_from_chunks
@@ -68,8 +68,7 @@ with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
 import tiktoken
 
 # Choose the right encoding for your model
-# For GPT-4: use 'gpt-4', for GPT-3.5-turbo: use 'cl100k_base'
-encoding = tiktoken.encoding_for_model("gpt-4")
+encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 text = "This is a sentence that I want to tokenize."
 # Encode and count tokens
 tokens = encoding.encode(text)

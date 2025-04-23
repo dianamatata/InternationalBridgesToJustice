@@ -10,14 +10,15 @@ import numpy as np
 
 # 1 - Get country names (and optional aliases) from pycountry
 import pycountry
+
 country_names1 = [country.name for country in pycountry.countries]
-len(country_names1) # 249
+len(country_names1)  # 249
 
 # 2 - Get country names from the Defense Wiki Country pages
 file_country_names = "data/interim/country_names_1.txt"
 with open(f"{file_country_names}", "r", encoding="utf-8") as f:
     country_names = f.read().splitlines()
-    len(country_names) # 204
+    len(country_names)  # 204
 
 # 3. Update the defensewiki to add the country name
 input_data = "data/interim/defensewiki_all.json"
@@ -64,7 +65,7 @@ title_to_country = {
     "Democratic_Republic_of_Congo-fr": "Congo, Democratic Republic of the",
     "Democratic_Republic_of_Congo-es": "Congo, Democratic Republic of the",
     "Congo-brazzaville": "Congo, Republic of the",
-    "Congo": "Congo, Democratic Republic of the", # not sure for this one
+    "Congo": "Congo, Democratic Republic of the",  # not sure for this one
     "Inglaterra": "England and Wales",
     "Japon": "Japan",
     "Malasia": "Malaysia",
@@ -83,33 +84,46 @@ substring_to_country = {
 
 for d in defense_wiki_all:
     # Check if any country name is in the title, in this direction because 'Thailand-es' in 'Thailand'
-    cleaned_title = d['title'].replace('_', ' ').strip().lower()
+    cleaned_title = d["title"].replace("_", " ").strip().lower()
 
-    matching_country = next((country for country in country_names if country.lower().strip() in cleaned_title), None)
+    matching_country = next(
+        (
+            country
+            for country in country_names
+            if country.lower().strip() in cleaned_title
+        ),
+        None,
+    )
     if matching_country:
-        d['country'] = matching_country
+        d["country"] = matching_country
     else:
         # 2. Try exact title correction dictionary
-        corrected = title_to_country.get(d['title'], None)
+        corrected = title_to_country.get(d["title"], None)
         if corrected:
-            d['country'] = corrected
+            d["country"] = corrected
         else:
             # 3. Try substring-based matching
-            d['country'] = next(
-                (country for key, country in substring_to_country.items() if key in d['title']),
-                None
+            d["country"] = next(
+                (
+                    country
+                    for key, country in substring_to_country.items()
+                    if key in d["title"]
+                ),
+                None,
             )
 
 # check all the country None
-check1 = [[e['title'], e['country']] for e in defense_wiki_all if e['country'] is None]
+check1 = [[e["title"], e["country"]] for e in defense_wiki_all if e["country"] is None]
 for c in check1:
     print(c)
 
 
 # 4. check problems
 # with Urugay
-entry_to_check = [d for d in defense_wiki_all if 'Congo,_Democratic_Republic_of_the' in d['title']]
-check1 = [[e['title'], e['country']] for e in entry_to_check]
+entry_to_check = [
+    d for d in defense_wiki_all if "Congo,_Democratic_Republic_of_the" in d["title"]
+]
+check1 = [[e["title"], e["country"]] for e in entry_to_check]
 for c in check1:
     print(c)
 
@@ -120,7 +134,7 @@ with open(f"data/interim/no_countries.txt", "w", encoding="utf-8") as file:
 
 # save defense wiki with countries
 with open("data/interim/defensewiki_all_1.json", "w", encoding="utf-8") as file:
-    json.dump(defense_wiki_all,file, indent=4)  # Save JSON content
+    json.dump(defense_wiki_all, file, indent=4)  # Save JSON content
 
 with open("data/interim/defensewiki_all_1.jsonl", "w", encoding="utf-8") as jsonl_file:
     for record in defense_wiki_all:
@@ -128,7 +142,7 @@ with open("data/interim/defensewiki_all_1.jsonl", "w", encoding="utf-8") as json
 
 # 2 update the chunks with country names
 # load defense wiki
-with (open("data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json_file):
+with open("data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json_file:
     defense_wiki_all = json.load(json_file)
 
 
@@ -143,13 +157,21 @@ for path in [path1]:
             chunks.append(json.loads(line))
         for chunk in chunks:
             # get original page, get title and country and update!
-            chunk['metadata']['country'] = [d['country'] for d in defense_wiki_all if d['title'] == chunk['metadata']['title']]
+            chunk["metadata"]["country"] = [
+                d["country"]
+                for d in defense_wiki_all
+                if d["title"] == chunk["metadata"]["title"]
+            ]
     print(f"Total number of chunks: {len(chunks)}")
 
-with open("data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8") as file:
+with open(
+    "data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8"
+) as file:
     json.dump(chunks, file, indent=4)  # Save JSON content
 
-with open("data/processed/defensewiki.ibj.org/chunks_1.jsonl", "w", encoding="utf-8") as jsonl_file:
+with open(
+    "data/processed/defensewiki.ibj.org/chunks_1.jsonl", "w", encoding="utf-8"
+) as jsonl_file:
     for record in chunks:
         jsonl_file.write(json.dumps(record) + "\n")
 
@@ -168,16 +190,26 @@ with open(input_data, "r", encoding="utf-8") as json_file:
 
 # get duplicated hashes
 titles = [chunk["title"] for chunk in chunks]
-len(titles)  == len(np.unique(titles))
+len(titles) == len(np.unique(titles))
 # len(np.unique(titles)) 10605
 # len(titles) 10941
 duplicated_hash = [item for item, count in Counter(titles).items() if count > 1]
 # get all duplicated chunks
-duplicated_chunks = [d for d in chunks if d['title'] in duplicated_hash]
+duplicated_chunks = [d for d in chunks if d["title"] in duplicated_hash]
 len(duplicated_chunks)
 # extract pages names
-duplicated_pages_data = [[d['title'], d['metadata']['title'], d['metadata']['link'],d['metadata']['title_bis']] for d in duplicated_chunks]
-df_duplicates = pd.DataFrame(duplicated_pages_data, columns=['Hash Title', 'Page Title', 'Link', 'Title Bis'])
+duplicated_pages_data = [
+    [
+        d["title"],
+        d["metadata"]["title"],
+        d["metadata"]["link"],
+        d["metadata"]["title_bis"],
+    ]
+    for d in duplicated_chunks
+]
+df_duplicates = pd.DataFrame(
+    duplicated_pages_data, columns=["Hash Title", "Page Title", "Link", "Title Bis"]
+)
 
 output_file = "data/interim/duplicated_hashes_and_pages.csv"
 df_duplicates.to_csv(output_file, sep="\t", index=False)
@@ -189,9 +221,9 @@ df_duplicates.to_csv(output_file, sep="\t", index=False)
 
 
 from collections import defaultdict
+
 CHROMA_PATH = "data/chroma_db"
-client = chromadb.PersistentClient(
-        path=CHROMA_PATH)
+client = chromadb.PersistentClient(path=CHROMA_PATH)
 collection = client.get_or_create_collection(name="legal_collection")
 
 # Group chunks by title
@@ -215,7 +247,7 @@ len(cleaned_chunks)
 collection.upsert(
     ids=[chunk["title"] for chunk in unique_chunks],
     documents=[chunk["content"] for chunk in cleaned_chunks],
-    metadatas=[{"country": chunk["metadata"]["country"]} for chunk in cleaned_chunks]
+    metadatas=[{"country": chunk["metadata"]["country"]} for chunk in cleaned_chunks],
 )
 
 
@@ -224,7 +256,11 @@ collection.upsert(
 
 # ✅ Option 1: Switch to CPU-based inference
 # ✅ Option 2: Check for invalid content
-valid_chunks = [chunk for chunk in cleaned_chunks if isinstance(chunk["content"], str) and chunk["content"].strip() != ""]
+valid_chunks = [
+    chunk
+    for chunk in cleaned_chunks
+    if isinstance(chunk["content"], str) and chunk["content"].strip() != ""
+]
 len(valid_chunks)
 len(cleaned_chunks)
 

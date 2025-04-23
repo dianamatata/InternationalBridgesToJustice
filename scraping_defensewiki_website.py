@@ -21,6 +21,7 @@ import glob
 
 # Functions -------------------
 
+
 def get_link_status(url):
     """Checks the status of a link (functional or error)."""
     try:
@@ -232,6 +233,7 @@ def build_link_tree_3(
 
     return tree, visited
 
+
 def save_as_html(tree_links_validity, output_file):
     html_template = """<html>
     <head>
@@ -250,9 +252,14 @@ def save_as_html(tree_links_validity, output_file):
 
     def format_json_with_colors(data):
         json_str = json.dumps(data, indent=4)
-        json_str = json_str.replace('"status": "functional"',
-                                    '"status": "<span class=\'functional\'>functional link</span>"')
-        json_str = json_str.replace('"status": "error"', '"status": "<span class=\'error\'>error - link broken</span>"')
+        json_str = json_str.replace(
+            '"status": "functional"',
+            '"status": "<span class=\'functional\'>functional link</span>"',
+        )
+        json_str = json_str.replace(
+            '"status": "error"',
+            '"status": "<span class=\'error\'>error - link broken</span>"',
+        )
         return json_str
 
     formatted_json = format_json_with_colors(tree_links_validity)
@@ -263,7 +270,11 @@ def save_as_html(tree_links_validity, output_file):
 
     print(f"HTML file created: {output_file}")
 
-def save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity.csv"):
+
+def save_as_cvs(
+    tree_links_validity,
+    output_file="data/processed/defensewiki.ibj.org/tree_links_validity.csv",
+):
     # Extract the root key (first level)
     root_key = list(tree_links_validity.keys())[0]
     # Extract principal pages
@@ -273,14 +284,16 @@ def save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj
     # Loop through each principal page and extract its links
     for principal_page, links in principal_pages.items():
         print(principal_page)
-        if 'subtree' in links and principal_page in links['subtree']:
-            links_2 = links['subtree'][principal_page]
+        if "subtree" in links and principal_page in links["subtree"]:
+            links_2 = links["subtree"][principal_page]
             for link, details in links_2.items():
-                data.append({
-                    "Principal Page": principal_page,
-                    "Link": link,
-                    "Status": details["status"]
-                })
+                data.append(
+                    {
+                        "Principal Page": principal_page,
+                        "Link": link,
+                        "Status": details["status"],
+                    }
+                )
 
     df = pd.DataFrame(data)
 
@@ -296,8 +309,8 @@ folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 # and save them as html and csv files
 
 start_time = time.time()
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3" # 2 pages
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000" # 500 pages
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3"  # 2 pages
+url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"  # 500 pages
 
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
@@ -308,8 +321,14 @@ print(f"Elapsed Time: {elapsed_time} seconds")
 with open("data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
     json.dump(tree_links_validity, f, indent=4)
 
-save_as_html(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html")
-save_as_cvs(tree_links_validity, output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv")
+save_as_html(
+    tree_links_validity,
+    output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
+)
+save_as_cvs(
+    tree_links_validity,
+    output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv",
+)
 print("files saved")
 
 # merge all the subdocuments:
@@ -395,7 +414,11 @@ link_tree_defensewiki = build_complex_link_tree(
     "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0",
     depth=1,
 )
-save_file(f"{folder_defense_wiki_raw}/defensewiki_all.json", link_tree_defensewiki, file_type="json")
+save_file(
+    f"{folder_defense_wiki_raw}/defensewiki_all.json",
+    link_tree_defensewiki,
+    file_type="json",
+)
 remove_content_field(link_tree_defensewiki)
 save_file(
     f"{folder_defense_wiki_raw}/defensewiki1_no_content.json",

@@ -12,4 +12,3 @@ for path in [path1, path2]:
     print(f"Total number of chunks: {len(chunks)}")  # Should be 50380
 
 chunks[0]
-

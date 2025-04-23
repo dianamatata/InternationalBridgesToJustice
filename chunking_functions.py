@@ -7,10 +7,10 @@ MAX_CHUNK_SIZE = 500  # todo is it words or characters
 
 # FUNCTIONS --------------------
 
+
 def generate_hash(content):
     """Generate SHA-256 hash of the given content."""
     return hashlib.sha256(content.encode()).hexdigest()
-
 
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
@@ -85,7 +85,7 @@ def split_text_into_chunks(
         nonlocal current_chunk, chunk_count
         # non local: defined in the enclosing split_text_into_chunks , not local to add_chunks
         if current_chunk:
-            section_short = ' '.join(section.split()[0:7])
+            section_short = " ".join(section.split()[0:7])
             chunks.append(
                 Chunk(
                     title=generate_hash(current_chunk.strip()),
@@ -93,7 +93,7 @@ def split_text_into_chunks(
                     metadata={
                         key: parent_dict[key]
                         for key in [
-                            'type',
+                            "type",
                             "title",
                             "link",
                             "extracted",
@@ -102,11 +102,12 @@ def split_text_into_chunks(
                             "language",
                             "viewcount",
                         ]
-                             } | { # to join 2 dictionaries
-                                 "title_bis": f"{parent_dict['type']}.{parent_dict['title']}.{section_short}.{chunk_count}",
-                                 "section_short": section_short,
-                                 "chunk_count": chunk_count,
-                             },
+                    }
+                    | {  # to join 2 dictionaries
+                        "title_bis": f"{parent_dict['type']}.{parent_dict['title']}.{section_short}.{chunk_count}",
+                        "section_short": section_short,
+                        "chunk_count": chunk_count,
+                    },
                 )
             )
             chunk_count += 1
@@ -146,7 +147,7 @@ def split_text_into_chunks_with_metadata(
         filtered_metadata = {
             key: metadata.get(key) for key in metadata if key != "content"
         }
-        section_short = ' '.join(section.split()[0:7])
+        section_short = " ".join(section.split()[0:7])
 
         if current_chunk:
             chunks.append(
@@ -154,11 +155,12 @@ def split_text_into_chunks_with_metadata(
                     title=generate_hash(current_chunk.strip()),
                     content=current_chunk.strip(),
                     # metadata=filtered_metadata,  # Pass all received metadata
-                    metadata = filtered_metadata | {
+                    metadata=filtered_metadata
+                    | {
                         "title_bis": f"{metadata.get(title, 'Untitled')}.{section_short}.{chunk_count}",
                         "section_short": section_short,
                         "chunk_count": chunk_count,
-                    }
+                    },
                 )
             )
             # print(current_chunk.strip())
@@ -182,4 +184,3 @@ def split_text_into_chunks_with_metadata(
     add_chunk()  # Add any remaining chunk
 
     return chunks
-

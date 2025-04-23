@@ -42,7 +42,6 @@ for page in range(1, len(defense_wiki_all)):
         file.write(defense_wiki_all[page]["content"])
 
 
-
 # open jsonl
 data = []
 with open(f"{path}/chunks.jsonl", "r", encoding="utf-8") as json_file:

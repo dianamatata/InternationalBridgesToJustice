@@ -73,9 +73,7 @@ summary_defensewiki.to_csv(
 
 
 # load and stats
-summary_defensewiki = pd.read_csv(
-    "Data/summary_defensewiki.csv"
-)
+summary_defensewiki = pd.read_csv("Data/summary_defensewiki.csv")
 
 # Sort languages by decreasing count
 summary_defensewiki["Language"].value_counts()
