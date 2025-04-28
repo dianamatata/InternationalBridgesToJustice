@@ -10,7 +10,16 @@
 /Data
 /html_pages/constitutions
 /prompt
-/veriscore
 /test_veriscore
 .env
 /old_scripts
+/veriscore/__pycache__
+veriscore/__init__.py
+veriscore/claim_verifier.py
+veriscore/extract_claims.py
+veriscore/get_response.py
+veriscore/retrieve_evidence.py
+veriscore/search_API.py
+veriscore/utils.py
+veriscore/verify_claims.py
+veriscore/veriscore.py
