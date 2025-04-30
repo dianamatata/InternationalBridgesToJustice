@@ -6,7 +6,6 @@
 
 
 import json
-import numpy as np
 
 # 1 - Get country names (and optional aliases) from pycountry
 import pycountry
@@ -146,7 +145,7 @@ with open("data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json_
     defense_wiki_all = json.load(json_file)
 
 
-# load the chunks
+# load the chunks and add countries
 path1 = "data/processed/defensewiki.ibj.org/chunks.jsonl"
 chunks = []
 for path in [path1]:
@@ -156,13 +155,17 @@ for path in [path1]:
         for line in lines:
             chunks.append(json.loads(line))
         for chunk in chunks:
-            # get original page, get title and country and update!
-            chunk["metadata"]["country"] = [
+            matches = [
                 d["country"]
                 for d in defense_wiki_all
                 if d["title"] == chunk["metadata"]["title"]
             ]
+            chunk["metadata"]["country"] = matches[0] if matches else None
     print(f"Total number of chunks: {len(chunks)}")
+
+# check we have countries
+seen_countries = set([chunk['metadata']['country'] for chunk in chunks])
+
 
 with open(
     "data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8"
