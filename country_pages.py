@@ -214,8 +214,32 @@ df_duplicates = pd.DataFrame(
 output_file = "data/interim/duplicated_hashes_and_pages.csv"
 df_duplicates.to_csv(output_file, sep="\t", index=False)
 
-# TODO: if duplicate, only keep first hash
+# if duplicate, only keep first hash ------------------------
 
+seen = set() # unordered and unique
+unique_chunks = []
+
+for chunk in chunks:
+    title = chunk["title"]
+    if title not in seen:
+        seen.add(title)
+        unique_chunks.append(chunk)
+
+# create a new file with unique_chunks ------------------------
+
+path = "data/processed/defensewiki.ibj.org"
+
+# JSON Lines (one dict per line)
+with open(f"{path}/unique_chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
+    for chunk in unique_chunks:
+        jsonl_file.write(json.dumps(chunk) + "\n")
+
+# JSON (single array of dicts)
+with open(f"{path}/unique_chunks.json", "w", encoding="utf-8") as json_file:
+    json.dump(unique_chunks, json_file, ensure_ascii=False, indent=2)
+
+
+# add country (and these changes) to the collection -----------------------------------
 # In ChromaDB, embeddings and metadata are separate
 # you don’t have to re-embed your text just to update or add metadata
 

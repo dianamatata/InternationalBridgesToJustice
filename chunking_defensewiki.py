@@ -59,17 +59,5 @@ with open(f"{path}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
         jsonl_file.write(json.dumps(chunk.__dict__) + "\n")
 
 with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
-    for chunk in chunks:
-        json_file.write(json.dumps(chunk.__dict__) + "\n")
+    json.dump([chunk.__dict__ for chunk in chunks], json_file, ensure_ascii=False, indent=2)
 
-
-# if we would like to estimate tokens for MAX_CHUNK_SIZE
-
-import tiktoken
-
-# Choose the right encoding for your model
-encoding = tiktoken.encoding_for_model("gpt-4o-mini")
-text = "This is a sentence that I want to tokenize."
-# Encode and count tokens
-tokens = encoding.encode(text)
-print("Token count:", len(tokens))
