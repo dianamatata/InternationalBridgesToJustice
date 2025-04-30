@@ -59,7 +59,7 @@ def extract_info(link_tree_defensewiki):
 dir_plots = "Plots"
 # Load JSON file
 with open(
-    "IBJ_documents/legal_country_documents/docs_in_md_json/defensewiki1_no_content.json",
+    "data/interim/defensewiki1_no_content.json",
     "r",
 ) as f:
     link_tree_defensewiki = json.load(f)
@@ -67,13 +67,13 @@ with open(
 summary_defensewiki = extract_info(link_tree_defensewiki)
 summary_defensewiki = summary_defensewiki.reset_index()  # [1252 rows x 5 columns]
 summary_defensewiki.to_csv(
-    "Data/summary_defensewiki.csv",
+    "data/interim/summary_defensewiki.csv",
     index=False,
 )
 
 
 # load and stats
-summary_defensewiki = pd.read_csv("Data/summary_defensewiki.csv")
+summary_defensewiki = pd.read_csv("data/interim/summary_defensewiki.csv")
 
 # Sort languages by decreasing count
 summary_defensewiki["Language"].value_counts()
@@ -173,7 +173,45 @@ plt.show()
 
 # https://defensewiki.ibj.org/index.php?title=Code_de_Proc%C3%A9dure_P%C3%A9nale_du_B%C3%A9nin_(B%C3%A9nin_Criminal_Procedure_Code)
 
-# TODO: check why nbr of words do not work and we have NaNs
+
+# checking the number of words and tokens for the pages not in english ----------------------
+import tiktoken
+tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
+
+
+summary_defensewiki = pd.read_csv("data/interim/summary_defensewiki.csv")
+nbr_of_words = summary_defensewiki[summary_defensewiki["Language"] != "en"]["nbr_of_words"].sum()
+print(nbr_of_words) # 1 008 229
+
+# Load JSON file
+with open(
+    "data/interim/defensewiki_all.json",
+    "r",
+) as f:
+    link_tree_defensewiki = json.load(f)
+
+tokens_for_not_english_pages_IBJ = open("data/interim/dimension_files_not_english.txt", "a")
+input_tokens = {}
+global language_counts
+value_dict = list(link_tree_defensewiki.items())[0][1]
+for key, value in list(value_dict.items())[0:]:
+    if isinstance(value, dict):
+        if value['language'] != 'en' :
+            print(key)
+            text = value['content']
+            input_token = tokenizer.encode(text)
+            input_tokens[key] = len(input_token)
+            a = f"page: {key} \nlength in words: {len(text.split())} and in tokens: {len(input_token)}, language: {value['language']}\n\n"
+            # print(a)
+            tokens_for_not_english_pages_IBJ.write(a)
+
+
+values = input_tokens.values()
+total_input_tokens = sum(values)
+print(f"total_input_tokens: {total_input_tokens}")
+tokens_for_not_english_pages_IBJ.write(f"total_input_tokens: {total_input_tokens}")
+
+tokens_for_not_english_pages_IBJ.close()
 
 
 # # print 10 first items
