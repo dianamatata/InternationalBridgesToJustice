@@ -3,6 +3,7 @@
 # total_input_tokens: 1857676
 import json
 import os
+import numpy as np
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
@@ -78,12 +79,8 @@ print(md_text)
 
 
 translation_file = open("data/interim/translation_file.txt", "a")
-translation_file.write(f"Title: {chunk['title']}\n\n{chunk['metadata']}\n\nOriginal text:\n{md_text}\n\nTranslated text:\n{translated}\n\n")
+translation_file.write(f"Title: {chunk['title']}\n\n{chunk['metadata']}\n\nOriginal text:\n{md_text}\n\nTranslated text:\n{translated}\n\n\n\n")
 translation_file.close()
 # this works for a small subset
 
-# TODO: create pipeline to do this for all our chunks
-# Do we want the original content to be saved in the chunk? SHould we replace chunk['content']
-# and create a category chunk['untranslated_content']
-# Then create batches
 
