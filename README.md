@@ -54,6 +54,8 @@ Chunk the Defense Wiki content into smaller pieces and save them in a json file
 * [chunking_constitutions.py](chunking_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
+* [translation_batches.py](translation_batches.py)
+Translate all the chunks to English
 
 * [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
 Extract content from pdf files to markdown and save them with metadata for ground truth
