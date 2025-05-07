@@ -1,9 +1,11 @@
-##  Things we want to extract per page
-# view_count: popularity of the page - in metadata
-# word or line count: how much info we got on the page  - in metadata
-# number of links, functional or not: how well documented is the page #TODO
-# count how represented are languages across pages  - in metadata
-
+"""
+This script aims at extracting information from the DefenseWiki JSON file, and run basic statistics.
+Indeed, for each page, we want to extract:
+- the view_count: to measure the popularity of the page
+- the word and line counts: to get an estimate on how much info is contained per page
+- the number of links, functional or not: how well documented is the page #TODO
+- the language: to get an overview of the represented language in the DefenseWiki
+"""
 import json
 import re
 import os

@@ -1,5 +1,11 @@
-# This scripts build a tree of the links with depth =2 in the https://defensewiki.ibj.org/
-# and checks the quality of the links
+"""
+This script aims at building a tree of the links with depth =2 from the url https://defensewiki.ibj.org/
+and checks the quality of the links
+
+Different functions are performed here:
+- extracting all the page contents from the DefenseWiki in a recursive way (we save defensewiki1 with everything and defensewiki1_no_content with the metadata but not the content of the pages)
+- for each DefenseWiki page, extract the links and check if they are functional or not
+"""
 
 import os
 import time
