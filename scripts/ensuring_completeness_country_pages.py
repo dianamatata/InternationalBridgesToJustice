@@ -183,7 +183,7 @@ collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
 countries = get_countries()
 keypoints = get_completeness_checklist()
 
-with open("../prompt_completeness.md", "r") as f:
+with open("../data/prompts/prompt_completeness.md", "r") as f:
     prompt_completeness = f.read()
 
 # categorize_system_prompt : This is called a system message in OpenAI’s Chat API. It sets the overall behavior, tone, and expertise of the assistant.

@@ -179,7 +179,7 @@ prompt_completeness = None
 
 def load_prompt_completeness():
     global prompt_completeness  # TODO: is it a good idea to have it global?
-    with open("../prompt_completeness.md", "r") as f:
+    with open("../data/prompts/prompt_completeness.md", "r") as f:
         prompt_completeness = f.read()
 
 

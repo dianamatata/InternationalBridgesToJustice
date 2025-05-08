@@ -93,7 +93,7 @@ beggining of script to gather all the different versions. If we want to process 
 ### 3 - Processing: Key points for each country page
 
 #### A - Completeness
-* [prompt_completeness.md](prompt_completeness.md) the prompt to check the completeness of the page
+* [prompt_completeness.md](data/prompts/prompt_completeness.md) the prompt to check the completeness of the page
 * [ensuring_completeness_country_pages.py](scripts/ensuring_completeness_country_pages.py)
 * [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
 * [submit_batch_file_to_openAI.py](src/submit_batch_file_to_openAI.py) to submit batch requests to OpenAI API after creating a json file
