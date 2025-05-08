@@ -13,6 +13,10 @@ import os
 # La page charge certains éléments dynamiquement via JavaScript.
 # requests ne charge que le HTML statique, donc si le lien est généré après coup, il ne sera pas présent dans soup_base.
 
+# TODO use the json file
+# TODO scrap all the attachements
+#  https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/data.json?lng=en&criteria=%7B%22filters%22:%5B%5D,%22match%22:%22%22,%22startAt%22:0,%22sortings%22:%22%22%7D
+# TODO search for all pdf links
 
 
 # extract all the legal docs
@@ -82,6 +86,10 @@ for link in links_dict:
     driver.get(full_link)
     soup_base_3 = BeautifulSoup(driver.page_source, "html.parser")
     links_level_3 = soup_base_3.find_all("a", class_="cover-parent")
+
+
+# TODO: add timer
+# TODO: demander a IBJ de les contacter
 
 # link = links_dict[1]
 # real

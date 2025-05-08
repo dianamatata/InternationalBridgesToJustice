@@ -8,17 +8,14 @@ load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 from openai import OpenAI
-import chromadb
 import json
 from tqdm import tqdm  # make your loops show a smart progress meter
-from pprint import pprint
-import re
 import importlib  # Use importlib.reload() to re-import your module after editing it
-import query_database
+from src import query_database
 
 importlib.reload(query_database)
 
-from query_database import (
+from src.query_database import (
     load_chroma_collection,
     build_context_text,
     perform_similarity_search_metadata_filter,
@@ -31,7 +28,7 @@ from query_database import (
 
 # 1 extract checklist to ensure completeness of country pages
 def get_completeness_checklist():
-    completeness_checklist_filepath = "data/raw/IBJ_docs/Completeness_checklist.md"
+    completeness_checklist_filepath = "../data/raw/IBJ_docs/Completeness_checklist.md"
     with open(completeness_checklist_filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
@@ -46,7 +43,7 @@ def get_completeness_checklist():
 
 # 2 - Get country names from the Defense Wiki Country pages
 def get_countries():
-    country_names_filepath = "data/interim/country_names_1.txt"
+    country_names_filepath = "../data/interim/country_names_1.txt"
     with open(f"{country_names_filepath}", "r", encoding="utf-8") as f:
         country_names = f.read().splitlines()
         len(country_names)  # 204
@@ -179,14 +176,14 @@ def save_answer(
 # MAIN ---------------------------------------------------
 client = OpenAI()
 
-CHROMA_PATH = "data/chroma_db"
+CHROMA_PATH = "../data/chroma_db"
 COLLECTION_NAME = "legal_collection"
 collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
 
 countries = get_countries()
 keypoints = get_completeness_checklist()
 
-with open("prompt_completeness.md", "r") as f:
+with open("../prompt_completeness.md", "r") as f:
     prompt_completeness = f.read()
 
 # categorize_system_prompt : This is called a system message in OpenAI’s Chat API. It sets the overall behavior, tone, and expertise of the assistant.

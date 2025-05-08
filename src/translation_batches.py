@@ -23,7 +23,7 @@ def build_batch_request(custom_id: str, system_prompt: str, user_prompt: str, te
 
 system_prompt = "You are a translator that preserves markdown formatting and the references/citations/sources."
 
-with open("data/processed/defensewiki.ibj.org/unique_chunks.json", "r", encoding="utf-8") as json_file:
+with open("../data/processed/defensewiki.ibj.org/unique_chunks.json", "r", encoding="utf-8") as json_file:
     chunks = json.load(json_file)
 
 filtered_chunks = [c for c in chunks if c['metadata']['language'] != 'en']
@@ -38,7 +38,7 @@ len(filtered_chunks_2)  # 19 entries for Burundi fr and es
 
 ##  Create batch file --------------------------------
 
-with open("data/interim/batch_input_translation.jsonl", "a", encoding="utf-8") as outfile:
+with open("../data/interim/batch_input_translation.jsonl", "a", encoding="utf-8") as outfile:
     for i, chunk in enumerate(filtered_chunks_2):  # chunks is your list of markdown dicts
         print(chunk['title'])
         prompt_text = f"Translate the following Markdown file to English, keeping the formatting:\n\n{chunk['content']} and not translating the text in the sources and references (articles, links,...)"
@@ -56,7 +56,7 @@ client = openai.OpenAI()
 
 # Upload file
 file = client.files.create(
-    file=open("data/interim/batch_input_translation.jsonl", "rb"),
+    file=open("../data/interim/batch_input_translation.jsonl", "rb"),
     purpose="batch"
 )
 

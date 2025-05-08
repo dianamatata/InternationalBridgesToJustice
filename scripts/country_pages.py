@@ -14,7 +14,7 @@ country_names1 = [country.name for country in pycountry.countries]
 len(country_names1)  # 249
 
 # 2 - Get country names from the Defense Wiki Country pages
-file_country_names = "data/interim/country_names_1.txt"
+file_country_names = "../data/interim/country_names_1.txt"
 with open(f"{file_country_names}", "r", encoding="utf-8") as f:
     country_names = f.read().splitlines()
     len(country_names)  # 204
@@ -127,21 +127,21 @@ for c in check1:
     print(c)
 
 # save pages without countries
-with open(f"data/interim/no_countries.txt", "w", encoding="utf-8") as file:
+with open(f"../data/interim/no_countries.txt", "w", encoding="utf-8") as file:
     for c in check1:
         file.write(f"{c}\n")
 
 # save defense wiki with countries
-with open("data/interim/defensewiki_all_1.json", "w", encoding="utf-8") as file:
+with open("../data/interim/defensewiki_all_1.json", "w", encoding="utf-8") as file:
     json.dump(defense_wiki_all, file, indent=4)  # Save JSON content
 
-with open("data/interim/defensewiki_all_1.jsonl", "w", encoding="utf-8") as jsonl_file:
+with open("../data/interim/defensewiki_all_1.jsonl", "w", encoding="utf-8") as jsonl_file:
     for record in defense_wiki_all:
         jsonl_file.write(json.dumps(record) + "\n")
 
 # 2 update the chunks with country names
 # load defense wiki
-with open("data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json_file:
+with open("../data/interim/defensewiki_all_1.json", "r", encoding="utf-8") as json_file:
     defense_wiki_all = json.load(json_file)
 
 
@@ -168,12 +168,12 @@ seen_countries = set([chunk['metadata']['country'] for chunk in chunks])
 
 
 with open(
-    "data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8"
+        "../data/processed/defensewiki.ibj.org/chunks_1.json", "w", encoding="utf-8"
 ) as file:
     json.dump(chunks, file, indent=4)  # Save JSON content
 
 with open(
-    "data/processed/defensewiki.ibj.org/chunks_1.jsonl", "w", encoding="utf-8"
+        "../data/processed/defensewiki.ibj.org/chunks_1.jsonl", "w", encoding="utf-8"
 ) as jsonl_file:
     for record in chunks:
         jsonl_file.write(json.dumps(record) + "\n")
@@ -214,7 +214,7 @@ df_duplicates = pd.DataFrame(
     duplicated_pages_data, columns=["Hash Title", "Page Title", "Link", "Title Bis"]
 )
 
-output_file = "data/interim/duplicated_hashes_and_pages.csv"
+output_file = "../data/interim/duplicated_hashes_and_pages.csv"
 df_duplicates.to_csv(output_file, sep="\t", index=False)
 
 # if duplicate, only keep first hash ------------------------
@@ -230,7 +230,7 @@ for chunk in chunks:
 
 # create a new file with unique_chunks ------------------------
 
-path = "data/processed/defensewiki.ibj.org"
+path = "../data/processed/defensewiki.ibj.org"
 
 # JSON Lines (one dict per line)
 with open(f"{path}/unique_chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
@@ -249,7 +249,7 @@ with open(f"{path}/unique_chunks.json", "w", encoding="utf-8") as json_file:
 
 from collections import defaultdict
 
-CHROMA_PATH = "data/chroma_db"
+CHROMA_PATH = "../data/chroma_db"
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 collection = client.get_or_create_collection(name="legal_collection")
 

@@ -324,16 +324,16 @@ tree_links_validity, visited_links = build_link_tree_3(url=url, visited=None, de
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 # print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
-with open("data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
+with open("../data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
     json.dump(tree_links_validity, f, indent=4)
 
 save_as_html(
     tree_links_validity,
-    output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
+    output_file="../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
 )
 save_as_cvs(
     tree_links_validity,
-    output_file="data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv",
+    output_file="../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv",
 )
 print("files saved")
 
@@ -355,7 +355,7 @@ for file in csv_files:
 df_merged = pd.concat(df_list, ignore_index=True)
 
 # Save merged file
-output_file = "data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
+output_file = "../data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
 df_merged.to_csv(output_file, sep="\t", index=False)
 
 print(f"Merged file saved as {output_file}")

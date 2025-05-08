@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
-CHROMA_PATH = "data/chroma_db"
+CHROMA_PATH = "../data/chroma_db"
 
 
 def openai_embed(texts: list[str], model="text-embedding-3-large") -> list[list[float]]:
@@ -70,7 +70,7 @@ def add_to_chroma(chunks, collection):
         )
 
         # Export to JSONL
-        with open("data/chroma_db/raw_embeddings.jsonl", "w") as f:
+        with open("../data/chroma_db/raw_embeddings.jsonl", "w") as f:
             for i in range(len(texts)):
                 f.write(
                     {
@@ -83,7 +83,7 @@ def add_to_chroma(chunks, collection):
                 )
 
         # Add seen IDs to text file
-        with open("data/chroma_db/seen_ids.txt", "a") as f:
+        with open("../data/chroma_db/seen_ids.txt", "a") as f:
             for cid in seen_ids:
                 f.write(cid + "\n")
 

@@ -58,10 +58,10 @@ def extract_info(link_tree_defensewiki):
 # TODO it hasn't been annotated well, rerun the scraping_file? or replace strings ...
 
 
-dir_plots = "Plots"
+dir_plots = "../Plots"
 # Load JSON file
 with open(
-    "data/interim/defensewiki1_no_content.json",
+        "../data/interim/defensewiki1_no_content.json",
     "r",
 ) as f:
     link_tree_defensewiki = json.load(f)
@@ -75,7 +75,7 @@ summary_defensewiki.to_csv(
 
 
 # load and stats
-summary_defensewiki = pd.read_csv("data/interim/summary_defensewiki.csv")
+summary_defensewiki = pd.read_csv("../data/interim/summary_defensewiki.csv")
 
 # Sort languages by decreasing count
 summary_defensewiki["Language"].value_counts()
@@ -181,18 +181,18 @@ import tiktoken
 tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
 
 
-summary_defensewiki = pd.read_csv("data/interim/summary_defensewiki.csv")
+summary_defensewiki = pd.read_csv("../data/interim/summary_defensewiki.csv")
 nbr_of_words = summary_defensewiki[summary_defensewiki["Language"] != "en"]["nbr_of_words"].sum()
 print(nbr_of_words) # 1 008 229
 
 # Load JSON file
 with open(
-    "data/interim/defensewiki_all.json",
+        "../data/interim/defensewiki_all.json",
     "r",
 ) as f:
     link_tree_defensewiki = json.load(f)
 
-tokens_for_not_english_pages_IBJ = open("data/interim/dimension_files_not_english.txt", "a")
+tokens_for_not_english_pages_IBJ = open("../data/interim/dimension_files_not_english.txt", "a")
 input_tokens = {}
 global language_counts
 value_dict = list(link_tree_defensewiki.items())[0][1]

@@ -54,7 +54,7 @@ def translate_to_english(md_text):
 #     for line in jsonl_file:
 #         chunks.append(json.loads(line))
 
-with open("data/processed/defensewiki.ibj.org/unique_chunks.json", "r", encoding="utf-8") as json_file:
+with open("../data/processed/defensewiki.ibj.org/unique_chunks.json", "r", encoding="utf-8") as json_file:
     chunks = json.load(json_file)
 
 filtered_chunks = [c for c in chunks if c['metadata']['language'] != 'en']
@@ -78,7 +78,7 @@ print(translated)
 print(md_text)
 
 
-translation_file = open("data/interim/translation_file.txt", "a")
+translation_file = open("../data/interim/translation_file.txt", "a")
 translation_file.write(f"Title: {chunk['title']}\n\n{chunk['metadata']}\n\nOriginal text:\n{md_text}\n\nTranslated text:\n{translated}\n\n\n\n")
 translation_file.close()
 # this works for a small subset

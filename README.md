@@ -34,35 +34,35 @@ To ensure the reliability of the Defense Wiki, it is essential to create a struc
 
 Important Metadata: When integrating a document, add its publication date, its country of application/ legal type/ source type, its legal status (in force, amended, draft, its legal relevance (national vs. regional laws, soft law vs. hard law), its original language, the website from where the document has been retrieved.
 
-* [scraping_defensewiki_website.py](scraping_defensewiki_website.py) 
+* [scraping_defensewiki_website.py](src/scraping_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file
 + Check reference links that are working and outdated
-+ [ibj_statistics.py](ibj_statistics.py)
++ [ibj_statistics.py](scripts/ibj_statistics.py)
 Run statistics on the data extracted on the DefenseWiki website
 
-* [scraping_constitution_website.py](scraping_constitution_website.py)
+* [scraping_constitution_website.py](src/scraping_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
-* [scraping_unodc.py](scraping_unodc.py) <font color="yellow">*TODO !!!*</font>
+* [scraping_unodc.py](src/scraping_unodc.py) <font color="yellow">*TODO !!!*</font>
 
-* [chunking_functions.py](chunking_functions.py)
+* [chunking_functions.py](scripts/chunking_functions.py)
 create functions to cut markrdown text into smaller chunks
 
-* [chunking_defensewiki.py](chunking_defensewiki.py)
+* [chunking_defensewiki.py](scripts/chunking_defensewiki.py)
 Chunk the Defense Wiki content into smaller pieces and save them in a json file
 
-* [chunking_constitutions.py](chunking_constitutions.py)
+* [chunking_constitutions.py](scripts/chunking_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
-* [translation_batches.py](translation_batches.py)
+* [translation_batches.py](src/translation_batches.py)
 Translate all the chunks to English
 
-* [pdf_to_markdown_v2.py](pdf_to_markdown_v2.py)
+* [pdf_to_markdown_v2.py](scripts/pdf_to_markdown_v2.py)
 Extract content from pdf files to markdown and save them with metadata for ground truth
 
-* [documents_to_extract.py](documents_to_extract.py) <font color="yellow">*TODO: documents we need to scrape and add to the collection as well*</font>
+* [documents_to_extract.py](scripts/documents_to_extract.py) <font color="yellow">*TODO: documents we need to scrape and add to the collection as well*</font>
 
-* [create_embedding_database.py](create_embedding_database.py) create the embedding database for the Defense Wiki and legal database content
+* [create_embedding_database.py](scripts/create_embedding_database.py) create the embedding database for the Defense Wiki and legal database content
 
 ### 2 - Preprocessing
 
@@ -70,9 +70,9 @@ A further challenge lies in content redundancy and divergence. The Defense Wiki 
 
 Detection of duplicates
 * Not unique hashes
-hashes defined in [chunking_functions.py](chunking_functions.py) 
+hashes defined in [chunking_functions.py](scripts/chunking_functions.py) 
   - <font color="yellow">*TODO manage hashes*</font>
-  - [country_pages.py](country_pages.py) were we discovered that some hashes are repeated
+  - [country_pages.py](scripts/country_pages.py) were we discovered that some hashes are repeated
 * Compute similarity looking at the distance between embeddings
 * Duplicates: Paragraphs or whole pages? Some countries have duplicated pages, but also some chunks (often the Contents one, which can be ignored)
 * Apply many pages for one country protocol (below)
@@ -82,7 +82,7 @@ Many pages for one country (duplicates or multilingual):
 * Translate all pages in English. 
   - <font color="yellow">*TODO: should we translate every chunk before building the collection?*</font>
 
-[gather_all_pages_per_country.py](gather_all_pages_per_country.py) 
+[gather_all_pages_per_country.py](scripts/gather_all_pages_per_country.py) 
 beggining of script to gather all the different versions. If we want to process them together?
 
 
@@ -94,23 +94,23 @@ beggining of script to gather all the different versions. If we want to process 
 
 #### A - Completeness
 * [prompt_completeness.md](prompt_completeness.md) the prompt to check the completeness of the page
-* [ensuring_completeness_country_pages.py](ensuring_completeness_country_pages.py)
-* [keypoint_evaluation.py](keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
-* [submit_batch_file_to_openAI.py](submit_batch_file_to_openAI.py) to submit batch requests to OpenAI API after creating a json file
-* [process_batch_results.py](process_batch_results.py) to process the results once the batch requests are done
+* [ensuring_completeness_country_pages.py](scripts/ensuring_completeness_country_pages.py)
+* [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
+* [submit_batch_file_to_openAI.py](src/submit_batch_file_to_openAI.py) to submit batch requests to OpenAI API after creating a json file
+* [process_batch_results.py](scripts/process_batch_results.py) to process the results once the batch requests are done
   - <font color="yellow">*TODO: run it in India to check that no bugs in optimization*</font>
   - <font color="orange">*TODO: need to loop over all the outputs from one country and build the new page from it. maybe somehow keep the labels "missing", "complete", "need refinement" and the titles
 and create a new md page*</font>
 
 #### B - Accuracy
-* [query_database.py](query_database.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
+* [query_database.py](src/query_database.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
 and has the prompt to verify the claims
-*  [extract_claims.py](extract_claims.py)
+*  [extract_claims.py](scripts/extract_claims.py)
 Extract claims from the content of the Defense Wiki and save them in a json file
 Right now done for Singapore and 2 pages of Burundi out of 12 files
-* [debug_claim_extraction.py](debug_claim_extraction.py)
+* [debug_claim_extraction.py](scripts/debug_claim_extraction.py)
   - <font color="yellow">*TODO: need to debug the Burundi claim extraction as the bullets points are interpreted as new sentences.*</font>
-* [verify_claims_one_country.py](verify_claims_one_country.py) also helps verify the claims. calls several functions present in query_database.py
+* [verify_claims_one_country.py](src/verify_claims_one_country.py) also helps verify the claims. calls several functions present in query_database.py
 
 #### C -  Source credibility 
 #### D - Legal relevance

@@ -28,7 +28,7 @@ print(len(defense_wiki_all))  # Should print 1252 if correctly processed
 print(f"{json.dumps(defense_wiki_all[0], indent=4)}")
 
 # 5 - Loop over Defensewiki to extract all the pages as markdown
-path = "data/raw/defensewiki.ibj.org"
+path = "../data/raw/defensewiki.ibj.org"
 
 with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [

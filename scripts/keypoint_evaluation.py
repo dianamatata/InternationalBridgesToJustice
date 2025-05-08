@@ -1,4 +1,4 @@
-from query_database import (
+from src.query_database import (
     build_context_text,
     load_chroma_collection,
     perform_similarity_search_metadata_filter,
@@ -179,14 +179,14 @@ prompt_completeness = None
 
 def load_prompt_completeness():
     global prompt_completeness  # TODO: is it a good idea to have it global?
-    with open("prompt_completeness.md", "r") as f:
+    with open("../prompt_completeness.md", "r") as f:
         prompt_completeness = f.read()
 
 
 # MAIN ---------------------------------------------------
 # general loading
 client = OpenAI()
-legal_collection = load_chroma_collection("data/chroma_db", "legal_collection")
+legal_collection = load_chroma_collection("../data/chroma_db", "legal_collection")
 system_prompt = "You are a critical legal analyst tasked with evaluating whether a legal wiki chapter adequately addresses a specific legal keypoint. Your response must be precise, structured, and based on legal reasoning. When relevant, cite and summarize laws from the provided legal database. Avoid vague language and clearly distinguish between complete, partial, or missing legal coverage."
 load_prompt_completeness()
 keypoints = get_completeness_checklist()

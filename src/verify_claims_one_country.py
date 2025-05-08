@@ -6,9 +6,8 @@ load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 from openai import OpenAI
 
-from create_embedding_database import load_legal_chunks
+from scripts.create_embedding_database import load_legal_chunks
 from query_database import (
-    perform_similarity_search,
     perform_similarity_search_with_country_filter,
     build_context_text,
     load_chroma_collection,
@@ -18,7 +17,7 @@ from query_database import (
     PROMPT_TEMPLATE,
 )
 
-CHROMA_PATH = "data/chroma_db"
+CHROMA_PATH = "../data/chroma_db"
 COLLECTION_NAME = "legal_collection"
 
 
