@@ -13,7 +13,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-from src.translation import get_data, get_all_links_related_to_country, translate_to_english
+from scripts.translation import get_data, get_all_links_related_to_country, translate_to_english
 
 # FUNCTIONS ------------------------------------------------------------
 

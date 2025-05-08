@@ -11,11 +11,11 @@ from openai import OpenAI
 import json
 from tqdm import tqdm  # make your loops show a smart progress meter
 import importlib  # Use importlib.reload() to re-import your module after editing it
-from src import query_database
+from scripts import query_database
 
 importlib.reload(query_database)
 
-from src.query_database import (
+from scripts.query_database import (
     load_chroma_collection,
     build_context_text,
     perform_similarity_search_metadata_filter,

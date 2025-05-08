@@ -1,4 +1,4 @@
-from src.query_database import (
+from scripts.query_database import (
     build_context_text,
     load_chroma_collection,
     perform_similarity_search_metadata_filter,
