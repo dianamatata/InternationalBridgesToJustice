@@ -18,5 +18,7 @@ print("Batch job submitted:", batch.id)
 # Retrieve and save results --------------------------------
 
 result = client.batches.retrieve(batch_id="batch_6818c363af4c8190892dac4d68abbd84")
+response = client.files.content(result.output_file_id)
+with open("../data/interim/batch_results_translation.jsonl", "wb") as f:
+    f.write(response.read())
 # TODO: save the results
-

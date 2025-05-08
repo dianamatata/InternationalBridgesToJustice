@@ -37,7 +37,7 @@ Important Metadata: When integrating a document, add its publication date, its c
 * [scraping_defensewiki_website.py](scripts/scraping_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file
 + Check reference links that are working and outdated
-+ [ibj_statistics.py](scripts/ibj_statistics.py)
++ [ibj_statistics.py](scripts/estimate_the_number_of_tokens_for_non_english_pages.py)
 Run statistics on the data extracted on the DefenseWiki website
 
 * [scraping_constitution_website.py](scripts/scraping_constitution_website.py)
@@ -96,7 +96,7 @@ beggining of script to gather all the different versions. If we want to process 
 * [prompt_completeness.md](data/prompts/prompt_completeness.md) the prompt to check the completeness of the page
 * [ensuring_completeness_country_pages.py](scripts/ensuring_completeness_country_pages.py)
 * [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
-* [submit_batch_file_to_openAI.py](scripts/submit_batch_file_to_openAI.py) to submit batch requests to OpenAI API after creating a json file
+* [openai_batch_manager.py](src%2Fopenai_batch_manager.py) to submit batch requests to OpenAI API after creating a json file
 * [process_batch_results.py](scripts/process_batch_results.py) to process the results once the batch requests are done
   - <font color="yellow">*TODO: run it in India to check that no bugs in optimization*</font>
   - <font color="orange">*TODO: need to loop over all the outputs from one country and build the new page from it. maybe somehow keep the labels "missing", "complete", "need refinement" and the titles

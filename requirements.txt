@@ -1,15 +1,18 @@
 -e .
 beautifulsoup4
 chromadb
+collections
 html2text
 huggingface-hub
 json5
+json
 jupyter
 jupyterlab
 matplotlib
 numpy
 openai
 pandas
+re
 ruff
 seaborn
 selenium
