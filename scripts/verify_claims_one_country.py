@@ -7,14 +7,14 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 from openai import OpenAI
 
 from scripts.create_embedding_database import load_legal_chunks
-from query_database import (
+from claim_verification import (
     perform_similarity_search_with_country_filter,
-    build_context_text,
+    build_context_string_from_retrieve_documents,
     load_chroma_collection,
     format_prompt,
-    retrieve_source_titles,
+    retrieve_source_titles_from_chunks,
     get_openai_response,
-    PROMPT_TEMPLATE,
+    prompt_claim_verification,
 )
 
 CHROMA_PATH = "../data/chroma_db"
@@ -26,11 +26,11 @@ def verify_claim(claim, collection, client, PROMPT_TEMPLATE):
     # Perform similarity search with the query text
     # results = perform_similarity_search(collection=collection, query_text=claim, n_results=5)
     results = perform_similarity_search_with_country_filter(
-        collection=collection, query_text=claim, country="Burundi", n_results=5
+        collection=collection, query_text=claim, country="Burundi", number_of_results_to_retrieve=5
     )
     print("results")
     # Build the context from the similarity search results
-    context_text = build_context_text(results)
+    context_text = build_context_string_from_retrieve_documents(results)
 
     # Format the final prompt to send to OpenAI
     prompt = format_prompt(PROMPT_TEMPLATE, claim=claim, context=context_text)
@@ -74,9 +74,9 @@ for chunk in range(
             print(f"Claim: {claim}")
             if claim != None:
                 results, answer = verify_claim(
-                    claim, collection, client, PROMPT_TEMPLATE
+                    claim, collection, client, prompt_claim_verification
                 )
-                source_titles = retrieve_source_titles(results, chunks)
+                source_titles = retrieve_source_titles_from_chunks(results, chunks)
 
                 # append to claim_data
                 claim_data = {

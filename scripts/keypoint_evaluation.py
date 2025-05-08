@@ -1,5 +1,5 @@
-from scripts.query_database import (
-    build_context_text,
+from scripts.claim_verification import (
+    build_context_string_from_retrieve_documents,
     load_chroma_collection,
     perform_similarity_search_metadata_filter,
     get_openai_response,
@@ -75,7 +75,7 @@ class KeypointEvaluation:
             query_text=self.keypoint,
             metadata_param="link",
             metadata_value=f"https://defensewiki.ibj.org/index.php?title={self.country}",
-            n_results=5,
+            number_of_results_to_retrieve=5,
         )
 
         self.database_content = perform_similarity_search_metadata_filter(
@@ -83,7 +83,7 @@ class KeypointEvaluation:
             query_text=self.keypoint,
             metadata_param="country",
             metadata_value=self.country,
-            n_results=5,
+            number_of_results_to_retrieve=5,
         )
 
     def ensure_loaded(self, collection):
@@ -94,8 +94,8 @@ class KeypointEvaluation:
         self.prompt = format_prompt(
             prompt_template=prompt_completeness,
             keypoint=self.keypoint,
-            wiki_content=build_context_text(self.wiki_content),
-            database_content=build_context_text(self.database_content),
+            wiki_content=build_context_string_from_retrieve_documents(self.wiki_content),
+            database_content=build_context_string_from_retrieve_documents(self.database_content),
         )
 
     def check_completeness(

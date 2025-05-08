@@ -103,7 +103,7 @@ beggining of script to gather all the different versions. If we want to process 
 and create a new md page*</font>
 
 #### B - Accuracy
-* [query_database.py](scripts/query_database.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
+* [query_database.py](scripts/claim_verification.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
 and has the prompt to verify the claims
 *  [extract_claims.py](scripts/extract_claims.py)
 Extract claims from the content of the Defense Wiki and save them in a json file

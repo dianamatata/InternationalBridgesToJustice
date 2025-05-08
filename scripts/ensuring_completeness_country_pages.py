@@ -11,13 +11,13 @@ from openai import OpenAI
 import json
 from tqdm import tqdm  # make your loops show a smart progress meter
 import importlib  # Use importlib.reload() to re-import your module after editing it
-from scripts import query_database
+from scripts import claim_verification
 
 importlib.reload(query_database)
 
-from scripts.query_database import (
+from scripts.claim_verification import (
     load_chroma_collection,
-    build_context_text,
+    build_context_string_from_retrieve_documents,
     perform_similarity_search_metadata_filter,
     get_openai_response,
 )  # TODO format_prompt, move it to query_database?
@@ -81,7 +81,7 @@ def check_keypoint_covered(
         query_text=keypoint_to_check,
         metadata_param="link",
         metadata_value=f"https://defensewiki.ibj.org/index.php?title={country}",
-        n_results=5,
+        number_of_results_to_retrieve=5,
     )
 
     database_content = perform_similarity_search_metadata_filter(
@@ -89,11 +89,11 @@ def check_keypoint_covered(
         query_text=keypoint_to_check,
         metadata_param="country",
         metadata_value=country,
-        n_results=5,
+        number_of_results_to_retrieve=5,
     )
 
-    context_database = build_context_text(database_content)
-    context_wiki = build_context_text(wiki_content)
+    context_database = build_context_string_from_retrieve_documents(database_content)
+    context_wiki = build_context_string_from_retrieve_documents(wiki_content)
 
     prompt = format_prompt(
         prompt=prompt_completeness,
@@ -213,7 +213,7 @@ for country in countries:
                 query_text=keypoint_to_check,
                 metadata_param="link",
                 metadata_value=f"https://defensewiki.ibj.org/index.php?title={country}",
-                n_results=5,
+                number_of_results_to_retrieve=5,
             )
 
             database_content = perform_similarity_search_metadata_filter(
@@ -221,11 +221,11 @@ for country in countries:
                 query_text=keypoint_to_check,
                 metadata_param="country",
                 metadata_value=country,
-                n_results=5,
+                number_of_results_to_retrieve=5,
             )
 
-            context_database = build_context_text(database_content)
-            context_wiki = build_context_text(wiki_content)
+            context_database = build_context_string_from_retrieve_documents(database_content)
+            context_wiki = build_context_string_from_retrieve_documents(wiki_content)
 
             prompt = format_prompt(
                 prompt=prompt_completeness,
