@@ -2,6 +2,12 @@ import json
 import pandas as pd
 from typing import Dict
 import re
+import hashlib  # get hash
+
+def generate_hash(content):
+    """Generate SHA-256 hash of the given content."""
+    return hashlib.sha256(content.encode()).hexdigest()
+
 
 def write_dictionnary_as_jsonl(
     input_data: dict, file_path: str, encoding: str = "utf-8"

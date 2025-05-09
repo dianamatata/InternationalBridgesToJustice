@@ -26,8 +26,3 @@ with open(f"{path}/chunks.jsonl", "r", encoding="utf-8") as json_file:
 with open(f"{path}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
     for record in data:
         jsonl_file.write(json.dumps(record) + "\n")
-
-# write json
-with open(f"{path}/chunks.json", "w", encoding="utf-8") as json_file:
-    for record in data:
-        json_file.write(json.dumps(record) + "\n")

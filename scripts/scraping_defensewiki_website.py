@@ -9,114 +9,19 @@ Different functions are performed here:
 
 import os
 import time
-import re  # handles text
-import requests  # get url info
-from bs4 import BeautifulSoup
-import hashlib  # get hash
 from datetime import datetime
 from langdetect import detect  # detect language
-from urllib.parse import unquote  # text formating
-import unicodedata  # text formating
 import json  # save in json files
 from markdownify import (
     markdownify as md,
 )  # markdownify: Handles more complex HTML structures, better at preserving formatting.
 import pandas as pd
 import glob
+from src.file_manager import generate_hash
+from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name
 
 
 # Functions -------------------
-
-
-def get_link_status(url):
-    """Checks the status of a link (functional or error)."""
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            return "functional"
-        else:
-            return "error"
-    except requests.exceptions.RequestException:
-        return "error"
-
-
-def get_links(url):
-    """Extracts all links from a webpage. level1: we want the reference of the specific pages and internal links"""
-
-    level = "level_1"
-    if url.startswith(
-        "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit"
-    ):
-        level = "level_0"
-
-    base_url = "https://defensewiki.ibj.org"
-
-    try:
-        response = requests.get(url, timeout=5)
-        soup = BeautifulSoup(response.text, "html.parser")
-        if level == "level_0":
-            # Add the base_url to the relative links
-            links = [
-                base_url + str(a_tag.get("href"))
-                for a_tag in soup.select("ol.special li a")
-                if "&action=history" not in a_tag.get("href")
-            ]
-            return links
-
-        if level == "level_1":
-            links1 = [
-                base_url + a["href"] for a in soup.find_all("a", class_="internal")
-            ]
-            links2 = [a["href"] for a in soup.select("a.external")]
-            links = links1 + links2
-
-            return links
-
-        else:
-            return []
-
-    except Exception as e:
-        print(f"Error fetching {url}: {e}")
-        return []
-
-
-def generate_hash(content):
-    """Generate SHA-256 hash of the given content."""
-    return hashlib.sha256(content.encode()).hexdigest()
-
-
-def get_last_edited_date(soup):
-    # Find the <li> element with id="lastmod" containing the last modified date
-    lastmod_li = soup.find("li", {"id": "lastmod"})
-    if lastmod_li:
-        text = lastmod_li.get_text()
-        # Use regular expression to extract the date and time
-        date_match = re.search(r"(\d{1,2} \w+ \d{4}), at (\d{2}:\d{2})", text)
-        if date_match:
-            date = date_match.group(1)  # Extracted date (e.g., "2 October 2019")
-            time = date_match.group(2)  # Extracted time (e.g., "08:54")
-
-            return f"{date}, {time}"
-
-    return lastmod_li
-
-
-def define_page_name(link):
-    # Decode the URL and get the page name
-    page_name = unquote(link.split("title=")[1].split("&")[0].replace("/", "-"))
-    # Normalize the string to remove accents and special characters. This normalizes the string, breaking down accented characters into their base characters (e.g., ô becomes o).
-    page_name = (
-        unicodedata.normalize("NFKD", page_name).encode("ASCII", "ignore").decode()
-    )
-    return page_name
-
-
-def extract_webpage_html_from_url(url):
-    response = requests.get(url)  # Fetch the html of page in soup
-    response.raise_for_status()  # Raise an error for failed requests
-    soup = BeautifulSoup(response.text, "html.parser")  # Parse the HTML
-    return response, soup
-
 
 def save_file(filename, content, file_type="json"):
     try:
@@ -160,7 +65,7 @@ def build_complex_link_tree(
         if link_status == "functional":
             response, soup = extract_webpage_html_from_url(link_i)
             md_text = md(response.text)
-            page_name = define_page_name(link_i)  # Extract page name from URL
+            page_name = define_defensewiki_page_name(link_i)  # Extract page name from URL
             filename = f"{out_folder}/{page_name}.md"
             viewcount_tag = soup.find("li", {"id": "viewcount"})
             viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
