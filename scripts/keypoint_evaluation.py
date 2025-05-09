@@ -4,8 +4,8 @@ from scripts.claim_verification import (
     perform_similarity_search_metadata_filter,
     get_openai_response,
 )
-from ensuring_completeness_country_pages import (format_prompt,
-                                                 get_completeness_checklist)
+from ensuring_completeness_country_pages import (format_prompt_for_completeness_check,
+                                                 get_completeness_keypoints)
 
 # modules for OpenAI
 import os
@@ -91,7 +91,7 @@ class KeypointEvaluation:
             self._run_similarity_searches(collection)
 
     def define_prompt(self, prompt_completeness):
-        self.prompt = format_prompt(
+        self.prompt = format_prompt_for_completeness_check(
             prompt_template=prompt_completeness,
             keypoint=self.keypoint,
             wiki_content=build_context_string_from_retrieve_documents(self.wiki_content),
@@ -189,7 +189,7 @@ client = OpenAI()
 legal_collection = load_chroma_collection("../data/chroma_db", "legal_collection")
 system_prompt = "You are a critical legal analyst tasked with evaluating whether a legal wiki chapter adequately addresses a specific legal keypoint. Your response must be precise, structured, and based on legal reasoning. When relevant, cite and summarize laws from the provided legal database. Avoid vague language and clearly distinguish between complete, partial, or missing legal coverage."
 load_prompt_completeness()
-keypoints = get_completeness_checklist()
+keypoints = get_completeness_keypoints()
 
 
 # batch submission  ----------------------------------------

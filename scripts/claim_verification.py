@@ -25,7 +25,7 @@ from src.query_functions import (openai_generate_embeddings,
                                  perform_similarity_search_with_country_filter,
                                  perform_similarity_search_metadata_filter,
                                  build_context_string_from_retrieve_documents,
-                                 format_prompt,
+                                 format_prompt_for_claim_verification,
                                  get_openai_response,
                                  retrieve_source_titles_from_chunks)
 
@@ -51,7 +51,7 @@ def main():
 
     context_text = build_context_string_from_retrieve_documents(results)
 
-    prompt = format_prompt(prompt_claim_verification, claim=QUERY_TEXT, context=context_text)
+    prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=QUERY_TEXT, context=context_text)
 
     answer = get_openai_response(client, prompt)
     print("\nOpenAI response:\n", answer)
@@ -81,3 +81,8 @@ def main():
 
 
 # TODO integrate https://github.com/Yixiao-Song/VeriScore/blob/main/veriscore/claim_verifier.py
+
+if __name__ == "__main__":
+   # If the file is run directly, it will call the main() function.
+   # i.e. not imported as a module in another script.
+   main()
