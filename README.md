@@ -37,15 +37,16 @@ Important Metadata: When integrating a document, add its publication date, its c
 * [scraping_defensewiki_website.py](scripts/scraping_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file
 + Check reference links that are working and outdated
-+ [ibj_statistics.py](scripts/estimate_the_number_of_tokens_for_non_english_pages.py)
++ [plot_ibj_statistics.ipynb](notebooks%2Fplot_ibj_statistics.ipynb)
 Run statistics on the data extracted on the DefenseWiki website
 
 * [scraping_constitution_website.py](scripts/scraping_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
 * [scraping_unodc.py](scripts/scraping_unodc.py) <font color="yellow">*TODO !!!*</font>
+<font color="yellow">*TODO: documents not extracted yet*</font>
 
-* [chunking_functions.py](scripts/chunking_functions.py)
+* [chunking_functions.py](src/chunking_functions.py)
 create functions to cut markrdown text into smaller chunks
 
 * [chunking_defensewiki.py](scripts/chunking_defensewiki.py)
@@ -57,9 +58,6 @@ Chunk the Constitution content into smaller pieces and save them in a json file
 * [translation_batches.py](scripts/translation_batches.py)
 Translate all the chunks to English
 
-* [pdf_to_markdown_v2.py](scripts/pdf_to_markdown_v2.py)
-Extract content from pdf files to markdown and save them with metadata for ground truth
-
 * [documents_to_extract.py](scripts/documents_to_extract.py) <font color="yellow">*TODO: documents we need to scrape and add to the collection as well*</font>
 
 * [create_embedding_database.py](scripts/create_embedding_database.py) create the embedding database for the Defense Wiki and legal database content
@@ -70,7 +68,7 @@ A further challenge lies in content redundancy and divergence. The Defense Wiki 
 
 Detection of duplicates
 * Not unique hashes
-hashes defined in [chunking_functions.py](scripts/chunking_functions.py) 
+hashes defined in [chunking_functions.py](src/chunking_functions.py) 
   - <font color="yellow">*TODO manage hashes*</font>
   - [country_pages.py](scripts/country_pages.py) were we discovered that some hashes are repeated
 * Compute similarity looking at the distance between embeddings

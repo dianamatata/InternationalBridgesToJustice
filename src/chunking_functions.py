@@ -2,13 +2,12 @@
 
 import re
 import hashlib  # get hash
-
 MAX_CHUNK_SIZE = 500  # todo is it words or characters
 
 # FUNCTIONS --------------------
 
 
-def generate_hash(content):
+def generate_hash(content: str):
     """Generate SHA-256 hash of the given content."""
     return hashlib.sha256(content.encode()).hexdigest()
 

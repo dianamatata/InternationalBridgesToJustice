@@ -1,4 +1,4 @@
-import requests  # get url info
+import requests
 from bs4 import BeautifulSoup
 from markdownify import (
     markdownify as md,
@@ -6,33 +6,29 @@ from markdownify import (
 import json
 import re
 import os
+%config InteractiveShell.cache_size = 0
 
-
-# extract all the constitutions
-out_folder = "data/raw/constituteproject.org"
-out_folder_2 = "data/processed/constituteproject.org"
+folder_constitutions_with_md_files = "data/raw/constituteproject.org"
+folder_constitutions_with_jsonl_files = "data/processed/constituteproject.org"
 
 start_url = "https://www.constituteproject.org/constitutions?lang=en&status=in_force&status=is_draft"
 base_url = "https://www.constituteproject.org"
 
-response_base = requests.get(start_url)  # Fetch the html of page in soup
-soup_base = BeautifulSoup(response_base.text, "html.parser")  # Parse the HTML
-link1 = soup_base.select("div.constitution-links a")
-# country_links = {a.text.strip(): a["href"] for a in soup2.select("div.constitution-links a")}
-country_links = {
+response_base = requests.get(start_url)
+soup_base = BeautifulSoup(response_base.text, "html.parser")
+internal_links_for_constitutions = soup_base.select("div.constitution-links a")
+dictionary_countryname_countrylink = {
     a["href"].replace("/constitution/", "").split("?")[0]: a["href"]
     for a in soup_base.select("div.constitution-links a")
 }
 
-print(f"{json.dumps(country_links, indent=4)}")
+for country_year, link in list(dictionary_countryname_countrylink.items())[10:]:
 
-for country_year, link in list(country_links.items())[10:]:
-
-    if not os.path.exists(f"{out_folder}/{country_year}.md"):
+    if not os.path.exists(f"{folder_constitutions_with_md_files}/{country_year}.md"):
         print(f"Constitution not extracted yet: {country_year}: Link: {link}")
 
-        response = requests.get(base_url + link)  # Fetch the html of page in soup
-        soup = BeautifulSoup(response.text, "html.parser")  # Parse the HTML
+        response = requests.get(base_url + link)
+        soup = BeautifulSoup(response.text, "html.parser")
 
         for span in soup.find_all(
             "span", class_="topic"
@@ -54,7 +50,7 @@ for country_year, link in list(country_links.items())[10:]:
             "link": link,
             "country": "_".join(country_year.split("_")[:-1]),
             "year": country_year.split("_")[1],
-            "path": f"{out_folder}/{country_year}.md",
+            "path": f"{folder_constitutions_with_md_files}/{country_year}.md",
             "filename": f"{country_year}.md",
             "language": link.split("=")[1],
             "type": "constitution",
@@ -62,11 +58,11 @@ for country_year, link in list(country_links.items())[10:]:
         }
 
         # save constitution
-        with open(f"{out_folder}/{country_year}.md", "w") as file:
+        with open(f"{folder_constitutions_with_md_files}/{country_year}.md", "w") as file:
             file.write(cleaned_md_text)
         # save with metadata in jsonl
         with open(
-            f"{out_folder_2}/constituteproject.jsonl", "a", encoding="utf-8"
+            f"{folder_constitutions_with_jsonl_files}/constituteproject.jsonl", "a", encoding="utf-8"
         ) as jsonl_file:
             jsonl_file.write(json.dumps(file_info) + "\n")
     else:
