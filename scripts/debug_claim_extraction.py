@@ -13,12 +13,7 @@ importlib.reload(claim_extractor) # Reload the module
 ClaimExtractor = claim_extractor.ClaimExtractor # Now access your class
 
 # FUNCTIONS ----------------------
-
-def get_sentence(text):
-    # use spaCy to split the text into sentences
-    return [x.text.strip() for x in spacy_nlp(text).sents]
-
-def clean_text(text: str)-> str:
+def clean_markdown_text(text: str)-> str:
 
     text = text.strip()
 
@@ -43,7 +38,7 @@ chunk = chunks_to_extract[3]
 # 'title': '8d307a0193139e5dd840b9e3972f91ef4b9468b478f5dd8e7c9c92ea9c1c8bdc'
 content = chunk["content"]
 sentences = content
-sentences_cleaned = clean_text(content)
+sentences_cleaned = clean_markdown_text(content)
 print(sentences_cleaned)
 # sentences2 = get_sentence(content)
 # now we want         sentences = response.split(".")

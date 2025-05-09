@@ -19,11 +19,8 @@ with open("../data/prompts/prompt_claim_verification.md", "r") as f:
     prompt_claim_verification = f.read()
 
 # --- HELPER FUNCTIONS ---
-from src.query_functions import (openai_generate_embeddings,
-                                 load_chroma_collection,
-                                 perform_similarity_embeddings_search_from_collection,
+from src.query_functions import (load_chroma_collection,
                                  perform_similarity_search_with_country_filter,
-                                 perform_similarity_search_metadata_filter,
                                  build_context_string_from_retrieve_documents,
                                  format_prompt_for_claim_verification,
                                  get_openai_response,
@@ -32,18 +29,18 @@ from src.query_functions import (openai_generate_embeddings,
 # --- MAIN SCRIPT ---
 
 def main():
-
-    chunks = load_legal_chunks()  # Get chunks
+    path_defensewiki_chunks = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
+    path_constitution_chunks = "data/processed/constituteproject.org/constitution_chunks.jsonl"
+    chunks = load_legal_chunks([path_defensewiki_chunks, path_constitution_chunks])  # Get chunks
 
     client = OpenAI()
-
-    QUERY_TEXT = "In India, Until proven innocent, the accused has to remain in prison."
+    claim_to_verify = "In India, Until proven innocent, the accused has to remain in prison."
 
     collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
     print(f"Collection contains {collection.count()} documents.")
 
     results = perform_similarity_search_with_country_filter(
-        collection=collection, query_text=QUERY_TEXT, country="India", number_of_results_to_retrieve=5
+        collection=collection, query_text=claim_to_verify, country="India", number_of_results_to_retrieve=5
     )
 
     res_summary = [r["title_bis"] for r in results["metadatas"][0]]
@@ -51,7 +48,7 @@ def main():
 
     context_text = build_context_string_from_retrieve_documents(results)
 
-    prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=QUERY_TEXT, context=context_text)
+    prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=claim_to_verify, context=context_text)
 
     answer = get_openai_response(client, prompt)
     print("\nOpenAI response:\n", answer)
@@ -59,7 +56,7 @@ def main():
     source_titles = retrieve_source_titles_from_chunks(results, chunks)
 
     claim_data = {
-        "claim": QUERY_TEXT,
+        "claim": claim_to_verify,
         "decision": answer.split("###")[1].strip(),  # Strip to remove whitespace
         "full_answer": answer,
         "sources": source_titles,

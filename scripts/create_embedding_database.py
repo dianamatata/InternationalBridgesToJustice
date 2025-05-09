@@ -20,7 +20,7 @@ def batch_embed_and_add(chunks, collection, batch_size=2000, raw_embeddings_json
 
 
 def main():
-    
+
     CHROMA_PATH = "data/chroma_db"
     path_defensewiki_chunks = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
     path_constitution_chunks = "data/processed/constituteproject.org/constitution_chunks.jsonl"

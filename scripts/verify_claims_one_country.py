@@ -13,7 +13,9 @@ COLLECTION_NAME = "legal_collection"
 client = OpenAI()
 collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
 print(f"Collection contains {collection.count()} documents.")
-chunks = load_legal_chunks()
+path_defensewiki_chunks = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
+path_constitution_chunks = "data/processed/constituteproject.org/constitution_chunks.jsonl"
+chunks = load_legal_chunks([path_defensewiki_chunks, path_constitution_chunks])  # Get chunks
 
 chunks_selected = [
     chunk for chunk in chunks if chunk["metadata"]["country"] == "Burundi"

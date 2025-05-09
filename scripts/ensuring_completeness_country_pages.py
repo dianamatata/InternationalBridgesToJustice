@@ -5,7 +5,7 @@ load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 from openai import OpenAI
-from tqdm import tqdm  # make your loops show a smart progress meter
+from tqdm import tqdm
 import importlib  # Use importlib.reload() to re-import your module after editing it
 import src
 importlib.reload(src.query_functions)
