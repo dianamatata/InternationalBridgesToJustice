@@ -1,18 +1,14 @@
-import chromadb
-import openai
 import os
-import json
 from tqdm import tqdm
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
-
 from src.query_functions import add_new_chunks_to_chroma_collection, load_chroma_collection
 from src.file_manager import load_legal_chunks
 
 
-def batch_embed_and_add(chunks, collection, batch_size=2000, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str):
+def batch_embed_and_add(chunks, collection, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str, batch_size: int =2000):
     for i in tqdm(range(0, len(chunks), batch_size)):
         batch = chunks[i : i + batch_size]
         collection = add_new_chunks_to_chroma_collection(batch, collection, raw_embeddings_jsonl_file_path, chunk_ids_present_in_chromadb_collection_file_path)
@@ -34,7 +30,7 @@ def main():
     print(f"Total of {len(chunks)}")
     # batches because max 600000 tokens per request, we could do 2000 chunks per batch?
 
-    collection = batch_embed_and_add(chunks, collection, batch_size=1000, raw_embeddings_jsonl_file_path, chunk_ids_present_in_chromadb_collection_file_path)
+    collection = batch_embed_and_add(chunks, collection, raw_embeddings_jsonl_file_path, chunk_ids_present_in_chromadb_collection_file_path, batch_size=1000)
     print(f"Collection contains {collection.count()} documents.")
 
 

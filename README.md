@@ -58,8 +58,6 @@ Chunk the Constitution content into smaller pieces and save them in a json file
 * [translation_batches.py](scripts/translation_batches.py)
 Translate all the chunks to English
 
-* [documents_to_extract.py](scripts/documents_to_extract.py) <font color="yellow">*TODO: documents we need to scrape and add to the collection as well*</font>
-
 * [create_embedding_database.py](scripts/create_embedding_database.py) create the embedding database for the Defense Wiki and legal database content
 
 ### 2 - Preprocessing
@@ -78,14 +76,6 @@ hashes defined in [chunking_functions.py](src/chunking_functions.py)
 
 Many pages for one country (duplicates or multilingual): 
 * Translate all pages in English. 
-  - <font color="yellow">*TODO: should we translate every chunk before building the collection?*</font>
-
-[gather_all_pages_per_country.py](scripts/gather_all_pages_per_country.py) 
-beggining of script to gather all the different versions. If we want to process them together?
-
-
-* Unify and Synthesize content paragraph-wise using LLM. Ensure alignment of facts and level of detail. Indeed, there might be discrepancies in page details or facts across languages (e.g., Chile in English vs. Spanish)? 
-* Careful to preserve references during synthesis.
 
 
 ### 3 - Processing: Key points for each country page
