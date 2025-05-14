@@ -1,11 +1,11 @@
-from scripts.claim_verification import (
+from scripts.verify_one_claim import (
     build_context_string_from_retrieve_documents,
     load_chroma_collection,
     perform_similarity_search_metadata_filter,
     get_openai_response,
 )
-from ensuring_completeness_country_pages import (format_prompt_for_completeness_check,
-                                                 get_completeness_keypoints)
+from ensure_completeness_country_pages import (format_prompt_for_completeness_check,
+                                               get_completeness_keypoints)
 
 # modules for OpenAI
 import os

@@ -1,25 +1,22 @@
 import os
 import json
-from tqdm import tqdm  # make your loops show a smart progress meter
-import sys
-from veriscore.claim_extractor import ClaimExtractor
 import numpy as np
+from tqdm import tqdm
+from src.get_claims import ClaimExtractor
 from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
-sys.path.append("VeriScore-main/veriscore")
 
 # initialize objects
-input_path = "../data/processed/defensewiki.ibj.org"
+input_path = "data/processed/defensewiki.ibj.org"
 input_file_name = "chunks_1"
 input_file = f"{input_path}/{input_file_name}.jsonl"
-output_dir = "../data/extracted_claims"
+output_dir = "data/extracted_claims"
 output_file = f"{output_dir}/claims_{input_file_name}.jsonl"
 model_name = "gpt-4o-mini"
-use_external_model = "store_true"
-cache_dir = "../data/cache"
+cache_dir = "./data/cache"
+prompt_file: str = "data/prompts/prompt_claim_extraction.md"
 
 # Read JSONL file line by line
 with open(input_file, "r", encoding="utf-8") as jsonl_file:
@@ -27,15 +24,10 @@ with open(input_file, "r", encoding="utf-8") as jsonl_file:
         json.loads(line) for line in jsonl_file
     ]  # Convert each line to a dictionary
 
-# # Extract all "content" values into a list, now these are hashes
-# title_list=[]
-# for item in data:
-#     title_list.append(item['metadata']['title'])
-# np.unique(title_list[6:54])
 
 # extract 1 or many countries and all the links
 links_list_to_extract = []
-country_list = ["Burundi"]  # 'Singapore', 'Burundi', 'India'
+country_list = ["Burundi"]
 
 for item in data:
     title = item["metadata"]["country"]
@@ -46,8 +38,7 @@ links_list_to_extract = np.unique(links_list_to_extract)
 print(links_list_to_extract)
 
 claim_extractor = ClaimExtractor(
-    model_name=model_name, cache_dir=cache_dir, use_external_model=False
-)
+    model_name=model_name, prompt_file=prompt_file, cache_dir=cache_dir)
 
 # extract a page -------------------------------------
 # debug

@@ -79,3 +79,29 @@ def define_defensewiki_page_name(defensewiki_link: str):
         unicodedata.normalize("NFKD", page_name).encode("ASCII", "ignore").decode()
     )
     return page_name
+
+def remove_content_field_from_tree_dict(tree):
+    """Recursively removes the 'content' field from the tree structure."""
+    if isinstance(tree, dict):
+        tree.pop("content", None)  # Remove 'content' if it exists
+        for key, value in tree.items():
+            remove_content_field_from_tree_dict(value)  # Recurse into nested dictionaries
+    elif isinstance(tree, list):
+        for item in tree:
+            remove_content_field_from_tree_dict(item)  # Recurse into lists
+
+def save_status_link_dictionary_as_html(tree_links_validity, output_file):
+    html_template = """<html>
+    <head>
+        <title>Tree Links Validity</title>
+        <style>
+            body {{ background-color: white; color: black; }}
+            .functional {{ color: LimeGreen; }}
+            .error {{ color: red; font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <h2>Tree Links Validity</h2>
+        <pre>{}</pre>
+    </body>
+    </html>"""

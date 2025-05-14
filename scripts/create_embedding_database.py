@@ -25,7 +25,7 @@ def main():
 
     collection = load_chroma_collection(path=CHROMA_PATH, name="legal_collection")
     chunks = load_legal_chunks([path_defensewiki_chunks, path_constitution_chunks])  # Get chunks
-    print(f"Total number of chunks: {len(chunks)}")  # Should be 50380
+    print(f"Total number of chunks: {len(chunks)}")
 
     print(f"Total of {len(chunks)}")
     # batches because max 600000 tokens per request, we could do 2000 chunks per batch?

@@ -2,13 +2,13 @@ import json
 import openai
 client = openai.OpenAI()
 
-def build_batch_request(custom_id: str, system_prompt: str, user_prompt: str, temperature: float = 0.1):
+def build_batch_request(custom_id: str, system_prompt: str, user_prompt: str, temperature: float = 0.1, model: str = "gpt-4o-mini"):
     return {
         "custom_id": custom_id,
         "method": "POST",
         "url": "/v1/chat/completions", #  this is what tells OpenAI to use client.chat.completions.create
         "body": {
-            "model": "gpt-4o-mini",
+            "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}

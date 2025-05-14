@@ -9,12 +9,24 @@ def generate_hash(content):
     return hashlib.sha256(content.encode()).hexdigest()
 
 
-def write_dictionnary_as_jsonl(
-    input_data: dict, file_path: str, encoding: str = "utf-8"
-) -> None:
-    with open(file_path, "w", encoding=encoding) as jsonl_file:
-        for record in input_data:
-            jsonl_file.write(json.dumps(input_data[record]) + "\n")
+def save_file(filename: str, content, file_type="json"):
+    try:
+        if file_type == "json":
+            with open(filename, "w", encoding="utf-8") as json_file:
+                json.dump(content, json_file, indent=4)
+        if file_type == "jsonl":
+            with open(filename, "w", encoding="utf-8") as jsonl_file:
+                for record in content:
+                    jsonl_file.write(json.dumps(content[record]) + "\n")
+        else:
+            with open(filename, "w", encoding="utf-8") as file:
+                file.write(content)
+
+        print(f"File saved successfully: {filename}")
+
+    except Exception as e:
+        print(f"Error saving file {filename}: {e}")
+
 
 def load_jsonl_and_convert_to_list_of_dict(
     input_data: str, encoding: str = "utf-8"
@@ -121,3 +133,22 @@ def load_legal_chunks(list_of_paths: list[str]):
             for line in lines:
                 chunks.append(json.loads(line))
     return chunks
+
+
+def clean_markdown_text_fro_claim_extraction(text: str)-> str:
+
+    text = text.strip()
+
+    # 1. Remove all [[...]](#cite_note-...) patterns
+    text = re.sub(r"\[\[.*?\]\]\(#.*?\)", "", text)
+
+    # 2. Remove double newlines
+    text = text.replace('\n\n', '\n')
+
+    # 3. Remove bold markers **
+    text = text.replace('**', '')
+
+    # 4. (Optional) Remove redundant spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text

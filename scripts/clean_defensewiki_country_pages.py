@@ -64,7 +64,7 @@ title_to_country = {
     "Democratic_Republic_of_Congo-fr": "Congo, Democratic Republic of the",
     "Democratic_Republic_of_Congo-es": "Congo, Democratic Republic of the",
     "Congo-brazzaville": "Congo, Republic of the",
-    "Congo": "Congo, Democratic Republic of the",  # not sure for this one
+    "Congo": "Congo, Democratic Republic of the",
     "Inglaterra": "England and Wales",
     "Japon": "Japan",
     "Malasia": "Malaysia",

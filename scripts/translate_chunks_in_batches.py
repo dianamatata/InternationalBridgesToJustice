@@ -1,6 +1,6 @@
 import json
 from src.openai_batch_manager import upload_batch_file_to_openAI, submit_batch_job
-from src.translation_src import create_batch_file_for_translation, get_chunks_not_in_english
+from src.get_translation import create_batch_file_for_translation, get_chunks_not_in_english
 import openai
 client = openai.OpenAI()
 

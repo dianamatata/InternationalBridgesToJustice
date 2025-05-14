@@ -4,12 +4,10 @@ from tqdm import tqdm
 from src.file_manager import load_jsonl_and_convert_to_list_of_dict
 MAX_CHUNK_SIZE = 500
 
-# FUNCTIONS --------------------
 
 folder_with_constitutions_all_countries = "data/processed/constituteproject.org"
 file_with_constitutions_all_countries = f"{folder_with_constitutions_all_countries}/constituteproject.jsonl"
 constitutions_all = load_jsonl_and_convert_to_list_of_dict(input_data=file_with_constitutions_all_countries)
-keys = constitutions_all[1].keys()
 
 chunks = []
 for page in tqdm(range(0, len(constitutions_all))):
@@ -32,8 +30,6 @@ for page in tqdm(range(0, len(constitutions_all))):
             separator="\n\n",
         )
         chunks.extend(new_chunks)
-
-print(f"Len chunks: {len(chunks)}")
 
 
 with open(

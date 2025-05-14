@@ -3,28 +3,26 @@
 from openai import OpenAI
 import os
 import json
-from scripts.create_embedding_database import load_legal_chunks
-# The API key is stored in an environment file (.env), added to .gitignore for security reasons.
 from dotenv import load_dotenv
 load_dotenv()
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 client = OpenAI()
-
-# --- CONFIGURATION ---
-
-CHROMA_PATH = "../data/chroma_db"
-COLLECTION_NAME = "legal_collection"
-
-with open("../data/prompts/prompt_claim_verification.md", "r") as f:
-    prompt_claim_verification = f.read()
-
-# --- HELPER FUNCTIONS ---
+from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import (load_chroma_collection,
                                  perform_similarity_search_with_country_filter,
                                  build_context_string_from_retrieve_documents,
                                  format_prompt_for_claim_verification,
                                  get_openai_response,
                                  retrieve_source_titles_from_chunks)
+
+# --- CONFIGURATION ---
+
+CHROMA_PATH = "data/chroma_db"
+COLLECTION_NAME = "legal_collection"
+
+with open("data/prompts/prompt_claim_verification.md", "r") as f:
+    prompt_claim_verification = f.read()
+
 
 # --- MAIN SCRIPT ---
 

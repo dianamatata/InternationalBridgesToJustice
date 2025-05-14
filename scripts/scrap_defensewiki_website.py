@@ -10,47 +10,32 @@ Different functions are performed here:
 import os
 import time
 from datetime import datetime
-from langdetect import detect  # detect language
-import json  # save in json files
+from langdetect import detect
+import json
 from markdownify import (
     markdownify as md,
-)  # markdownify: Handles more complex HTML structures, better at preserving formatting.
+)
 import pandas as pd
 import glob
-from src.file_manager import generate_hash
-from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name
+from src.file_manager import generate_hash, save_file
+from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name, remove_content_field_from_tree_dict, save_status_link_dictionary_as_html
+from typing import Optional, Set, Dict
 
 
 # Functions -------------------
-
-def save_file(filename, content, file_type="json"):
-    try:
-        if file_type == "json":
-            with open(filename, "w", encoding="utf-8") as file:
-                json.dump(content, file, indent=4)  # Save JSON content
-
-        else:  # Handle other file types (e.g., plain text, Markdown, etc.)
-            with open(filename, "w", encoding="utf-8") as file:
-                file.write(content)
-
-        print(f"File saved successfully: {filename}")
-
-    except Exception as e:
-        print(f"Error saving file {filename}: {e}")
-
+defense_wiki_base_url = "https://defensewiki.ibj.org"
+defense_wiki_folder_json "data/processed/defensewiki.ibj.org"
 
 def build_complex_link_tree(
-    url,
-    depth=1,
-    visited=None,
-    base_url="https://defensewiki.ibj.org",
-    out_folder="IBJ_documents/legal_country_documents/docs_in_md_json",
-):
-    """Recursively builds a tree of links up to a certain depth."""
+        url: str,
+        base_url: str,
+        out_folder: str,
+        depth: int = 1,
+        visited: Optional[Set[str]] = None,
+) -> Dict:
 
     if visited is None:
         visited = set()
-
     if depth == 0 or url in visited:
         return {}
 
@@ -62,6 +47,11 @@ def build_complex_link_tree(
         link_type = "internal" if link_i.startswith(base_url) else "external"
         link_status = get_link_status(link_i)
 
+        link_info = {
+            "type": link_type,
+            "status": link_status
+        }
+
         if link_status == "functional":
             response, soup = extract_webpage_html_from_url(link_i)
             md_text = md(response.text)
@@ -70,7 +60,7 @@ def build_complex_link_tree(
             viewcount_tag = soup.find("li", {"id": "viewcount"})
             viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
 
-            tree[url][link_i] = {
+            link_info= {
                 "type": link_type,
                 "status": get_link_status(link_i),
                 "link": link_i,
@@ -87,34 +77,23 @@ def build_complex_link_tree(
                 "content": md_text,
             }
 
-        else:
-            tree[url][link_i] = {"type": link_type, "status": get_link_status(link_i)}
         if depth > 1:
-            subtree = build_complex_link_tree(link_i, depth - 1, visited)
-            tree[url][link_i]["subtree"] = subtree
+            link_info["subtree"] = build_complex_link_tree(link_i, depth - 1, visited)
+
+        tree[url][link_i] = link_info
 
     return tree
 
 
-def remove_content_field(tree):
-    """Recursively removes the 'content' field from the tree structure."""
-    if isinstance(tree, dict):
-        tree.pop("content", None)  # Remove 'content' if it exists
-        for key, value in tree.items():
-            remove_content_field(value)  # Recurse into nested dictionaries
-    elif isinstance(tree, list):
-        for item in tree:
-            remove_content_field(item)  # Recurse into lists
 
 
-def build_link_tree_3(
+def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
     depth=1,
     visited=None,
     base_url="https://defensewiki.ibj.org",
     out_folder="IBJ_documents/legal_country_documents/docs_in_md_json",
 ):
-    """Recursively builds a tree of links up to a certain depth."""
 
     if visited is None:
         visited = set()
@@ -134,32 +113,23 @@ def build_link_tree_3(
 
         link_type = "internal" if link_i.startswith(base_url) else "external"
         link_status = get_link_status(link_i)
-        tree[url][link_i] = {"type": link_type, "status": link_status}
+        link_info = {
+            "type": link_type,
+            "status": link_status
+        }
 
         if depth > 1:
-            subtree, visited = build_link_tree_3(
+            subtree, visited = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
                 link_i, depth - 1, visited, base_url, out_folder
             )
-            tree[url][link_i]["subtree"] = subtree
+            link_info["subtree"] = subtree
+
+        tree[url][link_i] = link_info
 
     return tree, visited
 
 
-def save_as_html(tree_links_validity, output_file):
-    html_template = """<html>
-    <head>
-        <title>Tree Links Validity</title>
-        <style>
-            body {{ background-color: white; color: black; }}
-            .functional {{ color: LimeGreen; }}
-            .error {{ color: red; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <h2>Tree Links Validity</h2>
-        <pre>{}</pre>
-    </body>
-    </html>"""
+
 
     def format_json_with_colors(data):
         json_str = json.dumps(data, indent=4)
@@ -225,14 +195,14 @@ url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1
 
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
-tree_links_validity, visited_links = build_link_tree_3(url=url, visited=None, depth=2)
+tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url=url, visited=None, depth=2)
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 # print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
 with open("../data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
     json.dump(tree_links_validity, f, indent=4)
 
-save_as_html(
+save_status_link_dictionary_as_html(
     tree_links_validity,
     output_file="../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
 )
@@ -275,11 +245,11 @@ print(df_merged.head())
 # print(f"\033[93m{json.dumps(tree, indent=4)}\033[0m")  # yellow color
 
 # first iteration
-tree_links_validity, visited_links = build_link_tree_3(url, visited=None, depth=2)
+tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url, visited=None, depth=2)
 
 # second iteration:
 start_time = time.time()
-tree_links_validity2, visited_links2 = build_link_tree_3(
+tree_links_validity2, visited_links2 = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url, visited=visited_links, depth=2
 )
 elapsed_time = time.time() - start_time
@@ -310,7 +280,7 @@ save_file(
     link_tree_defensewiki_test,
     file_type="json",
 )
-remove_content_field(link_tree_defensewiki_test)
+remove_content_field_from_tree_dict(link_tree_defensewiki_test)
 print(f"\033[93m{json.dumps(link_tree_defensewiki_test, indent=4)}\033[0m")
 save_file(
     f"{folder_defense_wiki_raw}/link_tree_defensewiki1.json",
@@ -330,7 +300,7 @@ save_file(
     link_tree_defensewiki,
     file_type="json",
 )
-remove_content_field(link_tree_defensewiki)
+remove_content_field_from_tree_dict(link_tree_defensewiki)
 save_file(
     f"{folder_defense_wiki_raw}/defensewiki1_no_content.json",
     link_tree_defensewiki,

@@ -21,24 +21,24 @@ To ensure the reliability of the Defense Wiki, it is essential to create a struc
 
 Important Metadata: When integrating a document, add its publication date, its country of application/ legal type/ source type, its legal status (in force, amended, draft, its legal relevance (national vs. regional laws, soft law vs. hard law), its original language, the website from where the document has been retrieved.
 
-* [scraping_defensewiki_website.py](scripts/scraping_defensewiki_website.py) 
+* [scraping_defensewiki_website.py](scripts/scrap_defensewiki_website.py) 
 Scrap the Defense Wiki and save content and metadata in a json file.
 Check reference links that are working and outdated
 * [plot_ibj_statistics.ipynb](notebooks%2Fplot_ibj_statistics.ipynb)
 Run statistics on the data extracted on the DefenseWiki website
 
-* [scraping_constitution_website.py](scripts/scraping_constitution_website.py)
+* [scraping_constitution_website.py](scripts/scrap_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
-* [scraping_unodc.py](scripts/scraping_unodc.py) <font color="yellow">*TODO*</font>
+* [scraping_unodc.py](scripts/scrap_unodc.py) <font color="yellow">*TODO*</font>
 
-* [chunking_defensewiki.py](scripts/chunking_defensewiki.py)
+* [chunking_defensewiki.py](scripts/chunk_defensewiki.py)
 Chunk the Defense Wiki content into smaller pieces and save them in a json file
 
-* [chunking_constitutions.py](scripts/chunking_constitutions.py)
+* [chunking_constitutions.py](scripts/chunk_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
-* [translation_batches.py](scripts/translation_batches.py)
+* [translation_batches.py](scripts/translate_chunks_in_batches.py)
 Translate all the chunks to English
 
 * [create_embedding_database.py](scripts/create_embedding_database.py) 
@@ -53,7 +53,7 @@ Detection of duplicates
 * Not unique hashes
 hashes defined in [chunking_functions.py](src/chunking_functions.py) 
   - <font color="yellow">*TODO manage hashes*</font>
-  - [country_pages.py](scripts/country_pages.py) were we discovered that some hashes are repeated
+  - [country_pages.py](scripts/clean_defensewiki_country_pages.py) were we discovered that some hashes are repeated
 * Compute similarity looking at the distance between embeddings
 * Duplicates: Paragraphs or whole pages? Some countries have duplicated pages, but also some chunks (often the Contents one, which can be ignored)
 * Apply many pages for one country protocol (below)
@@ -67,7 +67,7 @@ Many pages for one country (duplicates or multilingual):
 
 #### A - Completeness
 * [prompt_completeness.md](data/prompts/prompt_completeness.md) the prompt to check the completeness of the page
-* [ensuring_completeness_country_pages.py](scripts/ensuring_completeness_country_pages.py)
+* [ensuring_completeness_country_pages.py](scripts/ensure_completeness_country_pages.py)
 * [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
 * [openai_batch_manager.py](src%2Fopenai_batch_manager.py) to submit batch requests to OpenAI API after creating a json file
 * [process_batch_results.py](scripts/process_batch_results.py) to process the results once the batch requests are done
@@ -76,7 +76,7 @@ Many pages for one country (duplicates or multilingual):
 and create a new md page*</font>
 
 #### B - Accuracy
-* [query_database.py](scripts/claim_verification.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
+* [query_database.py](scripts/verify_one_claim.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
 and has the prompt to verify the claims
 *  [extract_claims.py](scripts/extract_claims.py)
 Extract claims from the content of the Defense Wiki and save them in a json file
