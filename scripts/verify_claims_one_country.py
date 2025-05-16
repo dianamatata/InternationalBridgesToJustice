@@ -1,15 +1,9 @@
 import json
-import os
-from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables from .env file
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-from openai import OpenAI
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import verify_claim, load_chroma_collection, retrieve_source_titles_from_chunks
 from src.config import path_chromadb, collection_name, path_jsonl_file_defensewiki_chunks, path_constitution_chunks
+from src.openai_client import client
 
-client = OpenAI()
 collection = load_chroma_collection(path_chromadb, collection_name)
 print(f"Collection contains {collection.count()} documents.")
 chunks = load_legal_chunks([path_jsonl_file_defensewiki_chunks, path_constitution_chunks])  # Get chunks

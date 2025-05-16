@@ -1,12 +1,8 @@
 # --- IMPORTS ---
 
 from openai import OpenAI
-import os
 import json
-from dotenv import load_dotenv
-load_dotenv()
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-client = OpenAI()
+from src.openai_client import client
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import (load_chroma_collection,
                                  perform_similarity_search_with_country_filter,
@@ -30,7 +26,6 @@ def main():
 
     chunks = load_legal_chunks([path_jsonl_file_defensewiki_chunks, path_constitution_chunks])  # Get chunks
 
-    client = OpenAI()
     claim_to_verify = "In India, Until proven innocent, the accused has to remain in prison."
 
     collection = load_chroma_collection(path_chromadb, collection_name)

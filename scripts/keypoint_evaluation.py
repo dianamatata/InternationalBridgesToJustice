@@ -4,7 +4,7 @@ from scripts.verify_one_claim import (
     perform_similarity_search_metadata_filter,
     get_openai_response,
 )
-from src.keypoint_evaluation import KeypointEvaluation
+from src.get_completeness import KeypointEvaluation
 from src.config import path_folder_completeness, path_file_prompt_completeness, path_chromadb, collection_name
 jsonl_file_completeness_batch = f"{path_folder_completeness}/batch_input.jsonl"
 from ensure_completeness_country_pages import (format_prompt_for_completeness_check,
@@ -14,10 +14,8 @@ from ensure_completeness_country_pages import (format_prompt_for_completeness_ch
 import os
 import json
 from tqdm import tqdm  # make your loops show a smart progress meter
-from dotenv import load_dotenv
-load_dotenv()  # Load environment variables from .env file
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-from openai import OpenAI
+from src.openai_client import client
+
 
 
 # DEFINE CLASS KeypointEvaluation ---------------------------------------------------
@@ -36,7 +34,6 @@ def load_prompt_completeness():
 
 # MAIN ---------------------------------------------------
 # general loading
-client = OpenAI()
 legal_collection = load_chroma_collection(path_chromadb, collection_name)
 system_prompt = "You are a critical legal analyst tasked with evaluating whether a legal wiki chapter adequately addresses a specific legal keypoint. Your response must be precise, structured, and based on legal reasoning. When relevant, cite and summarize laws from the provided legal database. Avoid vague language and clearly distinguish between complete, partial, or missing legal coverage."
 load_prompt_completeness()

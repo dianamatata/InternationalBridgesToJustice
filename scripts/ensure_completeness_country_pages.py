@@ -1,10 +1,5 @@
 # LIBRARIES ---------------------------------------------------
-import os
-from dotenv import load_dotenv
-load_dotenv()  # Load environment variables from .env file
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-
-from openai import OpenAI
+from src.openai_client import client
 from tqdm import tqdm
 import importlib  # Use importlib.reload() to re-import your module after editing it
 import src
@@ -21,7 +16,6 @@ from src.file_manager import get_country_names, save_completeness_result
 from src.config import path_chromadb, collection_name, path_file_prompt_completeness, path_md_file_completeness_keypoints, path_folder_completeness
 
 # MAIN ---------------------------------------------------
-client = OpenAI()
 
 collection = load_chroma_collection(path_chromadb, collection_name)
 

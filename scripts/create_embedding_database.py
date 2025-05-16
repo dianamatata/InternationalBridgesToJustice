@@ -1,9 +1,6 @@
 import os
 from tqdm import tqdm
-from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables from .env file
-openai_api_key = os.environ.get("OPENAI_API_KEY")
+from src.openai_client import client
 from src.query_functions import add_new_chunks_to_chroma_collection, load_chroma_collection
 from src.file_manager import load_legal_chunks
 from src.config import path_chromadb, collection_name, path_jsonl_file_raw_embeddings, path_jsonl_file_defensewiki_chunks, path_jsonl_file_constitution_chunks
