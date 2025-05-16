@@ -1,11 +1,7 @@
 import json
 from tqdm import tqdm
 from src.chunking_functions import extract_chapters, split_text_into_chunks
-
-
-MAX_CHUNK_SIZE = 500  # these are words
-defensewiki_jsonl_file_path = "data/interim/defensewiki_all.jsonl"
-defensewiki_chunks_file_path = "data/processed/defensewiki.ibj.org"
+from src.config import MAX_CHUNK_SIZE, path_folder_defense_wiki, path_jsonl_file_defensewiki
 
 headers_to_exclude_from_chunks = {
     "REFERENCES",
@@ -23,7 +19,7 @@ headers_to_exclude_from_chunks = {
 
 # MAIN --------------------
 
-with open(defensewiki_jsonl_file_path, "r", encoding="utf-8") as jsonl_file:
+with open(path_jsonl_file_defensewiki, "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [
         json.loads(line) for line in jsonl_file
     ]  # Convert each line to a dictionary
@@ -50,11 +46,11 @@ with open(defensewiki_jsonl_file_path, "r", encoding="utf-8") as jsonl_file:
             )
             chunks.extend(new_chunks)
 
-with open(f"{defensewiki_chunks_file_path}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
+with open(f"{path_folder_defense_wiki}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
     for chunk in chunks:
         # jsonl_file.write(json.dumps(chunk + "\n")
         jsonl_file.write(json.dumps(chunk.__dict__) + "\n")
 
-with open(f"{defensewiki_chunks_file_path}/chunks.json", "w", encoding="utf-8") as json_file:
+with open(f"{path_folder_defense_wiki}/chunks.json", "w", encoding="utf-8") as json_file:
     json.dump([chunk.__dict__ for chunk in chunks], json_file, ensure_ascii=False, indent=2)
 

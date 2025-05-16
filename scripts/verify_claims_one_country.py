@@ -7,15 +7,12 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 from openai import OpenAI
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import verify_claim, load_chroma_collection, retrieve_source_titles_from_chunks
+from src.config import path_chromadb, collection_name, path_jsonl_file_defensewiki_chunks, path_constitution_chunks
 
-CHROMA_PATH = "../data/chroma_db"
-COLLECTION_NAME = "legal_collection"
 client = OpenAI()
-collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
+collection = load_chroma_collection(path_chromadb, collection_name)
 print(f"Collection contains {collection.count()} documents.")
-path_defensewiki_chunks = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
-path_constitution_chunks = "data/processed/constituteproject.org/constitution_chunks.jsonl"
-chunks = load_legal_chunks([path_defensewiki_chunks, path_constitution_chunks])  # Get chunks
+chunks = load_legal_chunks([path_jsonl_file_defensewiki_chunks, path_constitution_chunks])  # Get chunks
 
 chunks_selected = [
     chunk for chunk in chunks if chunk["metadata"]["country"] == "Burundi"

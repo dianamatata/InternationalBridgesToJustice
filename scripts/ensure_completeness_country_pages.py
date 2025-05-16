@@ -18,21 +18,19 @@ from src.query_functions import (
     get_completeness_keypoints
 )
 from src.file_manager import get_country_names, save_completeness_result
-
+from src.config import path_chromadb, collection_name, path_file_prompt_completeness, path_md_file_completeness_keypoints, path_folder_completeness
 
 # MAIN ---------------------------------------------------
 client = OpenAI()
 
-CHROMA_PATH = "../data/chroma_db"
-COLLECTION_NAME = "legal_collection"
-collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
+collection = load_chroma_collection(path_chromadb, collection_name)
 
 country_names = get_country_names(country_names_filepath="data/interim/country_names_1.txt")
 country_names = ["Burundi"]  # TODO remove this line to run for all countries
 
-completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath ="data/raw/IBJ_docs/Completeness_checklist.md")
+completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = path_md_file_completeness_keypoints)
 
-with open("data/prompts/prompt_completeness.md", "r") as f:
+with open(path_file_prompt_completeness, "r") as f:
     prompt_completeness = f.read()
 
 system_prompt = "You are a critical legal analyst tasked with evaluating whether a legal wiki chapter adequately addresses a specific legal keypoint. Your response must be precise, structured, and based on legal reasoning. When relevant, cite and summarize laws from the provided legal database. Avoid vague language and clearly distinguish between complete, partial, or missing legal coverage."
@@ -84,9 +82,9 @@ for country in country_names:
             )
 
             completeness_assessment = answer.split("**")[2].replace("\n", "")
-            out_jsonfile = f"data/completeness/{country}.json"
-            out_md_file = f"data/completeness/{country}_answer.md"
-            out_summary_file = f"data/completeness/{country}_summary.md"
+            out_jsonfile = f"{path_folder_completeness}/{country}.json"
+            out_md_file = f"{path_folder_completeness}/{country}_answer.md"
+            out_summary_file = f"{path_folder_completeness}/{country}_summary.md"
             save_completeness_result(
                 country,
                 keypoint_to_check,

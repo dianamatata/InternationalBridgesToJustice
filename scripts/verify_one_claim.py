@@ -15,10 +15,10 @@ from src.query_functions import (load_chroma_collection,
                                  get_openai_response,
                                  retrieve_source_titles_from_chunks)
 
+from src.config import path_chromadb, collection_name, path_jsonl_file_defensewiki_chunks, path_constitution_chunks
 # --- CONFIGURATION ---
 
-CHROMA_PATH = "data/chroma_db"
-COLLECTION_NAME = "legal_collection"
+
 
 with open("data/prompts/prompt_claim_verification.md", "r") as f:
     prompt_claim_verification = f.read()
@@ -27,14 +27,13 @@ with open("data/prompts/prompt_claim_verification.md", "r") as f:
 # --- MAIN SCRIPT ---
 
 def main():
-    path_defensewiki_chunks = "data/processed/defensewiki.ibj.org/chunks_1.jsonl"
-    path_constitution_chunks = "data/processed/constituteproject.org/constitution_chunks.jsonl"
-    chunks = load_legal_chunks([path_defensewiki_chunks, path_constitution_chunks])  # Get chunks
+
+    chunks = load_legal_chunks([path_jsonl_file_defensewiki_chunks, path_constitution_chunks])  # Get chunks
 
     client = OpenAI()
     claim_to_verify = "In India, Until proven innocent, the accused has to remain in prison."
 
-    collection = load_chroma_collection(CHROMA_PATH, COLLECTION_NAME)
+    collection = load_chroma_collection(path_chromadb, collection_name)
     print(f"Collection contains {collection.count()} documents.")
 
     results = perform_similarity_search_with_country_filter(

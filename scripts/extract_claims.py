@@ -6,20 +6,14 @@ from src.get_claims import ClaimExtractor
 from dotenv import load_dotenv
 load_dotenv()
 openai_api_key = os.environ.get("OPENAI_API_KEY")
-
+from src.config import path_file_prompt_claim_extraction, path_folder_claim_extraction, path_jsonl_file_extracted_claims, path_jsonl_file_defensewiki_chunks
 
 # initialize objects
-input_path = "data/processed/defensewiki.ibj.org"
-input_file_name = "chunks_1"
-input_file = f"{input_path}/{input_file_name}.jsonl"
-output_dir = "data/extracted_claims"
-output_file = f"{output_dir}/claims_{input_file_name}.jsonl"
 model_name = "gpt-4o-mini"
 cache_dir = "./data/cache"
-prompt_file: str = "data/prompts/prompt_claim_extraction.md"
 
 # Read JSONL file line by line
-with open(input_file, "r", encoding="utf-8") as jsonl_file:
+with open(path_jsonl_file_defensewiki_chunks, "r", encoding="utf-8") as jsonl_file:
     data = [
         json.loads(line) for line in jsonl_file
     ]  # Convert each line to a dictionary
@@ -38,7 +32,7 @@ links_list_to_extract = np.unique(links_list_to_extract)
 print(links_list_to_extract)
 
 claim_extractor = ClaimExtractor(
-    model_name=model_name, prompt_file=prompt_file, cache_dir=cache_dir)
+    model_name=model_name, prompt_file=path_file_prompt_claim_extraction, cache_dir=cache_dir)
 
 # extract a page -------------------------------------
 # debug
@@ -69,12 +63,12 @@ for dict_item in tqdm(data):
             filename = (
                 f"{title.replace(' ', '_').replace('/', '_').replace(':', '_')}.jsonl"
             )
-            output_file = os.path.join(
-                output_dir, filename
+            jsonl_file_extracted_claims = os.path.join(
+                path_folder_claim_extraction, filename
             )  # Specify your output directory
-            with open(output_file, "a") as jsonl_file:  # a appends, w overwrites
+            with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
                 jsonl_file.write(json.dumps(output_dict) + "\n")
-        print(f"extracted claims are saved at {output_file}")
+        print(f"extracted claims are saved at {path_jsonl_file_extracted_claims}")
 
 
 # extract a country ----------------------------------
@@ -103,12 +97,12 @@ for dict_item in tqdm(data):  # data from 6 to 54 for Singapore
         filename = (
             f"{title.replace(' ', '_').replace('/', '_').replace(':', '_')}.jsonl"
         )
-        output_file = os.path.join(
-            output_dir, filename
+        jsonl_file_extracted_claims = os.path.join(
+            path_folder_claim_extraction, filename
         )  # Specify your output directory
-        with open(output_file, "a") as jsonl_file:  # a appends, w overwrites
+        with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
             jsonl_file.write(json.dumps(output_dict) + "\n")
-print(f"extracted claims are saved at {output_file}")
+print(f"extracted claims are saved at {path_jsonl_file_extracted_claims}")
 
 
 # STOP HERE
@@ -118,22 +112,22 @@ filename = "Burundi-fr.jsonl"
 
 filename = "Burundi.jsonl"
 file_title = filename.replace(".jsonl", "")
-output_file = os.path.join(output_dir, filename)  # Specify your output directory
+jsonl_file_extracted_claims = os.path.join(path_folder_claim_extraction, filename)  # Specify your output directory
 
 # read claims in jsonl  # Convert each line to a dictionary
-with open(f"{output_file}", "r", encoding="utf-8") as jsonl_file:
+with open(f"{jsonl_file_extracted_claims}", "r", encoding="utf-8") as jsonl_file:
     data_out = [json.loads(line) for line in jsonl_file]
 
 # save in json for easy reading
-with open(f"{output_dir}/{file_title}.json", "w", encoding="utf-8") as file:
+with open(f"{path_folder_claim_extraction}/{file_title}.json", "w", encoding="utf-8") as file:
     json.dump(data_out, file, indent=4)  # Save JSON content
 
 
 # Open the output file where you want to save the text
 with open(
-    f"{output_dir}/{file_title}_chunk_text.txt", "w", encoding="utf-8"
+    f"{path_folder_claim_extraction}/{file_title}_chunk_text.txt", "w", encoding="utf-8"
 ) as response_file, open(
-    f"{output_dir}/{file_title}_all_claims.txt", "w", encoding="utf-8"
+    f"{path_folder_claim_extraction}/{file_title}_all_claims.txt", "w", encoding="utf-8"
 ) as claims_file:
     for i in range(len(data_out)):  # Iterate over the first 15 entries
         if i < len(data_out):  # Ensure the index is within the available range
@@ -153,7 +147,7 @@ with open(
             )  # Write each claim on a new line, separate entries with double newlines
 
 print(
-    f"Responses saved to {output_dir}/{file_title}_chunk_text.txt and claims saved to {output_dir}/{file_title}_all_claims.txt."
+    f"Responses saved to {path_folder_claim_extraction}/{file_title}_chunk_text.txt and claims saved to {path_folder_claim_extraction}/{file_title}_all_claims.txt."
 )
 
 # dict_keys(['prompt_source', 'response', 'prompt_tok_cnt', 'response_tok_cnt', 'model', 'abstained', 'claim_list', 'all_claim_lst', 'claim_search_results', 'claim_verification_result'])

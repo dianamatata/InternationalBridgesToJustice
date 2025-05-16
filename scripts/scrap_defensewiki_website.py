@@ -20,11 +20,10 @@ import glob
 from src.file_manager import generate_hash, save_file
 from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name, remove_content_field_from_tree_dict, save_status_link_dictionary_as_html
 from typing import Optional, Set, Dict
-
+from src.config import base_url_defense_wiki, path_folder_defense_wiki
 
 # Functions -------------------
-defense_wiki_base_url = "https://defensewiki.ibj.org"
-defense_wiki_folder_json "data/processed/defensewiki.ibj.org"
+
 
 def build_complex_link_tree(
         url: str,
@@ -91,8 +90,8 @@ def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
     depth=1,
     visited=None,
-    base_url="https://defensewiki.ibj.org",
-    out_folder="IBJ_documents/legal_country_documents/docs_in_md_json",
+    base_url=base_url_defense_wiki,
+    out_folder=path_folder_defense_wiki,
 ):
 
     if visited is None:
