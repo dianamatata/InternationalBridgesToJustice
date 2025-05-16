@@ -1,5 +1,5 @@
 # LIBRARIES ---------------------------------------------------
-from src.openai_client import client
+from src.openai_client import openai_client
 from tqdm import tqdm
 import importlib  # Use importlib.reload() to re-import your module after editing it
 import src
@@ -68,7 +68,7 @@ for country in country_names:
             )
 
             answer = get_openai_response(
-                client=client,
+                client=openai_client,
                 categorize_system_prompt=system_prompt,
                 prompt=prompt,
                 model="gpt-4o-mini",

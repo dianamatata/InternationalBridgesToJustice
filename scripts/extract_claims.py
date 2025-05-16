@@ -3,7 +3,7 @@ import json
 import numpy as np
 from tqdm import tqdm
 from src.get_claims import ClaimExtractor
-from src.openai_client import client
+from src.openai_client import openai_client
 from src.config import path_file_prompt_claim_extraction, path_folder_claim_extraction, path_jsonl_file_extracted_claims, path_jsonl_file_defensewiki_chunks
 
 # initialize objects

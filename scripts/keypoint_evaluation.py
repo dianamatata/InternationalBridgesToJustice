@@ -14,7 +14,7 @@ from ensure_completeness_country_pages import (format_prompt_for_completeness_ch
 import os
 import json
 from tqdm import tqdm  # make your loops show a smart progress meter
-from src.openai_client import client
+from src.openai_client import openai_client
 
 
 
@@ -89,7 +89,7 @@ evaluation = KeypointEvaluation(
 evaluation.ensure_loaded(legal_collection)  # Ensure the content is loaded
 evaluation.define_prompt(path_file_prompt_completeness)
 evaluation.check_completeness(
-    client, system_prompt, model="gpt-4o-mini", temperature=0.1
+    openai_client, system_prompt, model="gpt-4o-mini", temperature=0.1
 )
 evaluation.save_evaluation()
 

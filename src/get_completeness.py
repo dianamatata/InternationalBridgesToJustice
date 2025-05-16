@@ -1,4 +1,6 @@
-
+from src.query_functions import perform_similarity_search_metadata_filter, format_prompt_for_completeness_check, build_context_string_from_retrieve_documents, get_openai_response
+import json
+from src.config import path_folder_completeness
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
@@ -11,9 +13,9 @@ class KeypointEvaluation:
         self.point = point
         self.custom_id = f"{country}-{chapter}-{point}"
         self.keypoint = f"{chapter}: {point}"
-        self.out_jsonfile = f"data/completeness/{self.country}.json"
-        self.out_md_file = f"data/completeness/{self.country}_answer.md"
-        self.out_summary_file = f"data/completeness/{self.country}_summary.md"
+        self.out_jsonfile = f"{path_folder_completeness}/{self.country}.json"
+        self.out_md_file = f"{path_folder_completeness}/{self.country}_answer.md"
+        self.out_summary_file = f"{path_folder_completeness}/{self.country}_summary.md"
         self.wiki_content = None
         self.database_content = None
         self.answer = None
@@ -148,5 +150,5 @@ class KeypointEvaluation:
 
         with open(self.out_summary_file, "a", encoding="utf-8") as f:  # save summary
             assessment = self.answer.split("**")[2].replace("\n", "")
-            f.write(f"Keypoint '{point}' covered?  {assessment} \n\n")
+            f.write(f"Keypoint '{self.point}' covered?  {assessment} \n\n")
 

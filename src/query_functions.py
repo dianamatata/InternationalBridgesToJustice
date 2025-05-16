@@ -1,18 +1,11 @@
 import chromadb
-from openai import OpenAI
-import os
-from scripts.create_embedding_database import load_legal_chunks
-# The API key is stored in an environment file (.env), added to .gitignore for security reasons.
-from dotenv import load_dotenv
-load_dotenv()  # Load environment variables from .env file
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-client = OpenAI()
+from src.openai_client import openai_client
 
 def openai_generate_embeddings(texts: list[str], model="text-embedding-3-large") -> list[list[float]]:
     """
     Generate embeddings for a list of texts using OpenAI's embedding API.
     """
-    response = client.embeddings.create(model=model, input=texts)
+    response = openai_client.embeddings.create(model=model, input=texts)
     return [d.embedding for d in response.data]
 
 
@@ -22,9 +15,9 @@ def load_chroma_collection(chroma_collection_file_path: str, collection_name: st
     chromadb.PersistentClient(): This initializes the ChromaDB client that manages access to your local vector DB.
     with Chroma in persistent mode,  data is auto-saved to disk in CHROMA_PATH.
     """
-    client = chromadb.PersistentClient(path=chroma_collection_file_path)
+    chroma_client = chromadb.PersistentClient(path=chroma_collection_file_path)
     try:
-        collection = client.get_collection(collection_name)  # Load collection
+        collection = chroma_client.get_collection(collection_name)  # Load collection
     except Exception as e:
         raise RuntimeError(f"Could not load collection '{collection_name}': {e}")
     return collection

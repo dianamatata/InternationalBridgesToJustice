@@ -2,7 +2,7 @@ import json
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import verify_claim, load_chroma_collection, retrieve_source_titles_from_chunks
 from src.config import path_chromadb, collection_name, path_jsonl_file_defensewiki_chunks, path_constitution_chunks
-from src.openai_client import client
+from src.openai_client import openai_client
 
 collection = load_chroma_collection(path_chromadb, collection_name)
 print(f"Collection contains {collection.count()} documents.")
@@ -30,7 +30,7 @@ for chunk in range(
             print(f"Claim: {claim}")
             if claim != None:
                 results, answer = verify_claim(
-                    claim, collection, client, prompt_claim_verification
+                    claim, collection, openai_client, prompt_claim_verification
                 )
                 source_titles = retrieve_source_titles_from_chunks(results, chunks)
 

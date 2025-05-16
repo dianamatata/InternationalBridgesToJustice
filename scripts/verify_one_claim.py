@@ -2,7 +2,7 @@
 
 from openai import OpenAI
 import json
-from src.openai_client import client
+from src.openai_client import openai_client
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import (load_chroma_collection,
                                  perform_similarity_search_with_country_filter,
@@ -42,7 +42,7 @@ def main():
 
     prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=claim_to_verify, context=context_text)
 
-    answer = get_openai_response(client, prompt)
+    answer = get_openai_response(openai_client, prompt)
     print("\nOpenAI response:\n", answer)
 
     source_titles = retrieve_source_titles_from_chunks(results, chunks)
