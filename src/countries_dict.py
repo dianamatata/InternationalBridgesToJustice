@@ -25,6 +25,7 @@ title_to_country = {
     "South_Korea": "South Korea",
     "United_State_Supreme_Court": "United States",
     "Cote_dIvoire": "Ivory Coast",
+    "cote divoire": "Ivory Coast",
     "Lao's_People_Democratic_Republic": "Laos",
     "Chinese-English_Legal_Lexicon": "China",
     "Chinese_Law_Primer": "China",
@@ -40,12 +41,15 @@ title_to_country = {
     "Malasia": "Malaysia",
     "Kenia": "Kenya",
     "Francais": "France",
+    "Republique Centrafricaine": "Central African Republic"
 }
 
 substring_to_country = {
     "American_": "United States",
     "American ": "United States",
+    "american": "United States",
     "Chinese": "China",
+    "chinese": "China",
     "Canadian": "Canada",
     "Cairo": "Egypt",
 }

@@ -13,17 +13,17 @@ import chromadb
 import numpy as np
 from src.config import path_chromadb, collection_name
 from src.countries_dict import title_to_country, substring_to_country
+from scrap_defensewiki_website import matching_country_name
 
 # 1 - Get country names (and optional aliases) from pycountry
 country_names1 = [country.name for country in pycountry.countries]
 
 # 2 - Get country names from the Defense Wiki Country pages
 file_country_names = "data/interim/country_names_1.txt"
-with open(f"{file_country_names}", "r", encoding="utf-8") as f:
+with open(file_country_names, "r", encoding="utf-8") as f:
     country_names = f.read().splitlines()
-    len(country_names)  # 204
 
-[c for c in country_names1 if c not in country_names]
+missing_countries = [c for c in country_names1 if c not in country_names]
 
 # 3. Update the defensewiki to add the country name
 input_data = "data/interim/defensewiki_all.json"
@@ -36,30 +36,9 @@ with open(f"{input_data}l", "r", encoding="utf-8") as jsonl_file:
 for d in defense_wiki_all:
     # Check if any country name is in the title, in this direction because 'Thailand-es' in 'Thailand'
     cleaned_title = d["title"].replace("_", " ").strip().lower()
+    d["country"] = matching_country_name(country_names, cleaned_title)
 
-    matching_country = next(
-        (
-            country
-            for country in country_names
-            if country.lower().strip() in cleaned_title
-        ),
-        "",
-    )
-    if matching_country:
-        d["country"] = matching_country
-    else:
-        corrected = title_to_country.get(d["title"], "")
-        if corrected:
-            d["country"] = corrected
-        else:
-            d["country"] = next(
-                (
-                    country
-                    for key, country in substring_to_country.items()
-                    if key in d["title"]
-                ),
-                "",
-            )
+
 
 # check all the missing countries labeled ""
 check1 = [[e["title"], e["country"]] for e in defense_wiki_all if e["country"] is ""]

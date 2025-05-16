@@ -3,7 +3,12 @@ import re
 from bs4 import BeautifulSoup
 import unicodedata  # text formating
 from urllib.parse import unquote  # text formating
-
+import time
+from datetime import datetime
+from langdetect import detect
+from markdownify import markdownify as md
+from typing import Optional, Set, Dict
+from src.file_manager import generate_hash
 
 def get_link_status(url: str):
     try:
@@ -53,6 +58,110 @@ def get_links(url: str):
         print(f"Error fetching {url}: {e}")
         return []
 
+
+def matching_country_name(country_names: str, title: str, title_to_country: dict, substring_to_country: dict) -> str:
+
+    matching_country = next(
+        (
+            country
+            for country in country_names
+            if country.lower().strip() in title
+        ),
+        None,
+    )
+    if matching_country:
+        return matching_country
+
+    else:
+        matching_country_2 = next(
+            (
+                value
+                for key, value in title_to_country.items()
+                if key.lower().strip() in title
+            ),
+            None,
+        )
+        if matching_country_2:
+            return matching_country_2
+
+        else:
+            matching_country_3 = next(
+                (
+                    value
+                    for key, value in substring_to_country.items()
+                    if key.lower().strip() in title
+                ),
+                None,
+            )
+
+            if matching_country_3:
+                return matching_country_3
+            else:
+                return ""
+
+
+def scrap_defensewiki_website(
+        url: str,
+        base_url: str,
+        list_country_names: list[str],
+        out_folder: str,
+        title_to_country: str,
+        substring_to_country: str,
+        visited: Optional[Set[str]] = None
+) -> Dict:
+
+    if visited is None:
+        visited = set()
+    if url in visited:
+        return {}
+
+    visited.add(url)
+    links = get_links(url)
+    defense_wiki_dict = {url: {}}
+
+    for link_i in links:
+        link_type = "internal" if link_i.startswith(base_url) else "external"
+        link_status = get_link_status(link_i)
+
+        link_info = {
+            "type": link_type,
+            "status": link_status
+        }
+
+        if link_status == "functional":
+            response, soup = extract_webpage_html_from_url(link_i)
+            md_text = md(response.text)
+            page_name = define_defensewiki_page_name(link_i)  # Extract page name from URL
+            filename = f"{out_folder}/{page_name}.md"
+            viewcount_tag = soup.find("li", {"id": "viewcount"})
+            viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
+
+
+            link_info= {
+                "type": link_type,
+                "status": get_link_status(link_i),
+                "link": link_i,
+                "title": page_name,
+                "extracted": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "hash": generate_hash(str(soup)),
+                "last-edited": get_last_edited_date(soup),
+                "language": detect(soup.get_text()),
+                "viewcount": viewcount,
+                "type": "defensewiki_doc",
+                "full_path": filename,
+                "nbr_of_words": len(md_text.split()),
+                "nbr_of_lines": len(md_text.splitlines()),
+                "content": md_text,
+                "country": matching_country_name(list_country_names, page_name, title_to_country, substring_to_country)
+            }
+
+        print({k: link_info[k] for k in ["country", "title", "link"] if k in link_info})
+
+        defense_wiki_dict[link_i] = link_info
+
+    return defense_wiki_dict
+
+
 def get_last_edited_date(soup):
     # Find the <li> element with id="lastmod" containing the last modified date
     lastmod_li = soup.find("li", {"id": "lastmod"})
@@ -74,6 +183,7 @@ def extract_webpage_html_from_url(url: str):
 
 def define_defensewiki_page_name(defensewiki_link: str):
     page_name = unquote(defensewiki_link.split("title=")[1].split("&")[0].replace("/", "-"))
+    page_name = page_name.replace("_", " ").strip().lower()
     # Normalize the string to remove accents and special characters. This normalizes the string, breaking down accented characters into their base characters (e.g., ô becomes o).
     page_name = (
         unicodedata.normalize("NFKD", page_name).encode("ASCII", "ignore").decode()

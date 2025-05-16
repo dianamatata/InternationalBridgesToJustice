@@ -4,7 +4,7 @@ from typing import Dict
 import re
 import hashlib  # get hash
 
-def generate_hash(content):
+def generate_hash(content: str):
     """Generate SHA-256 hash of the given content."""
     return hashlib.sha256(content.encode()).hexdigest()
 
@@ -14,13 +14,13 @@ def save_file(filename: str, content, file_type="json"):
         if file_type == "json":
             with open(filename, "w", encoding="utf-8") as json_file:
                 json.dump(content, json_file, indent=4)
-        if file_type == "jsonl":
+        elif file_type == "jsonl":
             with open(filename, "w", encoding="utf-8") as jsonl_file:
                 for record in content:
                     jsonl_file.write(json.dumps(content[record]) + "\n")
         else:
             with open(filename, "w", encoding="utf-8") as file:
-                file.write(content)
+                file.write(str(content))  # Convert to string to be safe
 
         print(f"File saved successfully: {filename}")
 

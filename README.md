@@ -21,13 +21,13 @@ To ensure the reliability of the Defense Wiki, it is essential to create a struc
 
 Important Metadata: When integrating a document, add its publication date, its country of application/ legal type/ source type, its legal status (in force, amended, draft, its legal relevance (national vs. regional laws, soft law vs. hard law), its original language, the website from where the document has been retrieved.
 
-* [scraping_defensewiki_website.py](scripts/scrap_defensewiki_website.py) 
+* [scrap_defensewiki_website.py](scripts%2Fscrap_defensewiki_website.py)
 Scrap the Defense Wiki and save content and metadata in a json file.
 Check reference links that are working and outdated
 * [plot_ibj_statistics.ipynb](notebooks%2Fplot_ibj_statistics.ipynb)
 Run statistics on the data extracted on the DefenseWiki website
 
-* [scraping_constitution_website.py](scripts/scrap_constitution_website.py)
+* [scrap_constitution_website.py](scripts%2Fscrap_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
 * [scraping_unodc.py](scripts/scrap_unodc.py) <font color="yellow">*TODO*</font>

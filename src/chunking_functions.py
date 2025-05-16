@@ -1,16 +1,10 @@
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 
 import re
-import hashlib  # get hash
 MAX_CHUNK_SIZE = 500  # todo is it words or characters
+from src.file_manager import generate_hash
 
 # FUNCTIONS --------------------
-
-
-def generate_hash(content: str):
-    """Generate SHA-256 hash of the given content."""
-    return hashlib.sha256(content.encode()).hexdigest()
-
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
