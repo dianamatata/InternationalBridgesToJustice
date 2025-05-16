@@ -32,6 +32,6 @@ path_prompts = "data/prompts"
 path_file_prompt_completeness = f"{path_prompts}/prompt_completeness.md"
 path_file_prompt_claim_extraction = f"{path_prompts}/prompt_claim_extraction.md"
 path_file_prompt_claim_verification = f"{path_prompts}/prompt_claim_verification.md"
-
+path_file_system_prompt_completeness = f"{path_prompts}/system_prompt_completeness.md"
 # Others
 MAX_CHUNK_SIZE = 500  # these are words

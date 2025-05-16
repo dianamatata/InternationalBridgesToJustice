@@ -84,8 +84,6 @@ def build_complex_link_tree(
     return tree
 
 
-
-
 def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
     depth=1,
@@ -127,20 +125,17 @@ def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
 
     return tree, visited
 
-
-
-
-    def format_json_with_colors(data):
-        json_str = json.dumps(data, indent=4)
-        json_str = json_str.replace(
-            '"status": "functional"',
-            '"status": "<span class=\'functional\'>functional link</span>"',
-        )
-        json_str = json_str.replace(
-            '"status": "error"',
-            '"status": "<span class=\'error\'>error - link broken</span>"',
-        )
-        return json_str
+def format_json_with_colors(data):
+    json_str = json.dumps(data, indent=4)
+    json_str = json_str.replace(
+        '"status": "functional"',
+        '"status": "<span class=\'functional\'>functional link</span>"',
+    )
+    json_str = json_str.replace(
+        '"status": "error"',
+        '"status": "<span class=\'error\'>error - link broken</span>"',
+    )
+    return json_str
 
     formatted_json = format_json_with_colors(tree_links_validity)
 
@@ -211,7 +206,7 @@ save_as_cvs(
 )
 print("files saved")
 
-# merge all the subdocuments:
+# merge all the subdocuments ---------------------------------
 
 # Define the path pattern for your CSV files
 csv_files = glob.glob("data/processed/defensewiki.ibj.org/tree_links_validity_*.csv")
@@ -225,17 +220,10 @@ for file in csv_files:
     except Exception as e:
         print(f"Error reading {file}: {e}")
 
-# Concatenate all DataFrames into one big DataFrame
 df_merged = pd.concat(df_list, ignore_index=True)
-
-# Save merged file
 output_file = "../data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
 df_merged.to_csv(output_file, sep="\t", index=False)
 
-print(f"Merged file saved as {output_file}")
-
-# Display first few rows to check
-print(df_merged.head())
 
 # Get all the links from the defensewiki(refs,and all) ----------------------------
 

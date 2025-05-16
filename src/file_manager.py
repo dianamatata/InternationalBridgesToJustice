@@ -135,20 +135,8 @@ def load_legal_chunks(list_of_paths: list[str]):
     return chunks
 
 
-def clean_markdown_text_fro_claim_extraction(text: str)-> str:
-
-    text = text.strip()
-
-    # 1. Remove all [[...]](#cite_note-...) patterns
-    text = re.sub(r"\[\[.*?\]\]\(#.*?\)", "", text)
-
-    # 2. Remove double newlines
-    text = text.replace('\n\n', '\n')
-
-    # 3. Remove bold markers **
-    text = text.replace('**', '')
-
-    # 4. (Optional) Remove redundant spaces
-    text = re.sub(r'\s+', ' ', text).strip()
-
-    return text
+def extract_chunk_from_hash(hash_to_search: str, chunks):
+    selected_chunk = next(
+        (chunk for chunk in chunks if chunk["title"] == hash_to_search), None
+    )
+    return selected_chunk

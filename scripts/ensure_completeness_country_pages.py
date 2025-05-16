@@ -1,8 +1,8 @@
 # LIBRARIES ---------------------------------------------------
 from src.openai_client import openai_client
 from tqdm import tqdm
-import importlib  # Use importlib.reload() to re-import your module after editing it
 import src
+import importlib  # Use importlib.reload() to re-import your module after editing it
 importlib.reload(src.query_functions)
 from src.query_functions import (
     load_chroma_collection,
@@ -13,21 +13,22 @@ from src.query_functions import (
     get_completeness_keypoints
 )
 from src.file_manager import get_country_names, save_completeness_result
-from src.config import path_chromadb, collection_name, path_file_prompt_completeness, path_md_file_completeness_keypoints, path_folder_completeness
+from src.config import path_chromadb, collection_name, path_file_prompt_completeness, path_file_system_prompt_completeness, path_md_file_completeness_keypoints, path_folder_completeness
 
 # MAIN ---------------------------------------------------
 
+with open(path_file_prompt_completeness, "r") as file:
+    prompt_completeness = file.read()
+
+with open(path_file_system_prompt_completeness, "r") as file:
+    system_prompt = file.read()
+
+completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = path_md_file_completeness_keypoints)
 collection = load_chroma_collection(path_chromadb, collection_name)
 
 country_names = get_country_names(country_names_filepath="data/interim/country_names_1.txt")
 country_names = ["Burundi"]  # TODO remove this line to run for all countries
 
-completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = path_md_file_completeness_keypoints)
-
-with open(path_file_prompt_completeness, "r") as f:
-    prompt_completeness = f.read()
-
-system_prompt = "You are a critical legal analyst tasked with evaluating whether a legal wiki chapter adequately addresses a specific legal keypoint. Your response must be precise, structured, and based on legal reasoning. When relevant, cite and summarize laws from the provided legal database. Avoid vague language and clearly distinguish between complete, partial, or missing legal coverage."
 chapter = ""
 for country in country_names:
     for point in tqdm(completeness_keypoints):
@@ -89,5 +90,5 @@ for country in country_names:
                 out_md_file=out_md_file,
             )  # save as json file and md file
 
-            with open(out_summary_file, "a", encoding="utf-8") as f:  # save summary
-                f.write(f"Keypoint '{point}' covered?  {completeness_assessment} \n\n")
+            with open(out_summary_file, "a", encoding="utf-8") as file:  # save summary
+                file.write(f"Keypoint '{point}' covered?  {completeness_assessment} \n\n")

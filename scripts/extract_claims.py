@@ -5,22 +5,14 @@ from tqdm import tqdm
 from src.get_claims import ClaimExtractor
 from src.openai_client import openai_client
 from src.config import path_file_prompt_claim_extraction, path_folder_claim_extraction, path_jsonl_file_extracted_claims, path_jsonl_file_defensewiki_chunks
-
-# initialize objects
+from src.file_manager import load_jsonl_and_convert_to_list_of_dict
 model_name = "gpt-4o-mini"
 cache_dir = "./data/cache"
 
-# Read JSONL file line by line
-with open(path_jsonl_file_defensewiki_chunks, "r", encoding="utf-8") as jsonl_file:
-    data = [
-        json.loads(line) for line in jsonl_file
-    ]  # Convert each line to a dictionary
-
-
-# extract 1 or many countries and all the links
-links_list_to_extract = []
+data = load_jsonl_and_convert_to_list_of_dict(path_jsonl_file_defensewiki_chunks)
 country_list = ["Burundi"]
 
+links_list_to_extract = []
 for item in data:
     title = item["metadata"]["country"]
     if any(country in title for country in country_list):
@@ -33,7 +25,6 @@ claim_extractor = ClaimExtractor(
     model_name=model_name, prompt_file=path_file_prompt_claim_extraction, cache_dir=cache_dir)
 
 # extract a page -------------------------------------
-# debug
 # chunk = chunks_to_extract[3]
 page = links_list_to_extract[0]
 chunks_to_extract = []
