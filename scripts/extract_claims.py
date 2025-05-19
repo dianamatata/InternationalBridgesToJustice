@@ -25,7 +25,6 @@ claim_extractor = ClaimExtractor(
     model_name=model_name, prompt_file=path_file_prompt_claim_extraction, cache_dir=cache_dir)
 
 # extract a page -------------------------------------
-# chunk = chunks_to_extract[3]
 page = links_list_to_extract[0]
 chunks_to_extract = []
 for dict_item in tqdm(data):

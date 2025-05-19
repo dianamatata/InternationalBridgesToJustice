@@ -2,7 +2,7 @@
 from src.openai_client import openai_client
 from tqdm import tqdm
 import src
-import importlib  # Use importlib.reload() to re-import your module after editing it
+import importlib
 importlib.reload(src.query_functions)
 from src.query_functions import (
     load_chroma_collection,
@@ -88,7 +88,7 @@ for country in country_names:
                 answer,
                 out_jsonfile=out_jsonfile,
                 out_md_file=out_md_file,
-            )  # save as json file and md file
+            )
 
             with open(out_summary_file, "a", encoding="utf-8") as file:  # save summary
                 file.write(f"Keypoint '{point}' covered?  {completeness_assessment} \n\n")
