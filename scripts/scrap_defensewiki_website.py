@@ -19,5 +19,3 @@ dict_defensewiki = scrap_defensewiki_website(
 save_file(filename=f"{path_folder_defense_wiki}/defensewiki_all.jsonl", content=dict_defensewiki, file_type="jsonl")
 remove_content_field_from_tree_dict(dict_defensewiki)
 save_file(filename=f"{path_folder_defense_wiki}/defensewiki_no_content.json", content=dict_defensewiki, file_type="json")
-
-

@@ -65,7 +65,7 @@ def matching_country_name(country_names: str, title: str, title_to_country: dict
         (
             country
             for country in country_names
-            if country.lower().strip() in title
+            if country.lower().strip() == title
         ),
         None,
     )
@@ -73,31 +73,43 @@ def matching_country_name(country_names: str, title: str, title_to_country: dict
         return matching_country
 
     else:
-        matching_country_2 = next(
+        matching_country_1 = next(
             (
-                value
-                for key, value in title_to_country.items()
-                if key.lower().strip() in title
+                country
+                for country in country_names
+                if country.lower().strip() in title
             ),
             None,
         )
-        if matching_country_2:
-            return matching_country_2
+        if matching_country_1:
+            return matching_country_1
 
         else:
-            matching_country_3 = next(
+            matching_country_2 = next(
                 (
                     value
-                    for key, value in substring_to_country.items()
+                    for key, value in title_to_country.items()
                     if key.lower().strip() in title
                 ),
                 None,
             )
+            if matching_country_2:
+                return matching_country_2
 
-            if matching_country_3:
-                return matching_country_3
             else:
-                return ""
+                matching_country_3 = next(
+                    (
+                        value
+                        for key, value in substring_to_country.items()
+                        if key.lower().strip() in title
+                    ),
+                    None,
+                )
+
+                if matching_country_3:
+                    return matching_country_3
+                else:
+                    return ""
 
 
 def scrap_defensewiki_website(
@@ -135,7 +147,7 @@ def scrap_defensewiki_website(
             filename = f"{out_folder}/{page_name}.md"
             viewcount_tag = soup.find("li", {"id": "viewcount"})
             viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
-
+            country = matching_country_name(list_country_names, page_name, title_to_country, substring_to_country)
 
             link_info= {
                 "type": link_type,
@@ -152,7 +164,7 @@ def scrap_defensewiki_website(
                 "nbr_of_words": len(md_text.split()),
                 "nbr_of_lines": len(md_text.splitlines()),
                 "content": md_text,
-                "country": matching_country_name(list_country_names, page_name, title_to_country, substring_to_country)
+                "country": country
             }
 
         print({k: link_info[k] for k in ["country", "title", "link"] if k in link_info})
