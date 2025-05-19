@@ -11,6 +11,7 @@ cache_dir = "./data/cache"
 
 data = load_jsonl_and_convert_to_list_of_dict(path_jsonl_file_defensewiki_chunks)
 country_list = ["Burundi"]
+data_country = [d for d in data if "Burundi" == d["metadata"]["country"]]
 
 links_list_to_extract = []
 for item in data:
@@ -61,7 +62,7 @@ for dict_item in tqdm(data):
 
 # extract a country ----------------------------------
 country_list = ["India"]
-for dict_item in tqdm(data):  # data from 6 to 54 for Singapore
+for dict_item in tqdm(data):
     title = dict_item["metadata"]["title"]
     if any(country in title for country in country_list):
         print(title)
@@ -91,53 +92,3 @@ for dict_item in tqdm(data):  # data from 6 to 54 for Singapore
         with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
             jsonl_file.write(json.dumps(output_dict) + "\n")
 print(f"extracted claims are saved at {path_jsonl_file_extracted_claims}")
-
-
-# STOP HERE
-# TODO: change paths and check
-# TODO
-filename = "Burundi-fr.jsonl"
-
-filename = "Burundi.jsonl"
-file_title = filename.replace(".jsonl", "")
-jsonl_file_extracted_claims = os.path.join(path_folder_claim_extraction, filename)  # Specify your output directory
-
-# read claims in jsonl  # Convert each line to a dictionary
-with open(f"{jsonl_file_extracted_claims}", "r", encoding="utf-8") as jsonl_file:
-    data_out = [json.loads(line) for line in jsonl_file]
-
-# save in json for easy reading
-with open(f"{path_folder_claim_extraction}/{file_title}.json", "w", encoding="utf-8") as file:
-    json.dump(data_out, file, indent=4)  # Save JSON content
-
-
-# Open the output file where you want to save the text
-with open(
-    f"{path_folder_claim_extraction}/{file_title}_chunk_text.txt", "w", encoding="utf-8"
-) as response_file, open(
-    f"{path_folder_claim_extraction}/{file_title}_all_claims.txt", "w", encoding="utf-8"
-) as claims_file:
-    for i in range(len(data_out)):  # Iterate over the first 15 entries
-        if i < len(data_out):  # Ensure the index is within the available range
-
-            # Get and write the response
-            response_file.write(f"Entry {i + 1}:\n")
-            response = data_out[i]["response"].strip()
-            response_file.write(
-                response + "\n\n"
-            )  # Write the response followed by two newlines
-
-            # Get and write all_claims
-            all_claims = data_out[i]["all_claims"]
-            claims_file.write(f"Entry {i + 1}:\n")
-            claims_file.write(
-                "\n".join(all_claims) + "\n\n"
-            )  # Write each claim on a new line, separate entries with double newlines
-
-print(
-    f"Responses saved to {path_folder_claim_extraction}/{file_title}_chunk_text.txt and claims saved to {path_folder_claim_extraction}/{file_title}_all_claims.txt."
-)
-
-# dict_keys(['prompt_source', 'response', 'prompt_tok_cnt', 'response_tok_cnt', 'model', 'abstained', 'claim_list', 'all_claim_lst', 'claim_search_results', 'claim_verification_result'])
-# len(data_out)
-# data_out[0]['claim_list'] # data_out[0].keys()
