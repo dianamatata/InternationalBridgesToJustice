@@ -41,8 +41,12 @@ title_to_country = {
     "Malasia": "Malaysia",
     "Kenia": "Kenya",
     "Francais": "France",
-    "Republique Centrafricaine": "Central African Republic"
+    "Arabia saudi": "Saudi Arabia",
+    "Republique Centrafricaine": "Central African Republic",
+    "Suecia": "Sweden",
+    "Corea del sur": "South Korea"
 }
+
 
 substring_to_country = {
     "American_": "United States",
@@ -52,4 +56,6 @@ substring_to_country = {
     "chinese": "China",
     "Canadian": "Canada",
     "Cairo": "Egypt",
+    "Zimbabwe": "Zimbabwe",
+    "Ouagadougou": "Burkina Faso",
 }
