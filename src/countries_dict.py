@@ -44,7 +44,8 @@ title_to_country = {
     "Arabia saudi": "Saudi Arabia",
     "Republique Centrafricaine": "Central African Republic",
     "Suecia": "Sweden",
-    "Corea del sur": "South Korea"
+    "Corea del sur": "South Korea",
+    "Italia": "Italy",
 }
 
 
