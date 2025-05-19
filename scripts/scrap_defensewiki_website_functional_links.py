@@ -24,65 +24,6 @@ from src.config import base_url_defense_wiki, path_folder_defense_wiki
 
 # Functions -------------------
 
-def build_complex_link_tree(
-        url: str,
-        base_url: str,
-        out_folder: str,
-        depth: int = 1,
-        visited: Optional[Set[str]] = None,
-) -> Dict:
-
-    if visited is None:
-        visited = set()
-    if depth == 0 or url in visited:
-        return {}
-
-    visited.add(url)
-    links = get_links(url)
-    tree = {url: {}}
-
-    for link_i in links:
-        link_type = "internal" if link_i.startswith(base_url) else "external"
-        link_status = get_link_status(link_i)
-
-        link_info = {
-            "type": link_type,
-            "status": link_status
-        }
-
-        if link_status == "functional":
-            response, soup = extract_webpage_html_from_url(link_i)
-            md_text = md(response.text)
-            page_name = define_defensewiki_page_name(link_i)  # Extract page name from URL
-            filename = f"{out_folder}/{page_name}.md"
-            viewcount_tag = soup.find("li", {"id": "viewcount"})
-            viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
-
-            link_info= {
-                "type": link_type,
-                "status": get_link_status(link_i),
-                "link": link_i,
-                "title": page_name,
-                "extracted": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "hash": generate_hash(str(soup)),
-                "last-edited": get_last_edited_date(soup),
-                "language": detect(soup.get_text()),
-                "viewcount": viewcount,
-                "type": "defensewiki_doc",
-                "full_path": filename,
-                "nbr_of_words": len(md_text.split()),
-                "nbr_of_lines": len(md_text.splitlines()),
-                "content": md_text,
-            }
-
-        if depth > 1:
-            link_info["subtree"] = build_complex_link_tree(link_i, depth - 1, visited)
-
-        tree[url][link_i] = link_info
-
-    return tree
-
-
 def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
     depth=1,
@@ -175,17 +116,14 @@ def save_as_cvs(
 
 
 # MAIN --------------------------------------
-os.getcwd()
-folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
-
-
 # Get all the links from the defensewiki(refs,and all) as functional/not functional -----------------
 # and save them as html and csv files
 
+os.getcwd()
+folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 start_time = time.time()
 url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3"  # 2 pages
-url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"  # 500 pages
-
+# url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"  # 500 pages
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
 tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url=url, visited=None, depth=2)
@@ -220,7 +158,7 @@ for file in csv_files:
         print(f"Error reading {file}: {e}")
 
 df_merged = pd.concat(df_list, ignore_index=True)
-output_file = "../data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
+output_file = "data/processed/defensewiki.ibj.org/tree_links_validity_merged.csv"
 df_merged.to_csv(output_file, sep="\t", index=False)
 
 

@@ -48,7 +48,6 @@ with open(path_jsonl_file_defensewiki, "r", encoding="utf-8") as jsonl_file:
 
 with open(f"{path_folder_defense_wiki}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
     for chunk in chunks:
-        # jsonl_file.write(json.dumps(chunk + "\n")
         jsonl_file.write(json.dumps(chunk.__dict__) + "\n")
 
 with open(f"{path_folder_defense_wiki}/chunks.json", "w", encoding="utf-8") as json_file:
