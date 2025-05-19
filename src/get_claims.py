@@ -17,7 +17,8 @@ class ClaimExtractor():
                                               temperature=0)
         self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
-    def claim_extractor(self, response, cost_estimate_only=False):
+    def scan_text_for_claims(self, response, cost_estimate_only=False):
+
         """
         Given a model output
         - split the response into sentences using spaCy > no, points now

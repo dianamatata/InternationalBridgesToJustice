@@ -37,7 +37,7 @@ for dict_item in tqdm(data):
             print(prompt_source)
             title = chunk["metadata"]["title"]
             snippet_lst, claim_list, all_claims, prompt_tok_cnt, response_tok_cnt = (
-                claim_extractor.non_qa_scanner_extractor(response)
+                claim_extractor.scan_text_for_claims(response)
             )
             output_dict = {
                 "prompt_source": prompt_source,
@@ -70,7 +70,7 @@ for dict_item in tqdm(data):
         prompt_source = dict_item["title"]
         print(prompt_source)
         snippet_lst, claim_list, all_claims, prompt_tok_cnt, response_tok_cnt = (
-            claim_extractor.non_qa_scanner_extractor(response)
+            claim_extractor.scan_text_for_claims(response)
         )
         output_dict = {
             "prompt_source": prompt_source,
