@@ -5,10 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
-from markdownify import markdownify as md # markdownify: Handles more complex HTML structures, better at preserving formatting.
-import json
-import re
-import os
+
 
 # La page charge certains éléments dynamiquement via JavaScript.
 # requests ne charge que le HTML statique, donc si le lien est généré après coup, il ne sera pas présent dans soup_base.

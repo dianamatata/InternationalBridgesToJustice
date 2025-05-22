@@ -1,23 +1,20 @@
 import json
 from tqdm import tqdm
-from src.openai_client import openai_client
+from src.openai_utils import openai_client
 from src.query_functions import load_chroma_collection
 from src.get_completeness import KeypointEvaluation
-from src.config import path_folder_completeness, path_file_prompt_completeness, path_chromadb, collection_name, path_file_system_prompt_completeness, path_md_file_completeness_keypoints
+from src.config import Paths
 from ensure_completeness_country_pages import get_completeness_keypoints
 
 
 # MAIN ---------------------------------------------------
-legal_collection = load_chroma_collection(path_chromadb, collection_name)
+legal_collection = load_chroma_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
 
-with open(path_file_prompt_completeness, "r") as file:
-    prompt_completeness = file.read()
-
-with open(path_file_system_prompt_completeness, "r") as file:
+with open(Paths.PATH_FILE_SYSTEM_PROMPT_COMPLETENESS, "r") as file:
     system_prompt = file.read()
 
-keypoints = get_completeness_keypoints(completeness_checklist_filepath=path_md_file_completeness_keypoints)
-jsonl_file_completeness_batch = f"{path_folder_completeness}/batch_input.jsonl"
+keypoints = get_completeness_keypoints(completeness_checklist_filepath=Paths.PATH_MD_FILE_COMPLETENESS_KEYPOINTS)
+jsonl_file_completeness_batch = f"{Paths.PATH_FOLDER_COMPLETENESS}/batch_input.jsonl"
 
 batch_submission = True
 
@@ -39,7 +36,7 @@ if batch_submission == True:
                     keypoint_to_check = f"{chapter}: {point}"
                     evaluation = KeypointEvaluation(country, chapter, point, collection=legal_collection, lazy=True)
                     evaluation.ensure_loaded(legal_collection)
-                    evaluation.define_prompt(path_file_prompt_completeness)
+                    evaluation.define_prompt(Paths.PATH_FILE_PROMPT_COMPLETENESS)
 
                     request = evaluation.build_batch_request(
                         custom_id=f"{country}-{chapter}-{point}",
@@ -63,7 +60,7 @@ elif batch_submission == False:
         country, chapter, point, collection=legal_collection, lazy=True
     )
     evaluation.ensure_loaded(legal_collection)  # Ensure the content is loaded
-    evaluation.define_prompt(path_file_prompt_completeness)
+    evaluation.define_prompt(Paths.PATH_FILE_PROMPT_COMPLETENESS)
     evaluation.check_completeness(
         openai_client, system_prompt, model="gpt-4o-mini", temperature=0.1
     )

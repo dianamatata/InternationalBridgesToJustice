@@ -1,5 +1,5 @@
 # LIBRARIES ---------------------------------------------------
-from src.openai_client import openai_client
+from src.openai_utils import openai_client
 from tqdm import tqdm
 import src
 import importlib
@@ -13,18 +13,18 @@ from src.query_functions import (
     get_completeness_keypoints
 )
 from src.file_manager import get_country_names, save_completeness_result
-from src.config import path_chromadb, collection_name, path_file_prompt_completeness, path_file_system_prompt_completeness, path_md_file_completeness_keypoints, path_folder_completeness
+from src.config import Paths
 
 # MAIN ---------------------------------------------------
 
-with open(path_file_prompt_completeness, "r") as file:
+with open(Paths.PATH_FILE_PROMPT_COMPLETENESS, "r") as file:
     prompt_completeness = file.read()
 
-with open(path_file_system_prompt_completeness, "r") as file:
+with open(Paths.PATH_FILE_SYSTEM_PROMPT_COMPLETENESS, "r") as file:
     system_prompt = file.read()
 
-completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = path_md_file_completeness_keypoints)
-collection = load_chroma_collection(path_chromadb, collection_name)
+completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = Paths.PATH_MD_FILE_COMPLETENESS_KEYPOINTS)
+collection = load_chroma_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
 
 country_names = get_country_names(country_names_filepath="data/interim/country_names_1.txt")
 country_names = ["Burundi"]  # TODO remove this line to run for all countries
@@ -77,9 +77,9 @@ for country in country_names:
             )
 
             completeness_assessment = answer.split("**")[2].replace("\n", "")
-            out_jsonfile = f"{path_folder_completeness}/{country}.json"
-            out_md_file = f"{path_folder_completeness}/{country}_answer.md"
-            out_summary_file = f"{path_folder_completeness}/{country}_summary.md"
+            out_jsonfile = f"{Paths.PATH_FOLDER_COMPLETENESS}/{country}.json"
+            out_md_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{country}_answer.md"
+            out_summary_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{country}_summary.md"
             save_completeness_result(
                 country,
                 keypoint_to_check,

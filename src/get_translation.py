@@ -1,6 +1,6 @@
 import json
 import os
-from src.openai_batch_manager import build_batch_request
+from src.openai_utils import build_batch_request
 import openai
 from dotenv import load_dotenv
 from src.get_response import GetResponse

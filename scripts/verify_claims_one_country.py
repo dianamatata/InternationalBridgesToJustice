@@ -1,18 +1,20 @@
 import json
 from scripts.create_embedding_database import load_legal_chunks
 from src.query_functions import verify_claim, load_chroma_collection, retrieve_source_titles_from_chunks
-from src.config import path_chromadb, collection_name, path_jsonl_file_defensewiki_chunks, path_constitution_chunks
-from src.openai_client import openai_client
+from src.config import Paths
+from src.openai_utils import openai_client
 
-collection = load_chroma_collection(path_chromadb, collection_name)
+collection = load_chroma_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
 print(f"Collection contains {collection.count()} documents.")
-chunks = load_legal_chunks([path_jsonl_file_defensewiki_chunks, path_constitution_chunks])  # Get chunks
+chunks = load_legal_chunks([Paths.PATH_JSONL_FILE_DEFENSEWIKI_CHUNKS, Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS])  # Get chunks
 
 chunks_selected = [
     chunk for chunk in chunks if chunk["metadata"]["country"] == "Burundi"
 ]
 print(f"There are {len(chunks_selected)} chunks linked to this country.")
 
+with open(Paths.PATH_FILE_PROMPT_CLAIM_VERIFICATION, "r") as f:
+    prompt_claim_verification = f.read()
 
 country = "Burundi"
 with open(f"data/extracted_claims/{country}.json", "r", encoding="utf-8") as json_file:

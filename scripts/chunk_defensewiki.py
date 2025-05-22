@@ -1,7 +1,7 @@
 import json
 from tqdm import tqdm
 from src.chunking_functions import extract_chapters, split_text_into_chunks
-from src.config import MAX_CHUNK_SIZE, path_folder_defense_wiki, path_jsonl_file_defensewiki
+from src.config import MAX_CHUNK_SIZE, Paths
 
 headers_to_exclude_from_chunks = {
     "REFERENCES",
@@ -19,7 +19,7 @@ headers_to_exclude_from_chunks = {
 
 # MAIN --------------------
 
-with open(path_jsonl_file_defensewiki, "r", encoding="utf-8") as jsonl_file:
+with open(Paths.PATH_JSONL_FILE_DEFENSEWIKI, "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [
         json.loads(line) for line in jsonl_file
     ]  # Convert each line to a dictionary
@@ -46,10 +46,10 @@ with open(path_jsonl_file_defensewiki, "r", encoding="utf-8") as jsonl_file:
             )
             chunks.extend(new_chunks)
 
-with open(f"{path_folder_defense_wiki}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
+with open(f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
     for chunk in chunks:
         jsonl_file.write(json.dumps(chunk.__dict__) + "\n")
 
-with open(f"{path_folder_defense_wiki}/chunks.json", "w", encoding="utf-8") as json_file:
+with open(f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.json", "w", encoding="utf-8") as json_file:
     json.dump([chunk.__dict__ for chunk in chunks], json_file, ensure_ascii=False, indent=2)
 

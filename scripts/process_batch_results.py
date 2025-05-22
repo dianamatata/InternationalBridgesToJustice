@@ -1,10 +1,11 @@
 import json
 from keypoint_evaluation import KeypointEvaluation
-from src.config import path_json_file_completeness_keypoints
+from src.config import Paths
+
 
 file_batch_results = "data/interim/batch_results.jsonl"
 # Load the list
-with open(path_json_file_completeness_keypoints, "r") as f:
+with open(Paths.PATH_JSON_FILE_COMPLETENESS_KEYPOINTS, "r") as f:
     data = json.load(f)
     list_of_instances = [KeypointEvaluation.from_dict(d) for d in data]
 

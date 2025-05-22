@@ -3,13 +3,12 @@ import json
 import numpy as np
 from tqdm import tqdm
 from src.get_claims import ClaimExtractor
-from src.openai_client import openai_client
-from src.config import path_file_prompt_claim_extraction, path_folder_claim_extraction, path_jsonl_file_extracted_claims, path_jsonl_file_defensewiki_chunks
+from src.config import Paths
 from src.file_manager import load_jsonl_and_convert_to_list_of_dict
 model_name = "gpt-4o-mini"
 cache_dir = "./data/cache"
 
-data = load_jsonl_and_convert_to_list_of_dict(path_jsonl_file_defensewiki_chunks)
+data = load_jsonl_and_convert_to_list_of_dict(Paths.PATH_JSONL_FILE_DEFENSEWIKI_CHUNKS)
 country_list = ["Burundi"]
 data_country = [d for d in data if "Burundi" == d["metadata"]["country"]]
 
@@ -23,7 +22,7 @@ links_list_to_extract = np.unique(links_list_to_extract)
 print(links_list_to_extract)
 
 claim_extractor = ClaimExtractor(
-    model_name=model_name, prompt_file=path_file_prompt_claim_extraction, cache_dir=cache_dir)
+    model_name=model_name, prompt_file=Paths.PATH_FILE_PROMPT_CLAIM_EXTRACTION, cache_dir=cache_dir)
 
 # extract a page -------------------------------------
 page = links_list_to_extract[0]
@@ -53,11 +52,11 @@ for dict_item in tqdm(data):
                 f"{title.replace(' ', '_').replace('/', '_').replace(':', '_')}.jsonl"
             )
             jsonl_file_extracted_claims = os.path.join(
-                path_folder_claim_extraction, filename
+                Paths.PATH_FOLDER_CLAIM_EXTRACTION, filename
             )  # Specify your output directory
             with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
                 jsonl_file.write(json.dumps(output_dict) + "\n")
-        print(f"extracted claims are saved at {path_jsonl_file_extracted_claims}")
+        print(f"extracted claims are saved at {Paths.PATH_JSONL_FILE_EXTRACTED_CLAIMS}")
 
 
 # extract a country ----------------------------------
@@ -87,8 +86,8 @@ for dict_item in tqdm(data):
             f"{title.replace(' ', '_').replace('/', '_').replace(':', '_')}.jsonl"
         )
         jsonl_file_extracted_claims = os.path.join(
-            path_folder_claim_extraction, filename
+            Paths.PATH_FOLDER_CLAIM_EXTRACTION, filename
         )  # Specify your output directory
         with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
             jsonl_file.write(json.dumps(output_dict) + "\n")
-print(f"extracted claims are saved at {path_jsonl_file_extracted_claims}")
+print(f"extracted claims are saved at {Paths.PATH_JSONL_FILE_EXTRACTED_CLAIMS}")

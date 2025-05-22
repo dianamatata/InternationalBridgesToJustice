@@ -2,16 +2,14 @@ import requests
 from bs4 import BeautifulSoup
 from markdownify import (
     markdownify as md,
-)  # markdownify: Handles more complex HTML structures, better at preserving formatting.
+)
 import json
 import re
 import os
-
-from src.config import path_folder_constitutions_with_md_files, start_url_constitutions, base_url_constitutions, path_jsonl_file_with_constitutions_all_countries
-
+from src.config import Paths
 
 
-response_base = requests.get(start_url_constitutions)
+response_base = requests.get(Paths.START_URL_CONSTITUTIONS)
 soup_base = BeautifulSoup(response_base.text, "html.parser")
 internal_links_for_constitutions = soup_base.select("div.constitution-links a")
 dictionary_countryname_countrylink = {
@@ -19,12 +17,12 @@ dictionary_countryname_countrylink = {
     for a in soup_base.select("div.constitution-links a")
 }
 
-for country_year, link in list(dictionary_countryname_countrylink.items())[10:]:
+for country_year, link in list(dictionary_countryname_countrylink.items()):
 
-    if not os.path.exists(f"{path_folder_constitutions_with_md_files}/{country_year}.md"):
+    if not os.path.exists(f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md"):
         print(f"Constitution not extracted yet: {country_year}: Link: {link}")
 
-        response = requests.get(base_url_constitutions + link)
+        response = requests.get(Paths.BASE_URL_CONSTITUTIONS + link)
         soup = BeautifulSoup(response.text, "html.parser")
 
         for span in soup.find_all(
@@ -47,7 +45,7 @@ for country_year, link in list(dictionary_countryname_countrylink.items())[10:]:
             "link": link,
             "country": "_".join(country_year.split("_")[:-1]),
             "year": country_year.split("_")[1],
-            "path": f"{path_folder_constitutions_with_md_files}/{country_year}.md",
+            "path": f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md",
             "filename": f"{country_year}.md",
             "language": link.split("=")[1],
             "type": "constitution",
@@ -55,11 +53,11 @@ for country_year, link in list(dictionary_countryname_countrylink.items())[10:]:
         }
 
         # save constitution
-        with open(f"{path_folder_constitutions_with_md_files}/{country_year}.md", "w") as file:
+        with open(f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md", "w") as file:
             file.write(cleaned_md_text)
         # save with metadata in jsonl
         with open(
-            path_jsonl_file_with_constitutions_all_countries, "a", encoding="utf-8"
+            Paths.PATH_JSONL_FILE_WITH_CONSTITUTIONS_ALL_COUNTRIES, "a", encoding="utf-8"
         ) as jsonl_file:
             jsonl_file.write(json.dumps(file_info) + "\n")
     else:

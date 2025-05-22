@@ -1,8 +1,7 @@
 import json
-from src.openai_batch_manager import upload_batch_file_to_openAI, submit_batch_job
+from src.openai_utils import upload_batch_file_to_openAI, submit_batch_job
 from src.get_translation import Translator, get_chunks_not_in_english
-import openai
-client = openai.OpenAI()
+from src.openai_utils import openai_client
 
 # Load the chunks --------------------------------
 filtered_chunks = get_chunks_not_in_english(json_file_path= "../data/processed/defensewiki.ibj.org/unique_chunks.json")
@@ -17,8 +16,8 @@ print("Batch job submitted:", batch.id)
 
 # Retrieve and save results --------------------------------
 
-result = client.batches.retrieve(batch_id="batch_6818c363af4c8190892dac4d68abbd84")
-response = client.files.content(result.output_file_id)
+result = openai_client.batches.retrieve(batch_id="batch_6818c363af4c8190892dac4d68abbd84")
+response = openai_client.files.content(result.output_file_id)
 with open("../data/interim/batch_results_translation.jsonl", "wb") as f:
     f.write(response.read())
 # TODO: save the results

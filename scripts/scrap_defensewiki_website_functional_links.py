@@ -20,7 +20,7 @@ import glob
 from src.file_manager import generate_hash, save_file
 from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name, remove_content_field_from_tree_dict, save_status_link_dictionary_as_html
 from typing import Optional, Set, Dict
-from src.config import base_url_defense_wiki, path_folder_defense_wiki
+from src.config import Paths
 
 # Functions -------------------
 
@@ -28,8 +28,8 @@ def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
     depth=1,
     visited=None,
-    base_url=base_url_defense_wiki,
-    out_folder=path_folder_defense_wiki,
+    base_url=Paths.BASE_URL_DEFENSE_WIKI,
+    out_folder=Paths.PATH_FOLDER_DEFENSE_WIKI,
 ):
 
     if visited is None:
@@ -123,7 +123,7 @@ os.getcwd()
 folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 start_time = time.time()
 url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3"  # 2 pages
-# url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"  # 500 pages
+# url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
 tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url=url, visited=None, depth=2)
