@@ -120,9 +120,9 @@ class ClaimVerificator():
         self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
 
-    def verify_claim(self, claim: str, collection, client, prompt_claim_verification: str):
+    def verify_claim(self, claim: str, collection, client, prompt_claim_verification: str,metadata_param:str, metadata_value:str):
         results = perform_similarity_search_in_collection(
-            collection=collection, query_text=claim, metadata_param="country", metadata_value="Burundi",
+            collection=collection, query_text=claim, metadata_param=metadata_param, metadata_value=metadata_value,
             number_of_results_to_retrieve=5
         )
         context_text = build_context_string_from_retrieve_documents(results)
