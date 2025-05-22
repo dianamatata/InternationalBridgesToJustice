@@ -1,6 +1,32 @@
-import json
-import openai
-client = openai.OpenAI()
+from dotenv import load_dotenv
+from openai import OpenAI
+load_dotenv()  # Only runs once even if imported multiple times
+openai_client = OpenAI()
+
+def openai_generate_embeddings(texts: list[str], model="text-embedding-3-large") -> list[list[float]]:
+    response = openai_client.embeddings.create(model=model, input=texts)
+    return [d.embedding for d in response.data]
+
+def get_openai_response(
+    client,
+    categorize_system_prompt: str,
+    prompt: str,
+    model="gpt-4o-mini",
+    temperature=0.1,
+) -> str:
+    """
+    Send the prompt to OpenAI's chat API and return the answer.
+    """
+    response = client.chat.completions.create(
+        model=model,
+        temperature=temperature,
+        messages=[
+            {"role": "system", "content": categorize_system_prompt},
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    return response.choices[0].message.content
 
 def build_batch_request(custom_id: str, system_prompt: str, user_prompt: str, temperature: float = 0.1, model: str = "gpt-4o-mini"):
     return {
