@@ -7,19 +7,12 @@ Different functions are performed here:
 - for each DefenseWiki page, extract the links and check if they are functional or not
 """
 
-import os
 import time
-from datetime import datetime
-from langdetect import detect
 import json
-from markdownify import (
-    markdownify as md,
-)
 import pandas as pd
 import glob
-from src.file_manager import generate_hash, save_file
-from src.scraping_functions import get_link_status, get_links, get_last_edited_date, extract_webpage_html_from_url, define_defensewiki_page_name, remove_content_field_from_tree_dict, save_status_link_dictionary_as_html
-from typing import Optional, Set, Dict
+from src.file_manager import save_file
+from src.scraping_functions import get_link_status, get_links
 from src.config import Paths
 
 # Functions -------------------
@@ -119,7 +112,6 @@ def save_as_cvs(
 # Get all the links from the defensewiki(refs,and all) as functional/not functional -----------------
 # and save them as html and csv files
 
-os.getcwd()
 folder_defense_wiki_raw = "data/raw/defensewiki.ibj.org"
 start_time = time.time()
 url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2&offset=3"  # 2 pages

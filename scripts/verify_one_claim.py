@@ -2,8 +2,8 @@
 import json
 from src.openai_utils import openai_client
 from scripts.create_embedding_database import load_legal_chunks
-from src.query_functions import (load_chroma_collection,
-                                 perform_similarity_search_with_country_filter,
+from src.chromadb_utils import load_chroma_collection
+from src.query_functions import (perform_similarity_search_metadata_filter,
                                  build_context_string_from_retrieve_documents,
                                  format_prompt_for_claim_verification,
                                  get_openai_response,
@@ -23,8 +23,8 @@ claim_to_verify = "In India, Until proven innocent, the accused has to remain in
 collection = load_chroma_collection(chroma_collection_file_path=Paths.PATH_CHROMADB,  collection_name=Paths.COLLECTION_NAME)
 print(f"Collection contains {collection.count()} documents.")
 
-results = perform_similarity_search_with_country_filter(
-    collection=collection, query_text=claim_to_verify, country="India", number_of_results_to_retrieve=5
+results = perform_similarity_search_metadata_filter(
+    collection=collection, query_text=claim_to_verify, metadata_param="country", metadata_value="India", number_of_results_to_retrieve=5
 )
 
 res_summary = [r["title_bis"] for r in results["metadatas"][0]]

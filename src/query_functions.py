@@ -1,46 +1,5 @@
 from src.openai_utils import openai_generate_embeddings, get_openai_response
 
-def perform_similarity_embeddings_search_from_collection(collection, query_text: str, number_of_results_to_retrieve: int = 5):
-    """
-    Get the query embedding using OpenAI, then query the collection for similar documents.
-    """
-    query_embedding = openai_generate_embeddings([query_text])[0]
-
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=number_of_results_to_retrieve,
-        include=[
-            "documents",
-            "metadatas",
-            "distances",
-        ],
-    )
-
-    return results
-
-
-def perform_similarity_search_with_country_filter(
-    collection, query_text: str, country: str, number_of_results_to_retrieve: int = 5
-):
-    """
-    Get the query embedding using OpenAI, then query the collection for similar documents.
-    """
-    query_embedding = openai_generate_embeddings([query_text])[0]
-
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=number_of_results_to_retrieve,
-        include=[
-            "documents",
-            "metadatas",
-            "distances",
-        ],
-        where={"country": country},
-    )
-
-    return results
-
-
 def perform_similarity_search_metadata_filter(
     collection,
     query_text: str,
@@ -102,8 +61,6 @@ def get_completeness_keypoints(completeness_checklist_filepath: str):
     return completeness_keypoints
 
 
-
-
 def retrieve_source_titles_from_chunks(results: dict, all_chunks: list[dict]) -> list[str]:
     """
     Retrieves human-friendly source titles for each returned chunk ID.
@@ -125,8 +82,8 @@ def retrieve_source_titles_from_chunks(results: dict, all_chunks: list[dict]) ->
 
 def verify_claim(claim: str, collection, client, prompt_claim_verification: str):
 
-    results = perform_similarity_search_with_country_filter(
-        collection=collection, query_text=claim, country="Burundi", number_of_results_to_retrieve=5
+    results = perform_similarity_search_metadata_filter(
+        collection=collection, query_text=claim, metadata_param="country", metadata_value="Burundi", number_of_results_to_retrieve=5
     )
     context_text = build_context_string_from_retrieve_documents(results)
     prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=claim, context=context_text)
