@@ -1,4 +1,4 @@
-from src.query_functions import perform_similarity_search_metadata_filter, format_prompt_for_completeness_check, build_context_string_from_retrieve_documents, get_openai_response
+from src.query_functions import perform_similarity_search_in_collection, format_prompt_for_completeness_check, build_context_string_from_retrieve_documents, get_openai_response
 import json
 from src.config import path_folder_completeness
 
@@ -51,7 +51,7 @@ class KeypointEvaluation:
         return cls(**d)
 
     def _run_similarity_searches(self, collection):
-        self.wiki_content = perform_similarity_search_metadata_filter(
+        self.wiki_content = perform_similarity_search_in_collection(
             collection,
             query_text=self.keypoint,
             metadata_param="link",
@@ -59,7 +59,7 @@ class KeypointEvaluation:
             number_of_results_to_retrieve=5,
         )
 
-        self.database_content = perform_similarity_search_metadata_filter(
+        self.database_content = perform_similarity_search_in_collection(
             collection,
             query_text=self.keypoint,
             metadata_param="country",

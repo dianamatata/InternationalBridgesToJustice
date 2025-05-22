@@ -140,3 +140,13 @@ def extract_chunk_from_hash(hash_to_search: str, chunks):
         (chunk for chunk in chunks if chunk["title"] == hash_to_search), None
     )
     return selected_chunk
+
+def build_context_string_from_retrieve_documents(results: dict) -> str:
+    """
+    Build a context string from the retrieved documents.
+    """
+    # Extract the first result list (there's one list per query embedding)
+    documents = results["documents"][0]
+    # scores = results["distances"][0]
+    context_text = "\n\n---\n\n".join(doc for doc in documents)
+    return context_text

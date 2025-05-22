@@ -2,7 +2,10 @@ import re
 import os
 import regex
 from src.get_response import GetResponse
-
+from src.chromadb_utils import perform_similarity_search_in_collection
+from src.query_functions import format_prompt_for_claim_verification
+from src.openai_utils import get_openai_response
+from src.file_manager import build_context_string_from_retrieve_documents
 class ClaimExtractor():
 
     def __init__(self, model_name: str = "gpt-4o-mini", prompt_file: str = "data/prompts/prompt_claim_extraction.md", cache_dir: str = "./data/cache/"):
@@ -99,3 +102,31 @@ class ClaimExtractor():
         text = text.replace('**', '') # 3. Remove bold markers **
         text = re.sub(r'\s+', ' ', text).strip() # 4. Remove redundant spaces
         return text
+
+
+
+class ClaimVerificator():
+
+    def __init__(self, model_name: str = "gpt-4o-mini", prompt_file: str = "data/prompts/prompt_claim_verification.md", cache_dir: str = "./data/cache/"):
+        self.model = None
+        self.prompt_file = prompt_file
+        cache_dir = os.path.join(cache_dir, model_name)
+        os.makedirs(cache_dir, exist_ok=True)
+        self.cache_file = os.path.join(cache_dir, f"claim_extraction_cache.json")
+        self.get_model_response = GetResponse(cache_file=self.cache_file,
+                                              model_name=model_name,
+                                              max_tokens=1000,
+                                              temperature=0)
+        self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
+
+
+    def verify_claim(self, claim: str, collection, client, prompt_claim_verification: str):
+        results = perform_similarity_search_in_collection(
+            collection=collection, query_text=claim, metadata_param="country", metadata_value="Burundi",
+            number_of_results_to_retrieve=5
+        )
+        context_text = build_context_string_from_retrieve_documents(results)
+        prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=claim, context=context_text)
+        answer = get_openai_response(client, prompt)
+
+        return results, answer

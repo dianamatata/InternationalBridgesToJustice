@@ -7,7 +7,7 @@ importlib.reload(src.query_functions)
 from src.query_functions import (
     load_chroma_collection,
     build_context_string_from_retrieve_documents,
-    perform_similarity_search_metadata_filter,
+    perform_similarity_search_in_collection,
     get_openai_response,
     format_prompt_for_completeness_check,
     get_completeness_keypoints
@@ -42,7 +42,7 @@ for country in country_names:
             print(f"\033[93m{chapter}:\033[0m\033[94m{point}\033[0m")
             keypoint_to_check = f"{chapter}: {point}"
 
-            wiki_content = perform_similarity_search_metadata_filter(
+            wiki_content = perform_similarity_search_in_collection(
                 collection,
                 query_text=keypoint_to_check,
                 metadata_param="link",
@@ -50,7 +50,7 @@ for country in country_names:
                 number_of_results_to_retrieve=5,
             )
 
-            database_content = perform_similarity_search_metadata_filter(
+            database_content = perform_similarity_search_in_collection(
                 collection,
                 query_text=keypoint_to_check,
                 metadata_param="country",

@@ -2,7 +2,7 @@ import chromadb
 from src.openai_utils import openai_generate_embeddings
 
 
-def load_chroma_collection(chroma_collection_file_path: str, collection_name: str):
+def load_collection(chroma_collection_file_path: str, collection_name: str):
     """
     Load the database or create it
     chromadb.PersistentClient(): This initializes the ChromaDB client that manages access to your local vector DB.
@@ -15,8 +15,31 @@ def load_chroma_collection(chroma_collection_file_path: str, collection_name: st
         raise RuntimeError(f"Could not load collection '{collection_name}': {e}")
     return collection
 
+def perform_similarity_search_in_collection(
+    collection,
+    query_text: str,
+    metadata_param: str,
+    metadata_value: str,
+    number_of_results_to_retrieve: int = 5,
+):
+    """
+    Get the query embedding using OpenAI, then query the collection for similar documents.
+    """
+    query_embedding = openai_generate_embeddings([query_text])[0]
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=number_of_results_to_retrieve,
+        include=[
+            "documents",
+            "metadatas",
+            "distances",
+        ],
+        where={metadata_param: metadata_value},
+    )
 
-def add_new_chunks_to_chroma_collection(chunks, collection, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str):
+    return results
+
+def add_new_chunks_to_collection(chunks, collection, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str):
 
     existing_ids = set(collection.get()["ids"])  # Get existing IDs
     print(f"Number of existing documents in DB: {len(existing_ids)}")
