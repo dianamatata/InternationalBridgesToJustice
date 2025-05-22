@@ -16,7 +16,7 @@ You can find the country name in the `'metadata':'title'` or `'metadata':'countr
 
 - If **no**, label the claim as `###Inconclusive###`
 - If **yes**, state the judgment as one of the following categories, marked with ###:
-- 
+
 #### `###Supported###`
 A claim is **supported** by the database if everything in the claim is supported and nothing is contradicted by the information in the database.  
 There can be some results that are not fully related to the claim.
