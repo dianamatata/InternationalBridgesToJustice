@@ -6,15 +6,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 
-
-# La page charge certains éléments dynamiquement via JavaScript.
-# requests ne charge que le HTML statique, donc si le lien est généré après coup, il ne sera pas présent dans soup_base.
+# JavaScript used by website to load dynamic content
+# requests only load static HTML
 
 # TODO use the json file
 # TODO scrap all the attachements
 #  https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/data.json?lng=en&criteria=%7B%22filters%22:%5B%5D,%22match%22:%22%22,%22startAt%22:0,%22sortings%22:%22%22%7D
 # TODO search for all pdf links
-
 
 # extract all the legal docs
 out_folder = "Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/data/raw/unodc.org"
@@ -23,23 +21,22 @@ out_folder_2 = "Users/dianaavalos/PycharmProjects/InternationalBridgesToJustice/
 start_url = "https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/index.html"
 
 
-# Configuration du driver
+# driver configuration
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")  # Exécute en arrière-plan (facultatif)
+options.add_argument("--headless")
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-# Charger la page
 start_url = "https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/index.html"
 driver.get(start_url)
-time.sleep(5)  # Attendre que le JavaScript charge les éléments
+time.sleep(5)  # load time
 
-# Récupérer le HTML après chargement
+# get html
 soup_base = BeautifulSoup(driver.page_source, "html.parser")
 driver.quit()
 
 
 
-# Extraire tous les liens des pays
+# get all country links
 country_names = []
 for link in soup_base.find_all("a", class_="cover-parent"):
     href = link.get("href", "")
@@ -59,11 +56,11 @@ for country in country_names:
         "%22}],%22sortings%22:%22%22}"
     ])
 
-# Charger la page
+
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 driver.get(link)
-time.sleep(5)  # Attendre que le JavaScript charge les éléments
-# Récupérer le HTML après chargement
+time.sleep(5)  # wait to load
+# get HTML after loading
 soup_base_2 = BeautifulSoup(driver.page_source, "html.parser")
 driver.quit()
 
@@ -76,7 +73,7 @@ for link in links_countrypage:
     # Ajouter le titre et l'URL au dictionnaire
     links_dict.append({"title": title, "href": href})
 
-# Afficher le résultat
+# Print results
 print(links_dict)
 for link in links_dict:
     full_link = ''.join(["https://sherloc.unodc.org", link.get("href","").replace(' ','%20')]).replace('"','%22')
@@ -90,6 +87,6 @@ for link in links_dict:
 
 # link = links_dict[1]
 # real
-https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/legislationCollection.html?lng=en&tmpl=%22sherloc%22&country=%22GBR%22&title=%22Anti-Corruption%20Law%20(Revision%202019)%20(Cayman%20Islands)%22
+"https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/legislationCollection.html?lng=en&tmpl=%22sherloc%22&country=%22GBR%22&title=%22Anti-Corruption%20Law%20(Revision%202019)%20(Cayman%20Islands)%22"
 # we get
-https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/legislationCollection.html?lng=en&tmpl=%22sherloc%22&country=%22GBR%22&title=%22Anti-Corruption%20Law%20(Revision%202019)%20(Cayman%20Islands)%22
+"https://sherloc.unodc.org/cld/en/v3/sherloc/legdb/legislationCollection.html?lng=en&tmpl=%22sherloc%22&country=%22GBR%22&title=%22Anti-Corruption%20Law%20(Revision%202019)%20(Cayman%20Islands)%22"
