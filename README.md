@@ -67,7 +67,7 @@ Many pages for one country (duplicates or multilingual):
 
 #### A - Completeness
 * [prompt_completeness.md](data/prompts/prompt_completeness.md) the prompt to check the completeness of the page
-* [ensuring_completeness_country_pages.py](scripts/ensure_completeness_country_pages.py)
+* [ensuring_completeness_country_pages.py](scripts/old/ensure_completeness_country_pages.py)
 * [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
 * [openai_batch_manager.py](src%2Fopenai_batch_manager.py) to submit batch requests to OpenAI API after creating a json file
 * [process_batch_results.py](scripts/process_batch_results.py) to process the results once the batch requests are done
