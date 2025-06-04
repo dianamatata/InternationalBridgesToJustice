@@ -45,9 +45,9 @@ Choose **one** of the following categories:
 
    * **Present**: If specific articles or legal texts apply.
    * **Missing**: If no relevant legal provisions are found.
-     Clearly list the article numbers, titles, and explain their relevance.
 
 4. **Summary of Relevant Laws** (if applicable):
+   Clearly list the article numbers, titles, and explain their relevance.
    Provide a concise summary of each relevant provision, with:
 
    * Article citation and a short explanation of what it establishes
