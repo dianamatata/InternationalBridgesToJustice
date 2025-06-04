@@ -4,15 +4,13 @@ from tqdm import tqdm
 import src
 import importlib
 importlib.reload(src.query_functions)
+from src.chromadb_utils import load_collection, perform_similarity_search_in_collection
 from src.query_functions import (
-    load_chroma_collection,
-    build_context_string_from_retrieve_documents,
-    perform_similarity_search_in_collection,
     get_openai_response,
     format_prompt_for_completeness_check,
     get_completeness_keypoints
 )
-from src.file_manager import get_country_names, save_completeness_result
+from src.file_manager import get_country_names, save_completeness_result, build_context_string_from_retrieve_documents
 from src.config import Paths
 
 # MAIN ---------------------------------------------------
@@ -24,7 +22,7 @@ with open(Paths.PATH_FILE_SYSTEM_PROMPT_COMPLETENESS, "r") as file:
     system_prompt = file.read()
 
 completeness_keypoints = get_completeness_keypoints(completeness_checklist_filepath = Paths.PATH_MD_FILE_COMPLETENESS_KEYPOINTS)
-collection = load_chroma_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
+collection = load_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
 
 country_names = get_country_names(country_names_filepath="data/interim/country_names_1.txt")
 country_names = ["Burundi"]  # TODO remove this line to run for all countries
