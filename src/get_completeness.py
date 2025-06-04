@@ -152,3 +152,110 @@ class KeypointEvaluation:
             assessment = self.answer.split("**")[2].replace("\n", "")
             f.write(f"Keypoint '{self.point}' covered?  {assessment} \n\n")
 
+
+
+schema = {
+    "type": "object",
+    "name": "CountryPage",
+    "description": "Country Page Rewritten after the completeness check",
+    "properties": {
+        "Country": {
+            "type": "string",
+            "description": "The country page.",
+            "default": "Unknown",
+        },
+        "Keypoint": {
+            "type": "string",
+            "description": "The keypoint we check it is complete in the country page.",
+        },
+        "Classification": {
+            "type": "string",
+            "description": "A brief summary of the article's content and findings.",
+        },
+        "Missing_or_Unclear": {
+            "type": "string",
+            "description": "Briefly explain any gaps, ambiguities, or lack of legal grounding",
+        },
+        "Legal_Provisions_Check:": {
+            "type": "string",
+            "description": "Are relevant legal provisions available in the database? Answer with Present or Missing.",
+        },
+        "Summary_of_Relevant_Laws": {
+            "type": "string",
+            "description": "Clearly list the article numbers, titles, and explain their relevance.",
+        },
+        "Rewritten_Wiki_Chapter ": {
+            "type": "string",
+            "description": " Rewrite the chapter to incorporate relevant legal content.",
+        },
+        "Claim_List": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+            },
+            "description": " For each sentence of the chapter, provide a list of extracted claims",
+        },
+        "All_Claims ": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": " All the extracted claims of the chapter, with duplicates removed.",
+        },
+
+        "All_claims_per_sentence": {
+            "type": "array",
+            "description": "For each sentence of the chapter, provide a list of dictionaries (one dict per sentence) of extracted claims and their verification status",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sentence": {
+                        "type": "string",
+                        "description": "The sentence from which claims are extracted."
+                    },
+                    "claims": {
+                        "type": "array",
+                        "description": "List of claim dictionaries extracted from the sentence.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "claim": {
+                                    "type": "string",
+                                    "description": "The claim extracted from the sentence."
+                                },
+                                "decision": {
+                                    "type": "string",
+                                    "enum": ["Supported", "Contradicted", "Inconclusive"],
+                                    "description": "The claim extracted from the sentence."
+                                },
+                                "full_answer": {
+                                    "type": "string",
+                                    "description": "Specific laws or legal chapters to justify your decision if applicable (not necessary for Inconclusive)."
+                                },
+                                "sources": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Chunk titles that support the claim."
+                                },
+                                "document_ids": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Chunk hashes that support the claim."
+                                },
+                                "distances": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Distances of the chunks that support the claim."
+                                }
+                            },
+                            "required": ["claim", "decision", "sources", "document_ids", "distances"],
+                        },
+                    }
+                }
+            }
+        }
+    }
+}
