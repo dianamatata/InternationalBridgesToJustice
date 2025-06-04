@@ -1,3 +1,5 @@
+# file outdated, now we are running keypoint_evaluation.py directly
+
 # LIBRARIES ---------------------------------------------------
 from src.openai_utils import openai_client
 from tqdm import tqdm
@@ -6,10 +8,10 @@ import importlib
 importlib.reload(src.query_functions)
 from src.chromadb_utils import load_collection, perform_similarity_search_in_collection
 from src.query_functions import (
-    get_openai_response,
     format_prompt_for_completeness_check,
     get_completeness_keypoints
 )
+from src.openai_utils import get_openai_response
 from src.file_manager import get_country_names, save_completeness_result, build_context_string_from_retrieve_documents
 from src.config import Paths
 
@@ -60,7 +62,7 @@ for country in country_names:
             context_wiki = build_context_string_from_retrieve_documents(wiki_content)
 
             prompt = format_prompt_for_completeness_check(
-                prompt=prompt_completeness,
+                prompt_template=prompt_completeness,
                 keypoint=keypoint_to_check,
                 wiki_content=context_wiki,
                 database_content=context_database,
