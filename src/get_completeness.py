@@ -1,4 +1,3 @@
-from src.query_functions import format_prompt_for_completeness_check
 from src.openai_utils import get_openai_response
 from src.chromadb_utils import perform_similarity_search_in_collection
 from src.file_manager import build_context_string_from_retrieve_documents
@@ -10,15 +9,13 @@ from src.config import Paths
 # __str__ method: Provides a human-readable summary of the chunk, showing the title and a preview of the content.
 
 class KeypointEvaluation:
-    def __init__(self, country: str, chapter: str, point: str, system_prompt: str, model: str = "gpt-4o-mini", collection=None, lazy=True):
+    def __init__(self, country: str, keypoint: str, system_prompt: str, model: str = "gpt-4o-mini", collection=None, lazy=True):
         self.country = country
-        self.chapter = chapter
-        self.point = point
-        self.custom_id = f"{country}-{chapter}-{point}"
-        self.keypoint = f"{chapter}: {point}"
-        self.out_jsonfile = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}.json"
-        self.out_md_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_answer.md"
-        self.out_summary_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_summary.md"
+        self.keypoint_description = keypoint['Description']
+        self.keypoint = keypoint['Keypoint']
+        self.custom_id = f"{country}-{self.keypoint}"
+        self.out_answer_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness.json"
+        self.out_log_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness_log.json"
         self.wiki_content = None
         self.database_content = None
         self.answer = None
@@ -37,14 +34,12 @@ class KeypointEvaluation:
         return f"<KeypointEvaluation({self.country}, {self.keypoint}...)>"
 
     def __str__(self):
-        return f"Country: {self.country}\nChapter: {self.chapter}\nPoint: {self.point}\nAnswer: {self.answer[:200]}..."
+        return f"Country: {self.country}\nKeypoint: {self.keypoint}\nAnswer: {self.answer[:200]}..."
 
 
     def to_dict(self):
         return {
             "country": self.country,
-            "chapter": self.chapter,
-            "point": self.point,
             "custom_id": self.custom_id,
             "keypoint": self.keypoint,
             "out_jsonfile": self.out_jsonfile,
@@ -62,7 +57,7 @@ class KeypointEvaluation:
     def run_similarity_searches(self, collection):
         self.wiki_content = perform_similarity_search_in_collection(
             collection,
-            query_text=self.keypoint,
+            query_text=self.keypoint_description,
             metadata_param="link",
             metadata_value=f"https://defensewiki.ibj.org/index.php?title={self.country}",
             number_of_results_to_retrieve=5,
@@ -70,16 +65,16 @@ class KeypointEvaluation:
 
         self.database_content = perform_similarity_search_in_collection(
             collection,
-            query_text=self.keypoint,
+            query_text=self.keypoint_description,
             metadata_param="country",
             metadata_value=self.country,
             number_of_results_to_retrieve=5,
         )
 
-    def define_prompt(self, prompt_completeness: str):
-        self.prompt = format_prompt_for_completeness_check(
-            prompt_template=prompt_completeness,
+    def define_prompt(self, prompt_template: str):
+        self.prompt = prompt_template.format(
             keypoint=self.keypoint,
+            keypoint_description=self.keypoint_description,
             wiki_content=build_context_string_from_retrieve_documents(self.wiki_content),
             database_content=build_context_string_from_retrieve_documents(self.database_content),
         )
@@ -94,75 +89,51 @@ class KeypointEvaluation:
             temperature=temperature,
             response_format=self.response_format,
         )
+        self.answer = json.loads(self.answer)
 
-    def add_similarity_metadata_to_answer(self):
-        self.answer["custom_id"] = self.custom_id
-        self.answer["wiki_ids"] = self.wiki_content["ids"][0]
-        self.answer["wiki_distances"] = self.wiki_content["distances"][0]
-        self.answer["database_ids"] = self.database_content["ids"][0]
-        self.answer["database_distances"] = self.database_content["distances"][0]
+    def batch_check_completeness(self, client, keypoints: list[str], temperature: float = 0.1):
+        # TODO: issue should it be sequencial in 2 steps, first design prompt, then call to get answer?
 
-    # the underscore in front of _run_similarity_searches is a Python naming convention to indicate that the method is
-    # intended for internal use only (a "private" or "protected" method by convention), whereas ensure_loaded is likely
-    # intended to be used externally, as part of the class's public interface.
+        # Prepare all user prompts (for example, formatted keypoints)
+        prompts = [f"Keypoint: {kp}" for kp in keypoints]
 
-    def build_batch_request(self, custom_id: str, user_prompt: str, temperature: float = 0.1):
-        return {
-            "custom_id": custom_id,
-            "method": "POST",
-            "url": "/v1/chat/completions",
-            "body": {
-                "model": self.model,
-                "messages": [
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                "temperature": temperature
-            }
-        }
+        # Call batch API
+        answers = get_openai_batch_response(
+            client=client,
+            categorize_system_prompt=self.system_prompt,
+            prompts=prompts,
+            response_format=self.response_format,
+            model=self.model,
+            temperature=temperature,
+        )
 
+        # Parse all JSON answers
+        parsed_answers = [json.loads(ans) for ans in answers]
 
+        return parsed_answers
 
-    def save_evaluation(self):
-        """
-        Save the answer to a JSON file.
-        """
-        country_keypoint = {
+    def save_log_as_json(self):
+        log_data = {
             "country": self.country,
             "keypoint": self.keypoint,
+            "answer": self.answer,
             "wiki_content": {
-                "ids": self.wiki_content.get("ids", [[]])[0],
-                "distances": self.wiki_content.get("distances", [[]])[0],
+                "ids": self.wiki_content.get("ids", [[]])[0] if self.wiki_content.get("ids") else None,
+                "distances": self.wiki_content.get("distances", [[]])[0] if self.wiki_content.get("distances") else None,
+                "documents": self.wiki_content.get("documents", [[]])[0] if self.wiki_content.get("documents") else None,
             },
             "database_content": {
-                "ids": self.database_content.get("ids", [[]])[0],
-                "distances": self.database_content.get("distances", [[]])[0],
+                "ids": self.database_content.get("ids", [[]])[0] if self.database_content.get("ids") else None,
+                "distances": self.database_content.get("distances", [[]])[0] if self.database_content.get("distances") else None,
             },
-            "answer": self.answer,
-            "completeness_assessment": self.answer.split("**")[2].replace("\n", ""),
         }
 
-        # save the answer in a json file
-        with open(self.out_jsonfile, "a", encoding="utf-8") as json_file:
-            json.dump(country_keypoint, json_file, indent=4)
+        with open(self.out_log_file, "a", encoding="utf-8") as f:
+            json.dump(log_data, f, indent=2, ensure_ascii=False)
 
-        """
-            Save the answer to a MD file.
-        """
-
-        with open(self.out_md_file, "a", encoding="utf-8") as f:
-            f.write(f"# {self.country}\n\n")
-            f.write(f"## {self.keypoint}\n\n")
-            f.write(self.answer)
-            f.write("\n\n\n\n")
-
-        """
-            Save the summary to a MD file.
-        """
-
-        with open(self.out_summary_file, "a", encoding="utf-8") as f:  # save summary
-            assessment = self.answer.split("**")[2].replace("\n", "")
-            f.write(f"Keypoint '{self.point}' covered?  {assessment} \n\n")
+    def save_answer_as_json(self):
+        with open(self.out_answer_file, "a", encoding="utf-8") as json_file:
+            json.dump(self.answer, json_file, indent=2)
 
 
 schema_completeness = {
@@ -177,7 +148,11 @@ schema_completeness = {
         },
         "Keypoint": {
             "type": "string",
-            "description": "The keypoint we check it is complete in the country page.",
+            "description": "The original keypoint.",
+        },
+        "Keypoint_Description": {
+            "type": "string",
+            "description": "The original keypoint description.",
         },
         "Classification": {
             "type": "string",
