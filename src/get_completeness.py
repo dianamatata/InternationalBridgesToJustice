@@ -31,7 +31,7 @@ class KeypointEvaluation:
         if not lazy:
             if collection is None:
                 raise ValueError("collection must be provided if lazy=False")
-            self._run_similarity_searches(collection)
+            self.run_similarity_searches(collection)
 
     def __repr__(self):
         return f"<KeypointEvaluation({self.country}, {self.keypoint}...)>"
@@ -200,6 +200,22 @@ schema_completeness = {
         "Rewritten_Wiki_Chapter": {
             "type": "string",
             "description": " Rewrite the chapter to incorporate relevant legal content.",
+        },
+    },
+}
+
+schema_keypoints = {
+    "type": "object",
+    "name": "CountryPageCompleteness",
+    "description": "Country Page Rewritten after the completeness check",
+    "properties": {
+        "Keypoint": {
+            "type": "string",
+            "description": "The original keypoint.",
+        },
+        "Description": {
+            "type": "string",
+            "description": "Description of the keypoint that help disambiguate and capture the intent",
         },
     },
 }
