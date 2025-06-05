@@ -11,6 +11,7 @@ def get_openai_response(
     client,
     categorize_system_prompt: str,
     prompt: str,
+    response_format,
     model="gpt-4o-mini",
     temperature=0.1,
 ) -> str:
@@ -24,6 +25,7 @@ def get_openai_response(
             {"role": "system", "content": categorize_system_prompt},
             {"role": "user", "content": prompt},
         ],
+        response_format=response_format,
     )
 
     return response.choices[0].message.content
