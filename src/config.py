@@ -23,6 +23,7 @@ class Paths:
     # Keypoints completeness
     PATH_MD_FILE_COMPLETENESS_KEYPOINTS = "data/raw/IBJ_docs/Completeness_checklist.md"
     PATH_JSON_FILE_COMPLETENESS_KEYPOINTS = "data/completeness/keypoints.json"
+    PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS = "data/completeness/descriptive_keypoints.json"
     PATH_FOLDER_COMPLETENESS = "data/completeness"
 
     # Claim extraction
