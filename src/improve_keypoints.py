@@ -1,3 +1,4 @@
+# script to add description to keypoints before calling completeness
 import openai
 import json
 from src.config import Paths
@@ -71,15 +72,11 @@ def generate_description(keypoint):
 
 
 # script to generate descriptive keypoints from a list of keypoints
-
 keypoints_to_check = extract_keypoint_from_file(completeness_checklist_filepath=Paths.PATH_MD_FILE_COMPLETENESS_KEYPOINTS)
 results_keypoints_json_strs = [generate_description(kp) for kp in keypoints_to_check]
 results_keypoints = [json.loads(s) for s in results_keypoints_json_strs] # Convert each JSON string into a Python dict
 pprint(results_keypoints[1:3])
 
 with open(Paths.PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS, "w", encoding="utf-8") as f:
-    json.dump(results_keypoints, f, indent=2, ensure_ascii=False)
-
-with open(PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS, "w") as f:
     json.dump(results_keypoints, f, indent=2, ensure_ascii=False)
 
