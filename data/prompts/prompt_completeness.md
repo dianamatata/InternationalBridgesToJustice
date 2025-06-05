@@ -1,6 +1,6 @@
 ## **Completeness Instructions**
 
-You are tasked with evaluating whether the following wiki chapter sufficiently and accurately addresses the key point: **{keypoint}**.
+You are tasked with evaluating whether the following wiki chapter sufficiently and accurately addresses the key point: **{keypoint}** , with is best describe as: **{keypoint_description}**.
 
 Before making your judgment, critically analyze **both** the wiki content and the legal database. Even if the chapter appears thorough, investigate whether specific legal provisions could **strengthen, clarify, or correct** the information. Your assessment should prioritize **clarity, specificity**, and **legal accuracy**.
 
