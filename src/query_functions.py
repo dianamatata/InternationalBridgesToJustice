@@ -1,16 +1,9 @@
-from src.openai_utils import openai_generate_embeddings, get_openai_response
 
 def format_prompt_for_claim_verification(prompt_template: str, claim: str, context: str) -> str:
     return prompt_template.format(claim=claim, context=context)
 
 
-def format_prompt_for_completeness_check(
-    prompt_template: str, keypoint: str, wiki_content: str, database_content: str
-) -> str:
 
-    return prompt_template.format(
-        keypoint=keypoint, wiki_content=wiki_content, database_content=database_content
-    )
 
 def get_completeness_keypoints(completeness_checklist_filepath: str):
     with open(completeness_checklist_filepath, "r", encoding="utf-8") as f:
