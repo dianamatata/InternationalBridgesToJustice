@@ -26,19 +26,11 @@ class GetResponse():
         self.print_interval = 20
 
     # Returns the response from the model given a system message and a prompt text.
-    def get_response(self, system_message, prompt_text, cost_estimate_only=False):
-        prompt_tokens = len(self.tokenizer.encode(prompt_text))
+    def get_response(self, system_message, prompt_text, response_format, cost_estimate_only=False):
+
         if cost_estimate_only:
-            # count tokens in prompt and response
-            response_tokens = 0
-            return None, prompt_tokens, response_tokens
+            return None, self.tok_count(prompt_text)
 
-        # check if prompt is in cache; if so, return from cache
-        cache_key = prompt_text.strip()
-        if cache_key in self.cache_dict:
-            return self.cache_dict[cache_key], 0, 0
-
-        # Example message: "You are a helpful assistant who can extract verifiable atomic claims from a piece of text."
         if "gpt" in self.model_name:
             message = [{"role": "system", "content": system_message},
                        {"role": "user", "content": prompt_text}]
@@ -48,21 +40,11 @@ class GetResponse():
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 seed=self.seed,
+                response_format=response_format
             )
             response_content = response.choices[0].message.content.strip()
-
-        # update cache
-        self.cache_dict[cache_key] = response_content.strip()
-        self.add_n += 1
-
-        # save cache every save_interval times
-        if self.add_n % self.save_interval == 0:
-            self.save_cache()
-        if self.add_n % self.print_interval == 0:
-            print(f"Saving # {self.add_n} cache to {self.cache_file}...")
-
-        response_tokens = len(self.tokenizer.encode(response_content))
-        return response_content, prompt_tokens, response_tokens
+            total_cost = compute_chatgpt_4o_cost(response, self.model_name, verbose=True)
+            return response_content, total_cost
 
     # Returns the number of tokens in a text string.
     def tok_count(self, text: str) -> int:
@@ -85,3 +67,29 @@ class GetResponse():
         else:
             cache = {}
         return cache
+
+def compute_chatgpt_4o_cost(response, model, verbose: bool = False) -> float:
+    # costs="https://openai.com/api/pricing/"
+    input_tokens = response.usage.prompt_tokens
+    output_tokens = response.usage.completion_tokens
+
+    if model == "gpt-4o-mini":
+        cost_per_1M_input_tokens = 0.15
+        cost_per_1M_output_tokens = 0.60
+    elif model == "gpt-4o":
+        cost_per_1M_input_tokens = 2.5
+        cost_per_1M_output_tokens = 10
+    elif model == "gpt-4.1-mini":
+        cost_per_1M_input_tokens = 0.4
+        cost_per_1M_output_tokens = 1.60
+
+    total_cost = (input_tokens / 1e6) * cost_per_1M_input_tokens
+    total_cost += (output_tokens / 1e6) * cost_per_1M_output_tokens
+
+    if verbose:
+        print(f"Total input tokens: {input_tokens}")
+        print(f"Total output tokens: {output_tokens}")
+        print(f"Total tokens: {input_tokens + output_tokens}")
+        print(f"Estimated cost: ${total_cost:.4f}")
+
+    return total_cost
