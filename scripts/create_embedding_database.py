@@ -1,19 +1,19 @@
 from tqdm import tqdm
-from src.query_functions import add_new_chunks_to_chroma_collection, load_chroma_collection
+from src.chromadb_utils import add_new_chunks_to_collection, load_collection
 from src.file_manager import load_legal_chunks
 from src.config import Paths
 
 def batch_embed_and_add(chunks, collection, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str, batch_size: int =2000):
     for i in tqdm(range(0, len(chunks), batch_size)):
         batch = chunks[i : i + batch_size]
-        collection = add_new_chunks_to_chroma_collection(batch, collection, raw_embeddings_jsonl_file_path, chunk_ids_present_in_chromadb_collection_file_path)
+        collection = add_new_chunks_to_collection(batch, collection, raw_embeddings_jsonl_file_path, chunk_ids_present_in_chromadb_collection_file_path)
     return collection
 
 
 def main():
 
     chunk_ids_present_in_chromadb_collection_file_path = "data/chroma_db/seen_ids.txt"
-    collection = load_chroma_collection(chroma_collection_file_path=Paths.PATH_CHROMADB,  collection_name=Paths.COLLECTION_NAME)
+    collection = load_collection(chroma_collection_file_path=Paths.PATH_CHROMADB,  collection_name=Paths.COLLECTION_NAME)
     chunks = load_legal_chunks([Paths.PATH_JSONL_FILE_DEFENSEWIKI_CHUNKS, Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS])  # Get chunks
     print(f"Total number of chunks: {len(chunks)}")
 
