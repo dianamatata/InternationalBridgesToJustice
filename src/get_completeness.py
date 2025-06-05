@@ -121,6 +121,8 @@ class KeypointEvaluation:
             }
         }
 
+
+
     def save_evaluation(self):
         """
         Save the answer to a JSON file.
@@ -179,21 +181,23 @@ schema_completeness = {
         },
         "Classification": {
             "type": "string",
+            "enum": ["Complete", "Needs refinement", "Missing"],
             "description": "A brief summary of the article's content and findings.",
         },
         "Missing_or_Unclear": {
             "type": "string",
             "description": "Briefly explain any gaps, ambiguities, or lack of legal grounding",
         },
-        "Legal_Provisions_Check:": {
+        "Legal_Provisions_Check": {
             "type": "string",
+            "enum": ["Present", "Missing"],
             "description": "Are relevant legal provisions available in the database? Answer with Present or Missing.",
         },
         "Summary_of_Relevant_Laws": {
             "type": "string",
             "description": "Clearly list the article numbers, titles, and explain their relevance.",
         },
-        "Rewritten_Wiki_Chapter ": {
+        "Rewritten_Wiki_Chapter": {
             "type": "string",
             "description": " Rewrite the chapter to incorporate relevant legal content.",
         },
