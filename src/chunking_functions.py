@@ -1,7 +1,6 @@
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 import re
-from config import Paths
-MAX_CHUNK_SIZE = Paths.MAX_CHUNK_SIZE
+from src.config import Paths, MAX_CHUNK_SIZE
 from src.file_manager import generate_hash
 
 # FUNCTIONS --------------------
