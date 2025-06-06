@@ -2,8 +2,8 @@ import json
 
 # Loop over Defensewiki to extract all the pages as markdown
 
-input_data = "../data/interim/defensewiki_all.jsonl"
-path = "../data/raw/defensewiki.ibj.org"
+input_data = "data/interim/defensewiki_all.jsonl"
+path = "data/raw/defensewiki.ibj.org"
 
 with open(f"{input_data}", "r", encoding="utf-8") as jsonl_file:
     defense_wiki_all = [

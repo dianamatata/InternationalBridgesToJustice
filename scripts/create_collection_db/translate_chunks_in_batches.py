@@ -1,13 +1,17 @@
 from src.internationalbridgestojustice.openai_utils import (
     upload_batch_file_to_openAI,
     submit_batch_job,
+    openai_client,
+    retrieve_and_save_batch_results,
+    check_progress_batch_id,
 )
 from src.internationalbridgestojustice.get_translation import (
     Translator,
     get_chunks_in_english,
+    get_chunks_for_one_country,
 )
 from src.internationalbridgestojustice.config import Paths
-from src.internationalbridgestojustice.openai_utils import openai_client
+
 
 # Load the chunks --------------------------------
 
@@ -40,10 +44,10 @@ print("DefenseWiki chunks in English:", len(defense_chunks_in_english))
 print("Constitution chunks not in English:", len(constitution_chunks_not_in_english))
 print("Constitution chunks in English:", len(constitution_chunks_in_english))
 print(
-    "Other legal docs chunks not in English:",
+    "Other legal chunks not in English:",
     len(other_legal_docs_chunks_not_in_english),
 )
-print("Other legal docs chunks in English:", len(other_legal_docs_chunks_in_english))
+print("Other legal chunks in English:", len(other_legal_docs_chunks_in_english))
 
 total_chunks_not_in_english = (
     defense_chunks_not_in_english
@@ -56,38 +60,50 @@ total_chunks_in_english = (
     + other_legal_docs_chunks_in_english
 )
 
+# Filter the chunks on Burundi to create a Burundi collection and run just for that country ----------
 
-filtered_chunks = total_chunks_not_in_english[2:3]
+Burundi_chunks_not_in_english = get_chunks_for_one_country(
+    total_chunks_not_in_english, country="Burundi"
+)
+Burundi_chunks_in_english = get_chunks_for_one_country(
+    total_chunks_in_english, country="Burundi"
+)
+print("Burundi_chunks_not_in_english: ", len(Burundi_chunks_not_in_english))
+print("Burundi_chunks_in_english: ", len(Burundi_chunks_in_english))
+
 # Create batches to translate and submit requests --------------------------------
+# Key limits and considerations when using GPT-4o Mini via OpenAI's Batch API
+# Maximum Enqueued Tokens per Batch: Up to 2,000,000 tokens can be enqueued at one time.
+# Context Window: Up to 128,000 tokens per request.
+# Maximum Output Tokens: Up to 16,384 tokens per request.
+# estimate one request = 1500 tokens
+
+# filtered_chunks = total_chunks_not_in_english[0:1000]
+filtered_chunks = Burundi_chunks_not_in_english
+
 translator = Translator(model_name="gpt-4o-mini")
+
 translator.create_batch_file_for_translation(
-    jsonl_output_file_path="data/interim/batch_input_translation.jsonl",
+    jsonl_output_file_path="data/interim/batch_input_translation_Burundi.jsonl",
     chunks=filtered_chunks,
 )
+
 file = upload_batch_file_to_openAI(
-    client=openai_client, batch_file_name="data/interim/batch_input_translation.jsonl"
+    client=openai_client,
+    batch_file_name="data/interim/batch_input_translation_Burundi.jsonl",
 )
-# TODO check how many requests in the batch first
+
 batch = submit_batch_job(client=openai_client, file_id=file.id)
 
-print("Batch job submitted:", batch.id)
-# Batch job submitted: batch_6842d4c7d33c819084f1a30f683c5c4b
+check_progress_batch_id(batch_id="batch_6842f6bc28848190a58223b8d7c5c36b")
 
-# check progress
-batch = openai_client.batches.retrieve(
-    batch_id="batch_6842d4c7d33c819084f1a30f683c5c4b"
+parsed_results = retrieve_and_save_batch_results(
+    batch_id="batch_6842d4c7d33c819084f1a30f683c5c4b",
+    output_file_path_jsonl="data/interim/test_retrieve_and_save_batch_results.jsonl",
+    return_parsed_results=True,
 )
-print("Batch status:", batch.status)
 
-# Retrieve and save results --------------------------------
-
-result = openai_client.batches.retrieve(
-    batch_id="batch_6842d4c7d33c819084f1a30f683c5c4b"
-)
-output_stream = openai_client.files.content(result.output_file_id)
-
-# Save the contents to disk (e.g., results.jsonl)
-with open("data/interim/batch_results_translation.jsonl", "a", encoding="utf-8") as f:
-    for line in output_stream:
-        decoded_line = line.decode("utf-8")  # convert bytes to string
-        f.write(decoded_line)
+# TODO integrate the result in new chunks
+# TODO Create new collection with the translated chunks
+# Burundi: Batch job submitted: batch_6842f6bc28848190a58223b8d7c5c36b in progress
+# Batch job submitted: batch_6842d4c7d33c819084f1a30f683c5c4b finished successfully

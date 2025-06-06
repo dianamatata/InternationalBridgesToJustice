@@ -1,7 +1,7 @@
 # --- IMPORTS ---
 import json
 from src.internationalbridgestojustice.openai_utils import openai_client
-from scripts.create_embedding_database import load_legal_chunks
+from scripts.create_collection_db.create_embedding_database import load_legal_chunks
 from src import load_collection
 from src.internationalbridgestojustice.query_functions import (
     perform_similarity_search_in_collection,
@@ -69,11 +69,13 @@ claim_data = {
 print(f"\033[93m{json.dumps(claim_data, indent=4)}\033[0m")
 
 with open(
-    "../data/verified_claims/claims_1.jsonl", "a", encoding="utf-8"
+    "../../data/verified_claims/claims_1.jsonl", "a", encoding="utf-8"
 ) as jsonl_file:
     jsonl_file.write(json.dumps(claim_data) + "\n")
 
-with open("../data/verified_claims/claims_1.json", "a", encoding="utf-8") as json_file:
+with open(
+    "../../data/verified_claims/claims_1.json", "a", encoding="utf-8"
+) as json_file:
     json.dump(claim_data, json_file, ensure_ascii=False, indent=4)
 
 

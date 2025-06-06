@@ -1,5 +1,5 @@
 import json
-from scripts.create_embedding_database import load_legal_chunks
+from scripts.create_collection_db.create_embedding_database import load_legal_chunks
 from src.internationalbridgestojustice.query_functions import (
     verify_claim,
     load_chroma_collection,

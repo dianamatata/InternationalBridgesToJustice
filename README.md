@@ -41,10 +41,10 @@ Chunk the Defense Wiki content into smaller pieces and save them in a json file
 * [chunking_constitutions.py](scripts/chunk/chunk_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
-* [translation_batches.py](scripts/translate_chunks_in_batches.py)
+* [translation_batches.py](scripts/create_collection_db/translate_chunks_in_batches.py)
 Translate all the chunks to English
 
-* [create_embedding_database.py](scripts/create_embedding_database.py) 
+* [create_embedding_database.py](scripts/create_collection_db/create_embedding_database.py) 
 Create the embedding database for the Defense Wiki and legal database content
 
 <font color="yellow">*TODO: create script to check if hashes have been modified> version-control*</font>
@@ -71,7 +71,7 @@ Many pages for one country (duplicates or multilingual):
 #### A - Completeness
 * [prompt_completeness.md](data/prompts/prompt_completeness.md) the prompt to check the completeness of the page
 * [ensuring_completeness_country_pages.py](scripts/old/ensure_completeness_country_pages.py)
-* [keypoint_evaluation.py](scripts/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
+* [keypoint_evaluation.py](scripts/country_page_review/keypoint_evaluation.py)  creates a class KeypointEvaluation to simplify the code of ensuring_completeness_country_pages.py and be able to send batch requests
 * [openai_batch_manager.py](src%2Fopenai_batch_manager.py) to submit batch requests to OpenAI API after creating a json file
 * [process_batch_results.py](scripts/process_batch_results.py) to process the results once the batch requests are done
   - <font color="yellow">*TODO: run it in India to check that no bugs in optimization*</font>
@@ -79,14 +79,14 @@ Many pages for one country (duplicates or multilingual):
 and create a new md page*</font>
 
 #### B - Accuracy
-* [query_database.py](scripts/verify_one_claim.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
+* [query_database.py](scripts/country_page_review/verify_one_claim.py) has the perform_similarity_search_with_country_filter function, to retrieve the 5 most relevant chunk from the collection of chunks
 and has the prompt to verify the claims
-*  [extract_claims.py](scripts/extract_claims.py)
+*  [extract_claims.py](scripts/country_page_review/extract_claims.py)
 Extract claims from the content of the Defense Wiki and save them in a json file
 Right now done for Singapore and 2 pages of Burundi out of 12 files
 * [debug_claim_extraction.py](scripts/debug_claim_extraction.py)
   - <font color="yellow">*TODO: need to debug the Burundi claim extraction as the bullets points are interpreted as new sentences.*</font>
-* [verify_claims_one_country.py](scripts/verify_claims_one_country.py) also helps verify the claims. calls several functions present in query_database.py
+* [verify_claims_one_country.py](scripts/country_page_review/verify_claims_one_country.py) also helps verify the claims. calls several functions present in query_database.py
 
 #### C -  Source credibility 
 #### D - Legal relevance
