@@ -30,6 +30,11 @@ def get_chunks_in_english(jsonl_file_path: str, in_english: bool = True):
     return filtered_chunks
 
 
+def get_chunks_for_one_country(chunks: list[dict], country: str):
+    filtered_chunks = [c for c in chunks if c["metadata"]["country"] == country]
+    return filtered_chunks
+
+
 class Translator:
     def __init__(
         self, model_name: str = "gpt-4o-mini", cache_dir: str = "./data/cache/"
@@ -58,7 +63,7 @@ class Translator:
     def create_batch_file_for_translation(
         self, jsonl_output_file_path: str, chunks: list
     ):
-        with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
+        with open(jsonl_output_file_path, "w", encoding="utf-8") as outfile:
             for i, chunk in enumerate(chunks):
                 prompt_text = f"Translate the following Markdown file to English, keeping the formatting:\n\n{chunk['content']} and not translating the text in the sources and references (articles, links,...)"
                 request = build_batch_request(
