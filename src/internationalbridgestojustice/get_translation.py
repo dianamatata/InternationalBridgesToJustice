@@ -35,6 +35,38 @@ def get_chunks_for_one_country(chunks: list[dict], country: str):
     return filtered_chunks
 
 
+def create_new_chunks_from_translated_results(
+    chunks_not_in_english: list[dict], parsed_results: list[dict]
+) -> list[dict]:
+    new_chunks = []
+    for result in parsed_results:
+        print(f"Processing result with custom_id: {result['custom_id']}")
+        custom_id = result["custom_id"]
+        chunk_id = custom_id.split(" ")[1]
+        translated_content = result["response"]["body"]["choices"][0]["message"][
+            "content"
+        ]
+
+        # Find the original chunk based on custom_id
+        original_chunk = next(
+            (chunk for chunk in chunks_not_in_english if chunk["title"] == chunk_id),
+            None,
+        )
+
+        if original_chunk:
+            print(f"Original Chunk found: {original_chunk}")
+
+            translated_chunk = {
+                "title": original_chunk["title"],
+                "content": translated_content,
+                "metadata": original_chunk["metadata"].copy(),
+            }
+            translated_chunk["metadata"]["language"] = "en"
+            new_chunks.append(translated_chunk)
+
+    return new_chunks
+
+
 class Translator:
     def __init__(
         self, model_name: str = "gpt-4o-mini", cache_dir: str = "./data/cache/"

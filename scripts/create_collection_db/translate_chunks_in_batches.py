@@ -9,6 +9,7 @@ from src.internationalbridgestojustice.get_translation import (
     Translator,
     get_chunks_in_english,
     get_chunks_for_one_country,
+    create_new_chunks_from_translated_results,
 )
 from src.internationalbridgestojustice.config import Paths
 
@@ -103,7 +104,13 @@ parsed_results = retrieve_and_save_batch_results(
     return_parsed_results=True,
 )
 
-# TODO integrate the result in new chunks
+# create chunks_translated
+translated_chunks_Burundi = create_new_chunks_from_translated_results(
+    chunks_not_in_english=Burundi_chunks_not_in_english, parsed_results=parsed_results
+)
+
+
+result = parsed_results[19]
 # TODO Create new collection with the translated chunks
 # Burundi: Batch job submitted: batch_6842f6bc28848190a58223b8d7c5c36b in progress
 # Batch job submitted: batch_6842d4c7d33c819084f1a30f683c5c4b finished successfully
