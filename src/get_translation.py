@@ -8,10 +8,24 @@ load_dotenv()  # Load environment variables from .env file
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 client = openai.OpenAI()
 
-def get_chunks_not_in_english(json_file_path: str):
-    with open(json_file_path, "r", encoding="utf-8") as json_file:
-        chunks = json.load(json_file)
-    filtered_chunks = [c for c in chunks if c['metadata']['language'] != 'en']
+def get_chunks_in_english(jsonl_file_path: str, in_english: bool = True):
+
+    if jsonl_file_path.endswith(".json"):
+        with open(jsonl_file_path, "r", encoding="utf-8") as json_file:
+            chunks = json.load(json_file)
+
+    elif jsonl_file_path.endswith(".jsonl"):
+        chunks = []
+        with open(jsonl_file_path, "r", encoding="utf-8") as jsonl_file:
+            for line in jsonl_file:
+                chunks.append(json.loads(line))
+    else:
+        raise ValueError("File must be in JSON or JSONL format.")
+
+    if in_english:
+        filtered_chunks = [c for c in chunks if c['metadata']['language'] == 'en']
+    else:
+        filtered_chunks = [c for c in chunks if c['metadata']['language'] != 'en']
     return filtered_chunks
 
 class Translator():
