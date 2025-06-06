@@ -1,12 +1,21 @@
 import json
 from scripts.create_embedding_database import load_legal_chunks
-from src.query_functions import verify_claim, load_chroma_collection, retrieve_source_titles_from_chunks
-from src.config import Paths
-from src.openai_utils import openai_client
+from src.internationalbridgestojustice.query_functions import (
+    verify_claim,
+    load_chroma_collection,
+    retrieve_source_titles_from_chunks,
+)
+from src.internationalbridgestojustice.config import Paths
+from src.internationalbridgestojustice.openai_utils import openai_client
 
 collection = load_chroma_collection(Paths.PATH_CHROMADB, Paths.COLLECTION_NAME)
 print(f"Collection contains {collection.count()} documents.")
-chunks = load_legal_chunks([Paths.PATH_JSONL_FILE_DEFENSEWIKI_CHUNKS, Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS])  # Get chunks
+chunks = load_legal_chunks(
+    [
+        Paths.PATH_JSONL_FILE_DEFENSEWIKI_CHUNKS,
+        Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS,
+    ]
+)  # Get chunks
 
 chunks_selected = [
     chunk for chunk in chunks if chunk["metadata"]["country"] == "Burundi"
