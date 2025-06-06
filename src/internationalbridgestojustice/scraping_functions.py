@@ -3,12 +3,12 @@ import re
 from bs4 import BeautifulSoup
 import unicodedata  # text formating
 from urllib.parse import unquote  # text formating
-import time
 from datetime import datetime
 from langdetect import detect
 from markdownify import markdownify as md
 from typing import Optional, Set, Dict
-from src.file_manager import generate_hash
+from src.internationalbridgestojustice.file_manager import generate_hash
+
 
 def get_link_status(url: str):
     try:
@@ -19,6 +19,7 @@ def get_link_status(url: str):
             return "error"
     except requests.exceptions.RequestException:
         return "error"
+
 
 def get_links(url: str):
     """Extracts all links from a webpage. level1: we want the reference of the specific pages and internal links"""
@@ -59,14 +60,11 @@ def get_links(url: str):
         return []
 
 
-def matching_country_name(country_names: str, title: str, title_to_country: dict, substring_to_country: dict) -> str:
-
+def matching_country_name(
+    country_names: str, title: str, title_to_country: dict, substring_to_country: dict
+) -> str:
     matching_country = next(
-        (
-            country
-            for country in country_names
-            if country.lower().strip() == title
-        ),
+        (country for country in country_names if country.lower().strip() == title),
         None,
     )
     if matching_country:
@@ -74,11 +72,7 @@ def matching_country_name(country_names: str, title: str, title_to_country: dict
 
     else:
         matching_country_1 = next(
-            (
-                country
-                for country in country_names
-                if country.lower().strip() in title
-            ),
+            (country for country in country_names if country.lower().strip() in title),
             None,
         )
         if matching_country_1:
@@ -113,15 +107,14 @@ def matching_country_name(country_names: str, title: str, title_to_country: dict
 
 
 def scrap_defensewiki_website(
-        url: str,
-        base_url: str,
-        list_country_names: list[str],
-        out_folder: str,
-        title_to_country: str,
-        substring_to_country: str,
-        visited: Optional[Set[str]] = None
+    url: str,
+    base_url: str,
+    list_country_names: list[str],
+    out_folder: str,
+    title_to_country: str,
+    substring_to_country: str,
+    visited: Optional[Set[str]] = None,
 ) -> Dict:
-
     if visited is None:
         visited = set()
     if url in visited:
@@ -135,21 +128,22 @@ def scrap_defensewiki_website(
         link_type = "internal" if link_i.startswith(base_url) else "external"
         link_status = get_link_status(link_i)
 
-        link_info = {
-            "type": link_type,
-            "status": link_status
-        }
+        link_info = {"type": link_type, "status": link_status}
 
         if link_status == "functional":
             response, soup = extract_webpage_html_from_url(link_i)
             md_text = md(response.text)
-            page_name = define_defensewiki_page_name(link_i)  # Extract page name from URL
+            page_name = define_defensewiki_page_name(
+                link_i
+            )  # Extract page name from URL
             filename = f"{out_folder}/{page_name}.md"
             viewcount_tag = soup.find("li", {"id": "viewcount"})
             viewcount = viewcount_tag.get_text(strip=True) if viewcount_tag else None
-            country = matching_country_name(list_country_names, page_name, title_to_country, substring_to_country)
+            country = matching_country_name(
+                list_country_names, page_name, title_to_country, substring_to_country
+            )
 
-            link_info= {
+            link_info = {
                 "type": link_type,
                 "status": get_link_status(link_i),
                 "link": link_i,
@@ -164,7 +158,7 @@ def scrap_defensewiki_website(
                 "nbr_of_words": len(md_text.split()),
                 "nbr_of_lines": len(md_text.splitlines()),
                 "content": md_text,
-                "country": country
+                "country": country,
             }
 
         print({k: link_info[k] for k in ["country", "title", "link"] if k in link_info})
@@ -187,14 +181,18 @@ def get_last_edited_date(soup):
             return f"{date}, {time}"
     return lastmod_li
 
+
 def extract_webpage_html_from_url(url: str):
     response = requests.get(url)  # Fetch the html of page in soup
     response.raise_for_status()  # Raise an error for failed requests
     soup = BeautifulSoup(response.text, "html.parser")  # Parse the HTML
     return response, soup
 
+
 def define_defensewiki_page_name(defensewiki_link: str):
-    page_name = unquote(defensewiki_link.split("title=")[1].split("&")[0].replace("/", "-"))
+    page_name = unquote(
+        defensewiki_link.split("title=")[1].split("&")[0].replace("/", "-")
+    )
     page_name = page_name.replace("_", " ").strip().lower()
     # Normalize the string to remove accents and special characters. This normalizes the string, breaking down accented characters into their base characters (e.g., ô becomes o).
     page_name = (
@@ -202,15 +200,19 @@ def define_defensewiki_page_name(defensewiki_link: str):
     )
     return page_name
 
+
 def remove_content_field_from_tree_dict(tree):
     """Recursively removes the 'content' field from the tree structure."""
     if isinstance(tree, dict):
         tree.pop("content", None)  # Remove 'content' if it exists
         for key, value in tree.items():
-            remove_content_field_from_tree_dict(value)  # Recurse into nested dictionaries
+            remove_content_field_from_tree_dict(
+                value
+            )  # Recurse into nested dictionaries
     elif isinstance(tree, list):
         for item in tree:
             remove_content_field_from_tree_dict(item)  # Recurse into lists
+
 
 def save_status_link_dictionary_as_html(tree_links_validity, output_file):
     html_template = """<html>

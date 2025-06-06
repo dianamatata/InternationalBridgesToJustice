@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "{{ cookiecutter.module_name }}"
+name = "InternationalBridgesToJustice"
 authors = [
     # TODO configure authors
     # { name = "Jane Smith", email = "jane.smith@example.com" },
@@ -20,8 +20,7 @@ dependencies = [
 dynamic = ["version"]
 
 [tool.setuptools.dynamic]
-version = {attr = "{{ cookiecutter.module_name }}.__version__"}
-{%- if cookiecutter.use_ruff %}
+version = {attr = "InternationalBridgesToJustice.__version__"}
 
 [tool.ruff]
 extend-include = ["*.ipynb"]
@@ -48,4 +47,3 @@ ignore = [
 "__init__.py" = ["F401"]
 "tests/**" = ["INP001"]
 "[!t][!e][!s][!t][!s]*/**" = ["PT"]
-{%- endif %}

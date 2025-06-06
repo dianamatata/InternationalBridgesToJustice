@@ -6,7 +6,7 @@ from markdownify import (
 import json
 import re
 import os
-from src.config import Paths
+from src.internationalbridgestojustice.config import Paths
 
 
 response_base = requests.get(Paths.START_URL_CONSTITUTIONS)
@@ -18,8 +18,9 @@ dictionary_countryname_countrylink = {
 }
 
 for country_year, link in list(dictionary_countryname_countrylink.items()):
-
-    if not os.path.exists(f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md"):
+    if not os.path.exists(
+        f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md"
+    ):
         print(f"Constitution not extracted yet: {country_year}: Link: {link}")
 
         response = requests.get(Paths.BASE_URL_CONSTITUTIONS + link)
@@ -53,11 +54,15 @@ for country_year, link in list(dictionary_countryname_countrylink.items()):
         }
 
         # save constitution
-        with open(f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md", "w") as file:
+        with open(
+            f"{Paths.PATH_FOLDER_CONSTITUTIONS_WITH_MD_FILES}/{country_year}.md", "w"
+        ) as file:
             file.write(cleaned_md_text)
         # save with metadata in jsonl
         with open(
-            Paths.PATH_JSONL_FILE_WITH_CONSTITUTIONS_ALL_COUNTRIES, "a", encoding="utf-8"
+            Paths.PATH_JSONL_FILE_WITH_CONSTITUTIONS_ALL_COUNTRIES,
+            "a",
+            encoding="utf-8",
         ) as jsonl_file:
             jsonl_file.write(json.dumps(file_info) + "\n")
     else:

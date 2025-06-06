@@ -1,7 +1,7 @@
 import json
 from tqdm import tqdm
-from src.chunking_functions import extract_chapters, split_text_into_chunks
-from src.config import MAX_CHUNK_SIZE, Paths
+from src import extract_chapters, split_text_into_chunks
+from src.internationalbridgestojustice.config import MAX_CHUNK_SIZE, Paths
 
 headers_to_exclude_from_chunks = {
     "REFERENCES",
@@ -14,7 +14,7 @@ headers_to_exclude_from_chunks = {
     "Search",
     "Glossary",
     "Tools",
-    "Contents"
+    "Contents",
 }
 
 # MAIN --------------------
@@ -46,10 +46,15 @@ with open(Paths.PATH_JSONL_FILE_DEFENSEWIKI, "r", encoding="utf-8") as jsonl_fil
             )
             chunks.extend(new_chunks)
 
-with open(f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.jsonl", "w", encoding="utf-8") as jsonl_file:
+with open(
+    f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.jsonl", "w", encoding="utf-8"
+) as jsonl_file:
     for chunk in chunks:
         jsonl_file.write(json.dumps(chunk.__dict__) + "\n")
 
-with open(f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.json", "w", encoding="utf-8") as json_file:
-    json.dump([chunk.__dict__ for chunk in chunks], json_file, ensure_ascii=False, indent=2)
-
+with open(
+    f"{Paths.PATH_FOLDER_DEFENSE_WIKI}/chunks.json", "w", encoding="utf-8"
+) as json_file:
+    json.dump(
+        [chunk.__dict__ for chunk in chunks], json_file, ensure_ascii=False, indent=2
+    )

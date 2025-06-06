@@ -2,9 +2,12 @@ import os
 import json
 import numpy as np
 from tqdm import tqdm
-from src.get_claims import ClaimExtractor
-from src.config import Paths
-from src.file_manager import load_jsonl_and_convert_to_list_of_dict
+from src.internationalbridgestojustice.get_claims import ClaimExtractor
+from src.internationalbridgestojustice.config import Paths
+from src.internationalbridgestojustice.file_manager import (
+    load_jsonl_and_convert_to_list_of_dict,
+)
+
 model_name = "gpt-4o-mini"
 cache_dir = "./data/cache"
 
@@ -22,7 +25,10 @@ links_list_to_extract = np.unique(links_list_to_extract)
 print(links_list_to_extract)
 
 claim_extractor = ClaimExtractor(
-    model_name=model_name, prompt_file=Paths.PATH_FILE_PROMPT_CLAIM_EXTRACTION, cache_dir=cache_dir)
+    model_name=model_name,
+    prompt_file=Paths.PATH_FILE_PROMPT_CLAIM_EXTRACTION,
+    cache_dir=cache_dir,
+)
 
 # extract a page -------------------------------------
 page = links_list_to_extract[0]
@@ -54,7 +60,9 @@ for dict_item in tqdm(data):
             jsonl_file_extracted_claims = os.path.join(
                 Paths.PATH_FOLDER_CLAIM_EXTRACTION, filename
             )  # Specify your output directory
-            with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
+            with open(
+                jsonl_file_extracted_claims, "a"
+            ) as jsonl_file:  # a appends, w overwrites
                 jsonl_file.write(json.dumps(output_dict) + "\n")
         print(f"extracted claims are saved at {Paths.PATH_JSONL_FILE_EXTRACTED_CLAIMS}")
 
@@ -88,6 +96,8 @@ for dict_item in tqdm(data):
         jsonl_file_extracted_claims = os.path.join(
             Paths.PATH_FOLDER_CLAIM_EXTRACTION, filename
         )  # Specify your output directory
-        with open(jsonl_file_extracted_claims, "a") as jsonl_file:  # a appends, w overwrites
+        with open(
+            jsonl_file_extracted_claims, "a"
+        ) as jsonl_file:  # a appends, w overwrites
             jsonl_file.write(json.dumps(output_dict) + "\n")
 print(f"extracted claims are saved at {Paths.PATH_JSONL_FILE_EXTRACTED_CLAIMS}")

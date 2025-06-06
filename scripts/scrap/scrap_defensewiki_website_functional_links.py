@@ -11,11 +11,12 @@ import time
 import json
 import pandas as pd
 import glob
-from src.file_manager import save_file
-from src.scraping_functions import get_link_status, get_links
-from src.config import Paths
+from src.internationalbridgestojustice.file_manager import save_file
+from src import get_link_status, get_links
+from src.internationalbridgestojustice.config import Paths
 
 # Functions -------------------
+
 
 def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     url,
@@ -24,7 +25,6 @@ def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
     base_url=Paths.BASE_URL_DEFENSE_WIKI,
     out_folder=Paths.PATH_FOLDER_DEFENSE_WIKI,
 ):
-
     if visited is None:
         visited = set()
 
@@ -43,20 +43,20 @@ def iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
 
         link_type = "internal" if link_i.startswith(base_url) else "external"
         link_status = get_link_status(link_i)
-        link_info = {
-            "type": link_type,
-            "status": link_status
-        }
+        link_info = {"type": link_type, "status": link_status}
 
         if depth > 1:
-            subtree, visited = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
-                link_i, depth - 1, visited, base_url, out_folder
+            subtree, visited = (
+                iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
+                    link_i, depth - 1, visited, base_url, out_folder
+                )
             )
             link_info["subtree"] = subtree
 
         tree[url][link_i] = link_info
 
     return tree, visited
+
 
 def format_json_with_colors(data):
     json_str = json.dumps(data, indent=4)
@@ -118,20 +118,26 @@ url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=2
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1500&offset=1000"
 # url = "https://defensewiki.ibj.org/index.php?title=Special:MostRevisions&limit=1300&offset=0" # all pages
 
-tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url=url, visited=None, depth=2)
+tree_links_validity, visited_links = (
+    iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
+        url=url, visited=None, depth=2
+    )
+)
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 # print(f"\033[92m{json.dumps(tree_links_validity, indent=4)}\033[0m")  # green color
-with open("../data/processed/defensewiki.ibj.org/tree_links_validity.json", "w") as f:
+with open(
+    "../../data/processed/defensewiki.ibj.org/tree_links_validity.json", "w"
+) as f:
     json.dump(tree_links_validity, f, indent=4)
 
 save_status_link_dictionary_as_html(
     tree_links_validity,
-    output_file="../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
+    output_file="../../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.html",
 )
 save_as_cvs(
     tree_links_validity,
-    output_file="../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv",
+    output_file="../../data/processed/defensewiki.ibj.org/tree_links_validity_1000_1500.csv",
 )
 print("files saved")
 
@@ -161,12 +167,18 @@ df_merged.to_csv(output_file, sep="\t", index=False)
 # print(f"\033[93m{json.dumps(tree, indent=4)}\033[0m")  # yellow color
 
 # first iteration
-tree_links_validity, visited_links = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(url, visited=None, depth=2)
+tree_links_validity, visited_links = (
+    iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
+        url, visited=None, depth=2
+    )
+)
 
 # second iteration:
 start_time = time.time()
-tree_links_validity2, visited_links2 = iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
-    url, visited=visited_links, depth=2
+tree_links_validity2, visited_links2 = (
+    iterative_check_of_functional_and_outdated_links_from_the_DefenseWiki(
+        url, visited=visited_links, depth=2
+    )
 )
 elapsed_time = time.time() - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
@@ -182,5 +194,3 @@ save_file(
 # save visited links
 with open(f"{folder_defense_wiki_raw}/defensewiki1_visited_links.txt", "w") as file:
     file.write("\n".join(visited_links))
-
-

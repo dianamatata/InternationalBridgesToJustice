@@ -1,3 +1,9 @@
+Metadata-Version: 2.4
+Name: InternationalBridgesToJustice
+Version: 0.1.0
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
 # Artificial intelligence for legal assistance in developing countries
 
 ## Objectives
@@ -33,12 +39,12 @@ Scrap the Constitution website and save content and metadata in a json file
 * [extract_and_chunk_other_legal_docs.py](scripts%2Fextract_and_chunk_other_legal_docs.py)
 Extract and scrap other pdf legal documents 
 
-* [scraping_unodc.py](scripts/scrap/scrap_unodc.py) <font color="yellow">*TODO*</font>
+* [scraping_unodc.py](scripts/scrap_unodc.py) <font color="yellow">*TODO*</font>
 
-* [chunking_defensewiki.py](scripts/chunk/chunk_defensewiki.py)
+* [chunking_defensewiki.py](scripts/chunk_defensewiki.py)
 Chunk the Defense Wiki content into smaller pieces and save them in a json file
 
-* [chunking_constitutions.py](scripts/chunk/chunk_constitutions.py)
+* [chunking_constitutions.py](scripts/chunk_constitutions.py)
 Chunk the Constitution content into smaller pieces and save them in a json file
 
 * [translation_batches.py](scripts/translate_chunks_in_batches.py)

@@ -1,21 +1,38 @@
-from src.openai_utils import get_openai_response
-from src.chromadb_utils import perform_similarity_search_in_collection
-from src.file_manager import build_context_string_from_retrieve_documents
+from src.internationalbridgestojustice.openai_utils import get_openai_response
+from src.internationalbridgestojustice.chromadb_utils import (
+    perform_similarity_search_in_collection,
+)
+from src.internationalbridgestojustice.file_manager import (
+    build_context_string_from_retrieve_documents,
+)
 import json
-from src.config import Paths
+from src.internationalbridgestojustice.config import Paths
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
 # __str__ method: Provides a human-readable summary of the chunk, showing the title and a preview of the content.
 
+
 class KeypointEvaluation:
-    def __init__(self, country: str, keypoint: str, system_prompt: str, model: str = "gpt-4o-mini", collection=None, lazy=True):
+    def __init__(
+        self,
+        country: str,
+        keypoint: str,
+        system_prompt: str,
+        model: str = "gpt-4o-mini",
+        collection=None,
+        lazy=True,
+    ):
         self.country = country
-        self.keypoint_description = keypoint['Description']
-        self.keypoint = keypoint['Keypoint']
+        self.keypoint_description = keypoint["Description"]
+        self.keypoint = keypoint["Keypoint"]
         self.custom_id = f"{country}-{self.keypoint}"
-        self.out_answer_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness.json"
-        self.out_log_file = f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness_log.json"
+        self.out_answer_file = (
+            f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness.json"
+        )
+        self.out_log_file = (
+            f"{Paths.PATH_FOLDER_COMPLETENESS}/{self.country}_completeness_log.json"
+        )
         self.wiki_content = None
         self.database_content = None
         self.answer = None
@@ -35,7 +52,6 @@ class KeypointEvaluation:
 
     def __str__(self):
         return f"Country: {self.country}\nKeypoint: {self.keypoint}\nAnswer: {self.answer[:200]}..."
-
 
     def to_dict(self):
         return {
@@ -75,12 +91,15 @@ class KeypointEvaluation:
         self.prompt = prompt_template.format(
             keypoint=self.keypoint,
             keypoint_description=self.keypoint_description,
-            wiki_content=build_context_string_from_retrieve_documents(self.wiki_content),
-            database_content=build_context_string_from_retrieve_documents(self.database_content),
+            wiki_content=build_context_string_from_retrieve_documents(
+                self.wiki_content
+            ),
+            database_content=build_context_string_from_retrieve_documents(
+                self.database_content
+            ),
         )
 
     def check_completeness(self, client, temperature: float = 0.1):
-
         self.answer = get_openai_response(
             client=client,
             categorize_system_prompt=self.system_prompt,
@@ -91,7 +110,9 @@ class KeypointEvaluation:
         )
         self.answer = json.loads(self.answer)
 
-    def batch_check_completeness(self, client, keypoints: list[str], temperature: float = 0.1):
+    def batch_check_completeness(
+        self, client, keypoints: list[str], temperature: float = 0.1
+    ):
         # TODO: issue should it be sequencial in 2 steps, first design prompt, then call to get answer?
 
         # Prepare all user prompts (for example, formatted keypoints)
@@ -118,13 +139,23 @@ class KeypointEvaluation:
             "keypoint": self.keypoint,
             "answer": self.answer,
             "wiki_content": {
-                "ids": self.wiki_content.get("ids", [[]])[0] if self.wiki_content.get("ids") else None,
-                "distances": self.wiki_content.get("distances", [[]])[0] if self.wiki_content.get("distances") else None,
-                "documents": self.wiki_content.get("documents", [[]])[0] if self.wiki_content.get("documents") else None,
+                "ids": self.wiki_content.get("ids", [[]])[0]
+                if self.wiki_content.get("ids")
+                else None,
+                "distances": self.wiki_content.get("distances", [[]])[0]
+                if self.wiki_content.get("distances")
+                else None,
+                "documents": self.wiki_content.get("documents", [[]])[0]
+                if self.wiki_content.get("documents")
+                else None,
             },
             "database_content": {
-                "ids": self.database_content.get("ids", [[]])[0] if self.database_content.get("ids") else None,
-                "distances": self.database_content.get("distances", [[]])[0] if self.database_content.get("distances") else None,
+                "ids": self.database_content.get("ids", [[]])[0]
+                if self.database_content.get("ids")
+                else None,
+                "distances": self.database_content.get("distances", [[]])[0]
+                if self.database_content.get("distances")
+                else None,
             },
         }
 
@@ -233,17 +264,13 @@ schema_final = {
             "type": "array",
             "items": {
                 "type": "array",
-                "items": {
-                    "type": "string"
-                },
+                "items": {"type": "string"},
             },
             "description": " For each sentence of the chapter, provide a list of extracted claims",
         },
         "All_Claims ": {
             "type": "array",
-            "items": {
-                "type": "string"
-            },
+            "items": {"type": "string"},
             "description": " All the extracted claims of the chapter, with duplicates removed.",
         },
         "All_claims_per_sentence": {
@@ -254,7 +281,7 @@ schema_final = {
                 "properties": {
                     "sentence": {
                         "type": "string",
-                        "description": "The sentence from which claims are extracted."
+                        "description": "The sentence from which claims are extracted.",
                     },
                     "claims": {
                         "type": "array",
@@ -264,34 +291,44 @@ schema_final = {
                             "properties": {
                                 "claim": {
                                     "type": "string",
-                                    "description": "The claim extracted from the sentence."
+                                    "description": "The claim extracted from the sentence.",
                                 },
                                 "decision": {
                                     "type": "string",
-                                    "enum": ["Supported", "Contradicted", "Inconclusive"],
-                                    "description": "The claim extracted from the sentence."
+                                    "enum": [
+                                        "Supported",
+                                        "Contradicted",
+                                        "Inconclusive",
+                                    ],
+                                    "description": "The claim extracted from the sentence.",
                                 },
                                 "full_answer": {
                                     "type": "string",
-                                    "description": "Specific laws or legal chapters to justify your decision if applicable (not necessary for Inconclusive)."
+                                    "description": "Specific laws or legal chapters to justify your decision if applicable (not necessary for Inconclusive).",
                                 },
                                 "sources": {
                                     "type": "array",
                                     "items": {"type": "string"},
-                                    "description": "Chunk titles that support the claim."
+                                    "description": "Chunk titles that support the claim.",
                                 },
                                 "document_ids": {
                                     "type": "array",
                                     "items": {"type": "string"},
-                                    "description": "Chunk hashes that support the claim."
+                                    "description": "Chunk hashes that support the claim.",
                                 },
                                 "distances": {
                                     "type": "array",
                                     "items": {"type": "string"},
-                                    "description": "Distances of the chunks that support the claim."
-                                }
+                                    "description": "Distances of the chunks that support the claim.",
+                                },
                             },
-                            "required": ["claim", "decision", "sources", "document_ids", "distances"],
+                            "required": [
+                                "claim",
+                                "decision",
+                                "sources",
+                                "document_ids",
+                                "distances",
+                            ],
                         },
                     },
                 },

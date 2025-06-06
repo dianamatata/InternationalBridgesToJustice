@@ -1,27 +1,40 @@
 import re
 import os
 import regex
-from src.get_response import GetResponse
-from src.chromadb_utils import perform_similarity_search_in_collection
-from src.query_functions import format_prompt_for_claim_verification
-from src.openai_utils import get_openai_response
-from src.file_manager import build_context_string_from_retrieve_documents
-class ClaimExtractor():
+from src.internationalbridgestojustice.get_response import GetResponse
+from src.internationalbridgestojustice.chromadb_utils import (
+    perform_similarity_search_in_collection,
+)
+from src.internationalbridgestojustice.query_functions import (
+    format_prompt_for_claim_verification,
+)
+from src.internationalbridgestojustice.openai_utils import get_openai_response
+from src.internationalbridgestojustice.file_manager import (
+    build_context_string_from_retrieve_documents,
+)
 
-    def __init__(self, model_name: str = "gpt-4o-mini", prompt_file: str = "data/prompts/prompt_claim_extraction.md", cache_dir: str = "./data/cache/"):
+
+class ClaimExtractor:
+    def __init__(
+        self,
+        model_name: str = "gpt-4o-mini",
+        prompt_file: str = "data/prompts/prompt_claim_extraction.md",
+        cache_dir: str = "./data/cache/",
+    ):
         self.model = None
         self.prompt_file = prompt_file
         cache_dir = os.path.join(cache_dir, model_name)
         os.makedirs(cache_dir, exist_ok=True)
-        self.cache_file = os.path.join(cache_dir, f"claim_extraction_cache.json")
-        self.get_model_response = GetResponse(cache_file=self.cache_file,
-                                              model_name=model_name,
-                                              max_tokens=1000,
-                                              temperature=0)
+        self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
+        self.get_model_response = GetResponse(
+            cache_file=self.cache_file,
+            model_name=model_name,
+            max_tokens=1000,
+            temperature=0,
+        )
         self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
     def scan_text_for_claims(self, response, cost_estimate_only=False):
-
         """
         Given a model output
         - split the response into sentences using spaCy > no, points now
@@ -32,26 +45,29 @@ class ClaimExtractor():
         sentences = sentences.split(".")
 
         all_facts_lst = []
-        prompt_tok_cnt, response_tok_cnt = 0, 0         # keep track of token counts
+        prompt_tok_cnt, response_tok_cnt = 0, 0  # keep track of token counts
 
         snippet_lst = []
         fact_lst_lst = []
 
         for i, sentence in enumerate(sentences):
             lead_sent = sentences[0]  # 1st sentence of the para
-            context1 = " ".join(sentences[max(0, i - 3):i])
+            context1 = " ".join(sentences[max(0, i - 3) : i])
             sentence = f"<SOS>{sentences[i].strip()}<EOS>"
-            context2 = " ".join(sentences[i + 1:i + 2])
+            context2 = " ".join(sentences[i + 1 : i + 2])
 
             if len(sentences) <= 5:
-                snippet = f"{context1.strip()} {sentence.strip()} {context2.strip()}".strip()
+                snippet = (
+                    f"{context1.strip()} {sentence.strip()} {context2.strip()}".strip()
+                )
             else:
                 snippet = f"{lead_sent.strip()} {context1.strip()} {sentence.strip()} {context2.strip()}".strip()
 
             snippet_lst.append(snippet)
 
-            facts, prompt_tok_num, response_tok_num = self.fact_extractor_for_snippet(snippet, sentences[i].strip(),
-                                                                                      cost_estimate_only=cost_estimate_only)
+            facts, prompt_tok_num, response_tok_num = self.fact_extractor_for_snippet(
+                snippet, sentences[i].strip(), cost_estimate_only=cost_estimate_only
+            )
             prompt_tok_cnt += prompt_tok_num
             response_tok_cnt += response_tok_num
 
@@ -72,8 +88,14 @@ class ClaimExtractor():
             fact_lst.append(fact.strip())
         fact_lst_lst.append(fact_lst)
 
-        print(f"Returning facts and token counts for the whole response ...")
-        return snippet_lst, fact_lst_lst, all_facts_lst, prompt_tok_cnt, response_tok_cnt
+        print("Returning facts and token counts for the whole response ...")
+        return (
+            snippet_lst,
+            fact_lst_lst,
+            all_facts_lst,
+            prompt_tok_cnt,
+            response_tok_cnt,
+        )
 
     def fact_extractor_for_snippet(self, snippet, sentence, cost_estimate_only=False):
         """
@@ -83,9 +105,11 @@ class ClaimExtractor():
 
         prompt_template = open(self.prompt_file, "r").read()
         prompt_text = prompt_template.format(snippet=snippet, sentence=sentence)
-        response, prompt_tok_cnt, response_tok_cnt = self.get_model_response.get_response(self.system_message,
-                                                                                          prompt_text,
-                                                                                          cost_estimate_only)
+        response, prompt_tok_cnt, response_tok_cnt = (
+            self.get_model_response.get_response(
+                self.system_message, prompt_text, cost_estimate_only
+            )
+        )
         if not response or "No verifiable claim." in response:
             return None, prompt_tok_cnt, response_tok_cnt
         else:
@@ -97,36 +121,55 @@ class ClaimExtractor():
 
     def clean_text(text: str) -> str:
         text = text.strip()
-        text = re.sub(r"\[\[.*?\]\]\(#.*?\)", "", text) # 1. Remove all [[...]](#cite_note-...) patterns
-        text = text.replace('\n\n', '\n') # 2. Remove double newlines
-        text = text.replace('**', '') # 3. Remove bold markers **
-        text = re.sub(r'\s+', ' ', text).strip() # 4. Remove redundant spaces
+        text = re.sub(
+            r"\[\[.*?\]\]\(#.*?\)", "", text
+        )  # 1. Remove all [[...]](#cite_note-...) patterns
+        text = text.replace("\n\n", "\n")  # 2. Remove double newlines
+        text = text.replace("**", "")  # 3. Remove bold markers **
+        text = re.sub(r"\s+", " ", text).strip()  # 4. Remove redundant spaces
         return text
 
 
-
-class ClaimVerificator():
-
-    def __init__(self, model_name: str = "gpt-4o-mini", prompt_file: str = "data/prompts/prompt_claim_verification.md", cache_dir: str = "./data/cache/"):
+class ClaimVerificator:
+    def __init__(
+        self,
+        model_name: str = "gpt-4o-mini",
+        prompt_file: str = "data/prompts/prompt_claim_verification.md",
+        cache_dir: str = "./data/cache/",
+    ):
         self.model = None
         self.prompt_file = prompt_file
         cache_dir = os.path.join(cache_dir, model_name)
         os.makedirs(cache_dir, exist_ok=True)
-        self.cache_file = os.path.join(cache_dir, f"claim_extraction_cache.json")
-        self.get_model_response = GetResponse(cache_file=self.cache_file,
-                                              model_name=model_name,
-                                              max_tokens=1000,
-                                              temperature=0)
+        self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
+        self.get_model_response = GetResponse(
+            cache_file=self.cache_file,
+            model_name=model_name,
+            max_tokens=1000,
+            temperature=0,
+        )
         self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
-
-    def verify_claim(self, claim: str, collection, client, prompt_claim_verification: str,metadata_param:str, metadata_value:str):
+    def verify_claim(
+        self,
+        claim: str,
+        collection,
+        client,
+        prompt_claim_verification: str,
+        metadata_param: str,
+        metadata_value: str,
+    ):
         results = perform_similarity_search_in_collection(
-            collection=collection, query_text=claim, metadata_param=metadata_param, metadata_value=metadata_value,
-            number_of_results_to_retrieve=5
+            collection=collection,
+            query_text=claim,
+            metadata_param=metadata_param,
+            metadata_value=metadata_value,
+            number_of_results_to_retrieve=5,
         )
         context_text = build_context_string_from_retrieve_documents(results)
-        prompt = format_prompt_for_claim_verification(prompt_claim_verification, claim=claim, context=context_text)
+        prompt = format_prompt_for_claim_verification(
+            prompt_claim_verification, claim=claim, context=context_text
+        )
         answer = get_openai_response(client, prompt)
 
         return results, answer

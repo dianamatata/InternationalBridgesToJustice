@@ -1,6 +1,6 @@
 import json
 from keypoint_evaluation import KeypointEvaluation
-from src.config import Paths
+from src.internationalbridgestojustice.config import Paths
 
 
 file_batch_results = "data/interim/batch_results.jsonl"

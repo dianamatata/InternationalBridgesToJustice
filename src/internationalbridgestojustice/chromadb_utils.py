@@ -1,5 +1,5 @@
 import chromadb
-from src.openai_utils import openai_generate_embeddings
+from src.internationalbridgestojustice.openai_utils import openai_generate_embeddings
 
 
 def load_collection(chroma_collection_file_path: str, collection_name: str):
@@ -14,6 +14,7 @@ def load_collection(chroma_collection_file_path: str, collection_name: str):
     except Exception as e:
         raise RuntimeError(f"Could not load collection '{collection_name}': {e}")
     return collection
+
 
 def perform_similarity_search_in_collection(
     collection,
@@ -39,8 +40,13 @@ def perform_similarity_search_in_collection(
 
     return results
 
-def add_new_chunks_to_collection(chunks, collection, raw_embeddings_jsonl_file_path: str, chunk_ids_present_in_chromadb_collection_file_path: str):
 
+def add_new_chunks_to_collection(
+    chunks,
+    collection,
+    raw_embeddings_jsonl_file_path: str,
+    chunk_ids_present_in_chromadb_collection_file_path: str,
+):
     existing_ids = set(collection.get()["ids"])  # Get existing IDs
     print(f"Number of existing documents in DB: {len(existing_ids)}")
 
@@ -58,7 +64,9 @@ def add_new_chunks_to_collection(chunks, collection, raw_embeddings_jsonl_file_p
         texts = [c["content"] for c in new_chunks]
         ids = [c["title"] for c in new_chunks]
         metadata = [c.get("metadata", {}) for c in new_chunks]
-        metadata = [{k: (v if v is not None else "") for k, v in m.items()} for m in metadata]
+        metadata = [
+            {k: (v if v is not None else "") for k, v in m.items()} for m in metadata
+        ]
 
         embeddings = openai_generate_embeddings(texts)
         collection.add(

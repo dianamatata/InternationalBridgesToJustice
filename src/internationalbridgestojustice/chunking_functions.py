@@ -1,9 +1,10 @@
 # >> Hierarchical chunking with context and metadata inheritance, Chunk from CoTK is perfect.
 import re
-from src.config import Paths, MAX_CHUNK_SIZE
-from src.file_manager import generate_hash
+from src.internationalbridgestojustice.config import MAX_CHUNK_SIZE
+from src.internationalbridgestojustice.file_manager import generate_hash
 
 # FUNCTIONS --------------------
+
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
@@ -26,7 +27,6 @@ class Chunk:
 
 
 def extract_chapters(document, headers_to_exclude_from_chunks=None):
-
     document_sections = {}
 
     header_pattern = re.compile(
@@ -48,7 +48,7 @@ def extract_chapters(document, headers_to_exclude_from_chunks=None):
         else:
             end_idx = matches[i + 1].start()
 
-        length_paragraph = end_idx - matches[i].end() - 2
+        length_paragraph = end_idx - match.end() - 2
         if length_paragraph > 5:  # if it is a real paragraph
             start_idx = match.start()
             # print(f"\033[92m{match.start()}:{end_idx}\033[0m")
