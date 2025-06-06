@@ -30,6 +30,9 @@ Run statistics on the data extracted on the DefenseWiki website
 * [scrap_constitution_website.py](scripts%2Fscrap_constitution_website.py)
 Scrap the Constitution website and save content and metadata in a json file
 
+* [extract_and_chunk_other_legal_docs.py](scripts%2Fextract_and_chunk_other_legal_docs.py)
+Extract and scrap other pdf legal documents 
+
 * [scraping_unodc.py](scripts/scrap_unodc.py) <font color="yellow">*TODO*</font>
 
 * [chunking_defensewiki.py](scripts/chunk_defensewiki.py)
