@@ -4,6 +4,7 @@ from typing import Dict
 import re
 import hashlib  # get hash
 
+
 def generate_hash(content: str):
     """Generate SHA-256 hash of the given content."""
     return hashlib.sha256(content.encode()).hexdigest()
@@ -14,6 +15,10 @@ def save_file(filename: str, content, file_type="json"):
         if file_type == "json":
             with open(filename, "w", encoding="utf-8") as json_file:
                 json.dump(content, json_file, indent=4)
+        elif file_type == "jsonl1":
+            with open(filename, "w", encoding="utf-8") as jsonl_file:
+                for record in content:
+                    jsonl_file.write(json.dumps(record) + "\n")
         elif file_type == "jsonl":
             with open(filename, "w", encoding="utf-8") as jsonl_file:
                 for record in content:
@@ -37,12 +42,16 @@ def load_jsonl_and_convert_to_list_of_dict(
         ]  # Convert each line to a dictionary
     return data
 
+
 def load_json_file(file_path: str):
     with open(file_path, "r", encoding="utf-8") as json_file:
         data = json.load(json_file)
     return data
 
-def extract_info_from_defensewiki_and_create_dataframe(defensewiki_json_nocontent: Dict):
+
+def extract_info_from_defensewiki_and_create_dataframe(
+    defensewiki_json_nocontent: Dict,
+):
     """
     Load the data and extract info from the json file: language, view_count, and line + word count.
 
@@ -79,13 +88,17 @@ def extract_info_from_defensewiki_and_create_dataframe(defensewiki_json_noconten
             data_list,
             columns=["Title", "Language", "nbr_of_words", "nbr_of_lines", "Viewcount"],
         )
-        defensewiki_summary_dataframe.set_index("Title", inplace=True)  # Set Title as index
+        defensewiki_summary_dataframe.set_index(
+            "Title", inplace=True
+        )  # Set Title as index
         return defensewiki_summary_dataframe
+
 
 def get_country_names(country_names_filepath: str = "data/interim/country_names_1.txt"):
     with open(f"{country_names_filepath}", "r", encoding="utf-8") as f:
         country_names = f.read().splitlines()
         return country_names
+
 
 def save_completeness_result(
     country: str,
@@ -96,7 +109,6 @@ def save_completeness_result(
     out_jsonfile: str,
     out_md_file: str,
 ):
-
     country_keypoint = {
         "country": country,
         "keypoint": keypoint_to_check,
@@ -125,6 +137,7 @@ def save_completeness_result(
         f.write(answer)
         f.write("\n\n\n\n")
 
+
 def load_legal_chunks(list_of_paths: list[str]):
     chunks = []
     for path in list_of_paths:
@@ -140,6 +153,7 @@ def extract_chunk_from_hash(hash_to_search: str, chunks):
         (chunk for chunk in chunks if chunk["title"] == hash_to_search), None
     )
     return selected_chunk
+
 
 def build_context_string_from_retrieve_documents(results: dict) -> str:
     """
