@@ -25,3 +25,5 @@
 /veriscore/claim_extractor.py
 .venv/
 /scripts/old
+/data/chroma_db_v2
+/data/translated_chunks
