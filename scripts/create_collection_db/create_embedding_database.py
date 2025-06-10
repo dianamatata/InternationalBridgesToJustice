@@ -1,25 +1,9 @@
-from tqdm import tqdm
-from src import add_new_chunks_to_collection, load_collection
+from src.internationalbridgestojustice.chromadb_utils import (
+    load_collection,
+    batch_embed_and_add,
+)
 from src.internationalbridgestojustice.file_manager import load_legal_chunks
 from src.internationalbridgestojustice.config import Paths
-
-
-def batch_embed_and_add(
-    chunks,
-    collection,
-    raw_embeddings_jsonl_file_path: str,
-    chunk_ids_present_in_chromadb_collection_file_path: str,
-    batch_size: int = 2000,
-):
-    for i in tqdm(range(0, len(chunks), batch_size)):
-        batch = chunks[i : i + batch_size]
-        collection = add_new_chunks_to_collection(
-            batch,
-            collection,
-            raw_embeddings_jsonl_file_path,
-            chunk_ids_present_in_chromadb_collection_file_path,
-        )
-    return collection
 
 
 def main():
