@@ -1,18 +1,27 @@
 import chromadb
 from src.internationalbridgestojustice.openai_utils import openai_generate_embeddings
+from tqdm import tqdm
 
 
-def load_collection(chroma_collection_file_path: str, collection_name: str):
+def load_collection(
+    chroma_collection_file_path: str, collection_name: str, new_collection: bool = False
+):
     """
     Load the database or create it
     chromadb.PersistentClient(): This initializes the ChromaDB client that manages access to your local vector DB.
     with Chroma in persistent mode,  data is auto-saved to disk in CHROMA_PATH.
     """
     chroma_client = chromadb.PersistentClient(path=chroma_collection_file_path)
-    try:
-        collection = chroma_client.get_collection(collection_name)  # Load collection
-    except Exception as e:
-        raise RuntimeError(f"Could not load collection '{collection_name}': {e}")
+    if new_collection:
+        collection = chroma_client.create_collection(name=collection_name)
+        print(f"Created new collection: {collection_name}")
+    if new_collection == False:
+        try:
+            collection = chroma_client.get_collection(
+                collection_name
+            )  # Load collection
+        except Exception as e:
+            raise RuntimeError(f"Could not load collection '{collection_name}': {e}")
     return collection
 
 
@@ -39,6 +48,24 @@ def perform_similarity_search_in_collection(
     )
 
     return results
+
+
+def batch_embed_and_add(
+    chunks,
+    collection,
+    raw_embeddings_jsonl_file_path: str,
+    chunk_ids_present_in_chromadb_collection_file_path: str,
+    batch_size: int = 2000,
+):
+    for i in tqdm(range(0, len(chunks), batch_size)):
+        batch = chunks[i : i + batch_size]
+        collection = add_new_chunks_to_collection(
+            batch,
+            collection,
+            raw_embeddings_jsonl_file_path,
+            chunk_ids_present_in_chromadb_collection_file_path,
+        )
+    return collection
 
 
 def add_new_chunks_to_collection(
