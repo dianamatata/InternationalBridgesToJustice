@@ -75,12 +75,6 @@ def submit_batch_job(client, file_id: str):
 def check_progress_batch_id(batch_id: str):
     batch = openai_client.batches.retrieve(batch_id=batch_id)
     print(f"Batch {batch_id} status: {batch.status}")
-    if batch.status == "succeeded":
-        print("Batch completed successfully.")
-    elif batch.status == "failed":
-        print("Batch failed.")
-    else:
-        print("Batch is still in progress.")
 
 
 def retrieve_and_save_batch_results(
