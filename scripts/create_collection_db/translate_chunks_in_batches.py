@@ -12,7 +12,12 @@ from src.internationalbridgestojustice.get_translation import (
     create_new_chunks_from_translated_results,
 )
 from src.internationalbridgestojustice.config import Paths
+from src.internationalbridgestojustice.file_manager import save_file
 
+from src.internationalbridgestojustice.chromadb_utils import (
+    load_collection,
+    batch_embed_and_add,
+)
 
 # Load the chunks --------------------------------
 
@@ -96,21 +101,49 @@ file = upload_batch_file_to_openAI(
 
 batch = submit_batch_job(client=openai_client, file_id=file.id)
 
-check_progress_batch_id(batch_id="batch_6842f6bc28848190a58223b8d7c5c36b")
+batch_id = "batch_6842f6bc28848190a58223b8d7c5c36b"
+check_progress_batch_id(batch_id=batch_id)
 
 parsed_results = retrieve_and_save_batch_results(
-    batch_id="batch_6842d4c7d33c819084f1a30f683c5c4b",
-    output_file_path_jsonl="data/interim/test_retrieve_and_save_batch_results.jsonl",
+    batch_id=batch_id,
+    output_file_path_jsonl="data/interim/translation_Burundi_results.jsonl",
     return_parsed_results=True,
 )
 
 # create chunks_translated
 translated_chunks_Burundi = create_new_chunks_from_translated_results(
-    chunks_not_in_english=Burundi_chunks_not_in_english, parsed_results=parsed_results
+    chunks_not_in_english=filtered_chunks, parsed_results=parsed_results
 )
 
+# save new chunks
+save_file(
+    filename=Paths.PATH_TRANSLATED_CHUNKS,
+    content=translated_chunks_Burundi,
+    file_type="jsonl1",
+)
 
-result = parsed_results[19]
-# TODO Create new collection with the translated chunks
-# Burundi: Batch job submitted: batch_6842f6bc28848190a58223b8d7c5c36b in progress
-# Batch job submitted: batch_6842d4c7d33c819084f1a30f683c5c4b finished successfully
+# create a new collection with the translated chunks of Burundi + original in enlish
+
+Burundi_chunks = Burundi_chunks_in_english + translated_chunks_Burundi
+
+# V2 will only have chunks in english
+chroma_collection_file_path = "data/chroma_db_v2"
+collection_name = "legal_collection_v2"
+chunk_ids_present_in_chromadb_collection_file_path = "data/chroma_db_v2/seen_ids.txt"
+raw_embeddings = "data/chroma_db_v2/raw_embeddings.jsonl"
+
+collection = load_collection(
+    chroma_collection_file_path=chroma_collection_file_path,
+    collection_name=collection_name,
+    new_collection=True,  # Set to True to create a new collection
+)
+
+for Burundi_chunks in [Burundi_chunks_in_english, translated_chunks_Burundi]:
+    collection = batch_embed_and_add(
+        Burundi_chunks,
+        collection,
+        raw_embeddings,
+        chunk_ids_present_in_chromadb_collection_file_path,
+        batch_size=1000,
+    )
+print(f"Collection contains {collection.count()} documents.")
