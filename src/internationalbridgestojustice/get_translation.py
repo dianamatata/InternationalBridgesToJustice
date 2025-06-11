@@ -23,11 +23,13 @@ def get_chunks_in_english(jsonl_file_path: str, in_english: bool = True):
     else:
         raise ValueError("File must be in JSON or JSONL format.")
 
-    if in_english:
-        filtered_chunks = [c for c in chunks if c["metadata"]["language"] == "en"]
-    else:
-        filtered_chunks = [c for c in chunks if c["metadata"]["language"] != "en"]
-    return filtered_chunks
+    filtered_chunks_in_english = [
+        c for c in chunks if c["metadata"]["language"] == "en"
+    ]
+    filtered_chunks_not_in_english = [
+        c for c in chunks if c["metadata"]["language"] != "en"
+    ]
+    return filtered_chunks_in_english, filtered_chunks_not_in_english
 
 
 def get_chunks_for_one_country(chunks: list[dict], country: str):
@@ -83,15 +85,6 @@ class Translator:
         )
         self.system_message = "You are a translator that preserves markdown formatting and the references/citations/sources."
 
-    def translate_to_english(self, md_text: str, cost_estimate_only=False):
-        self.prompt_text = f"Translate the following Markdown file to English, keeping the formatting:\n\n{md_text} and not translating the text in the sources and references (articles, links,...)"
-        response, prompt_tok_cnt, response_tok_cnt = (
-            self.get_model_response.get_response(
-                self.system_message, self.prompt_text, cost_estimate_only
-            )
-        )
-        return response.choices[0].message.content, prompt_tok_cnt, response_tok_cnt
-
     def create_batch_file_for_translation(
         self, jsonl_output_file_path: str, chunks: list
     ):
@@ -107,3 +100,12 @@ class Translator:
                 )
 
                 outfile.write(json.dumps(request) + "\n")
+
+def translate_to_english(self, md_text: str, cost_estimate_only=False):
+    self.prompt_text = f"Translate the following Markdown file to English, keeping the formatting:\n\n{md_text} and not translating the text in the sources and references (articles, links,...)"
+    response, prompt_tok_cnt, response_tok_cnt = (
+        self.get_model_response.get_response(
+            self.system_message, self.prompt_text, cost_estimate_only
+        )
+    )
+        return response.choices[0].message.content, prompt_tok_cnt, response_tok_cnt
