@@ -12,7 +12,11 @@ import json
 import pandas as pd
 import glob
 from src.internationalbridgestojustice.file_manager import save_file
-from src import get_link_status, get_links
+from src.internationalbridgestojustice.scraping_functions import (
+    get_link_status,
+    get_links,
+    save_status_link_dictionary_as_html,
+)
 from src.internationalbridgestojustice.config import Paths
 
 # Functions -------------------

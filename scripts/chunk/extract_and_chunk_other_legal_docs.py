@@ -7,7 +7,10 @@ from src.internationalbridgestojustice.config import (
     Paths,
     MAX_CHUNK_SIZE,
 )
-from src import extract_chapters, split_text_into_chunks_with_metadata
+from src.internationalbridgestojustice.chunking_functions import (
+    extract_chapters,
+    split_text_into_chunks_with_metadata,
+)
 from src.internationalbridgestojustice.file_manager import (
     load_jsonl_and_convert_to_list_of_dict,
 )

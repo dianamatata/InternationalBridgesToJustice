@@ -21,27 +21,16 @@ from src.internationalbridgestojustice.chromadb_utils import (
 
 # Load the chunks --------------------------------
 
-defense_chunks_not_in_english = get_chunks_in_english(
-    jsonl_file_path="data/processed/defensewiki.ibj.org/unique_chunks.jsonl",
-    in_english=False,
-)
-defense_chunks_in_english = get_chunks_in_english(
-    jsonl_file_path="data/processed/defensewiki.ibj.org/unique_chunks.jsonl",
-    in_english=True,
+defense_chunks_in_english, defense_chunks_not_in_english = get_chunks_in_english(
+    jsonl_file_path="data/processed/defensewiki.ibj.org/unique_chunks.jsonl"
 )
 
-constitution_chunks_not_in_english = get_chunks_in_english(
-    jsonl_file_path=Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS, in_english=False
-)
-constitution_chunks_in_english = get_chunks_in_english(
-    jsonl_file_path=Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS, in_english=True
+constitution_chunks_in_english, constitution_chunks_not_in_english = (
+    get_chunks_in_english(jsonl_file_path=Paths.PATH_JSONL_FILE_CONSTITUTION_CHUNKS)
 )
 
-other_legal_docs_chunks_not_in_english = get_chunks_in_english(
-    jsonl_file_path=Paths.PATH_JSONL_FILE_LEGAL_OTHERS, in_english=False
-)
-other_legal_docs_chunks_in_english = get_chunks_in_english(
-    jsonl_file_path=Paths.PATH_JSONL_FILE_LEGAL_OTHERS, in_english=True
+other_legal_docs_chunks_in_english, other_legal_docs_chunks_not_in_english = (
+    get_chunks_in_english(jsonl_file_path=Paths.PATH_JSONL_FILE_LEGAL_OTHERS)
 )
 
 
@@ -67,25 +56,17 @@ total_chunks_in_english = (
 )
 
 # Filter the chunks on Burundi to create a Burundi collection and run just for that country ----------
-
-Burundi_chunks_not_in_english = get_chunks_for_one_country(
-    total_chunks_not_in_english, country="Burundi"
+COUNTRY = "Burundi"
+Country_chunks_not_in_english = get_chunks_for_one_country(
+    total_chunks_not_in_english, country=COUNTRY
 )
-Burundi_chunks_in_english = get_chunks_for_one_country(
-    total_chunks_in_english, country="Burundi"
+Country_chunks_in_english = get_chunks_for_one_country(
+    total_chunks_in_english, country=COUNTRY
 )
-print("Burundi_chunks_not_in_english: ", len(Burundi_chunks_not_in_english))
-print("Burundi_chunks_in_english: ", len(Burundi_chunks_in_english))
+print(COUNTRY, "chunks not in English: ", len(Country_chunks_not_in_english))
+print(COUNTRY, "chunks  in English: , ", len(Country_chunks_in_english))
 
-# Create batches to translate and submit requests --------------------------------
-# Key limits and considerations when using GPT-4o Mini via OpenAI's Batch API
-# Maximum Enqueued Tokens per Batch: Up to 2,000,000 tokens can be enqueued at one time.
-# Context Window: Up to 128,000 tokens per request.
-# Maximum Output Tokens: Up to 16,384 tokens per request.
-# estimate one request = 1500 tokens
-
-# filtered_chunks = total_chunks_not_in_english[0:1000]
-filtered_chunks = Burundi_chunks_not_in_english
+filtered_chunks = Country_chunks_not_in_english
 
 translator = Translator(model_name="gpt-4o-mini")
 
@@ -111,20 +92,19 @@ parsed_results = retrieve_and_save_batch_results(
 )
 
 # create chunks_translated
-translated_chunks_Burundi = create_new_chunks_from_translated_results(
+translated_chunks = create_new_chunks_from_translated_results(
     chunks_not_in_english=filtered_chunks, parsed_results=parsed_results
 )
 
 # save new chunks
 save_file(
     filename=Paths.PATH_TRANSLATED_CHUNKS,
-    content=translated_chunks_Burundi,
+    content=translated_chunks,
     file_type="jsonl1",
 )
 
 # create a new collection with the translated chunks of Burundi + original in enlish
-
-Burundi_chunks = Burundi_chunks_in_english + translated_chunks_Burundi
+Country_chunks = Country_chunks_in_english + translated_chunks
 
 # V2 will only have chunks in english
 chroma_collection_file_path = "data/chroma_db_v2"
@@ -138,9 +118,10 @@ collection = load_collection(
     new_collection=True,  # Set to True to create a new collection
 )
 
-for Burundi_chunks in [Burundi_chunks_in_english, translated_chunks_Burundi]:
+# in 2 steps otherwise error: 'Requested 310340 tokens, max 300000 tokens per request'
+for Country_chunks in [Country_chunks_in_english, translated_chunks]:
     collection = batch_embed_and_add(
-        Burundi_chunks,
+        Country_chunks,
         collection,
         raw_embeddings,
         chunk_ids_present_in_chromadb_collection_file_path,

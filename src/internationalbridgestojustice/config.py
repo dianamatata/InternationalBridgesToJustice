@@ -65,6 +65,10 @@ class Paths:
 
     FILE_COUNTRY_NAMES = "data/interim/country_names_1.txt"
 
+    # V2 ChromaDB
+    PATH_CHROMADB_v2 = "data/chroma_db_v2"
+    COLLECTION_NAME_v2 = "legal_collection_v2"
+
 
 # Others
 MAX_CHUNK_SIZE = 500  # these are words
