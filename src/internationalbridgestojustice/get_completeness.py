@@ -1,4 +1,6 @@
-from src.internationalbridgestojustice.openai_utils import get_openai_response
+from src.internationalbridgestojustice.openai_utils import (
+    get_openai_response,
+)
 from src.internationalbridgestojustice.chromadb_utils import (
     perform_similarity_search_in_collection,
 )
@@ -114,6 +116,7 @@ class KeypointEvaluation:
         self, client, keypoints: list[str], temperature: float = 0.1
     ):
         # TODO: issue should it be sequencial in 2 steps, first design prompt, then call to get answer?
+        # TODO get_openai_batch_response does not exist
 
         # Prepare all user prompts (for example, formatted keypoints)
         prompts = [f"Keypoint: {kp}" for kp in keypoints]
