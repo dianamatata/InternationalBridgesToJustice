@@ -68,11 +68,12 @@ class Paths:
     # V2 ChromaDB
     PATH_CHROMADB_v2 = "data/chroma_db_v2"
     COLLECTION_NAME_v2 = "legal_collection_v2"
+    PATH_CACHE = "data/cache"
 
 
 # Others
 MAX_CHUNK_SIZE = 500  # these are words
-
+MODEL_NAME = "gpt-4o-mini"
 
 legal_files_info_list = [
     {
