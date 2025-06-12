@@ -101,11 +101,10 @@ class Translator:
 
                 outfile.write(json.dumps(request) + "\n")
 
+
 def translate_to_english(self, md_text: str, cost_estimate_only=False):
     self.prompt_text = f"Translate the following Markdown file to English, keeping the formatting:\n\n{md_text} and not translating the text in the sources and references (articles, links,...)"
-    response, prompt_tok_cnt, response_tok_cnt = (
-        self.get_model_response.get_response(
-            self.system_message, self.prompt_text, cost_estimate_only
-        )
+    response, prompt_tok_cnt, response_tok_cnt = self.get_model_response.get_response(
+        self.system_message, self.prompt_text, cost_estimate_only
     )
-        return response.choices[0].message.content, prompt_tok_cnt, response_tok_cnt
+    return response.choices[0].message.content, prompt_tok_cnt, response_tok_cnt
