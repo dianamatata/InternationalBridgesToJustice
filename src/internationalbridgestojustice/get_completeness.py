@@ -1,5 +1,6 @@
 from src.internationalbridgestojustice.openai_utils import (
     get_openai_response,
+    build_batch_request,
 )
 from src.internationalbridgestojustice.chromadb_utils import (
     perform_similarity_search_in_collection,
@@ -112,29 +113,22 @@ class KeypointEvaluation:
         )
         self.answer = json.loads(self.answer)
 
-    def batch_check_completeness(
-        self, client, keypoints: list[str], temperature: float = 0.1
+    def create_batch_file_for_completeness(
+        self,
+        jsonl_output_file_path: str,
+        prompt: str,
+        temperature: float = 0.2,
     ):
-        # TODO: issue should it be sequencial in 2 steps, first design prompt, then call to get answer?
-        # TODO get_openai_batch_response does not exist
-
-        # Prepare all user prompts (for example, formatted keypoints)
-        prompts = [f"Keypoint: {kp}" for kp in keypoints]
-
-        # Call batch API
-        answers = get_openai_batch_response(
-            client=client,
-            categorize_system_prompt=self.system_prompt,
-            prompts=prompts,
-            response_format=self.response_format,
-            model=self.model,
-            temperature=temperature,
-        )
-
-        # Parse all JSON answers
-        parsed_answers = [json.loads(ans) for ans in answers]
-
-        return parsed_answers
+        with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
+            request = build_batch_request(
+                custom_id=f"completeness {self.country}-{self.keypoint}",
+                system_prompt=self.system_prompt,
+                user_prompt=prompt,
+                temperature=temperature,
+                model=self.model,
+                response_format=self.response_format,
+            )
+            outfile.write(json.dumps(request) + "\n")
 
     def save_log_as_json(self):
         log_data = {
