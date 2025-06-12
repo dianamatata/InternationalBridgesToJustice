@@ -4,6 +4,7 @@ from src.internationalbridgestojustice.openai_utils import (
     openai_client,
     retrieve_and_save_batch_results,
     check_progress_batch_id,
+    save_batch_id,
 )
 from src.internationalbridgestojustice.get_translation import (
     Translator,
@@ -57,6 +58,7 @@ total_chunks_in_english = (
 
 # Filter the chunks on Burundi to create a Burundi collection and run just for that country ----------
 COUNTRY = "Burundi"
+
 Country_chunks_not_in_english = get_chunks_for_one_country(
     total_chunks_not_in_english, country=COUNTRY
 )
@@ -81,6 +83,11 @@ file = upload_batch_file_to_openAI(
 )
 
 batch = submit_batch_job(client=openai_client, file_id=file.id)
+
+save_batch_id(
+    batch=batch,
+    path_file="data/interim/batch_id_input_translation.txt",
+)
 
 batch_id = "batch_6842f6bc28848190a58223b8d7c5c36b"
 check_progress_batch_id(batch_id=batch_id)
