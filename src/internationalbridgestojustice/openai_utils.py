@@ -40,20 +40,26 @@ def build_batch_request(
     user_prompt: str,
     temperature: float = 0.1,
     model: str = "gpt-4o-mini",
+    response_format: dict = None,
 ):
+    body = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": temperature,
+        "max_tokens": 1000,
+    }
+
+    if response_format is not None:
+        body["response_format"] = response_format
+
     return {
         "custom_id": custom_id,
         "method": "POST",
         "url": "/v1/chat/completions",  #  this is what tells OpenAI to use client.chat.completions.create
-        "body": {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "temperature": temperature,
-            "max_tokens": 1000,
-        },
+        "body": body,
     }
 
 
@@ -62,14 +68,23 @@ def upload_batch_file_to_openAI(client, batch_file_name: str):
     return file
 
 
-def submit_batch_job(client, file_id: str):
+def submit_batch_job(client, file_id: str, completion_window: str = "24h"):
     batch = client.batches.create(
         input_file_id=file_id,
         endpoint="/v1/chat/completions",
-        completion_window="24h",  # Or "1h" depending on plan
+        completion_window=completion_window,
     )
     print("Batch job submitted:", batch.id)
     return batch
+
+
+def save_batch_id(batch, path_file: str):
+    with open(
+        path_file,
+        "a",
+        encoding="utf-8",
+    ) as f:
+        f.write(f"{batch.id}\n")
 
 
 def check_progress_batch_id(batch_id: str):
