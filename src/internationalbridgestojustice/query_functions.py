@@ -1,8 +1,7 @@
-
-def format_prompt_for_claim_verification(prompt_template: str, claim: str, context: str) -> str:
+def format_prompt_for_claim_verification(
+    prompt_template: str, claim: str, context: str
+) -> str:
     return prompt_template.format(claim=claim, context=context)
-
-
 
 
 def get_completeness_keypoints(completeness_checklist_filepath: str):
@@ -17,7 +16,9 @@ def get_completeness_keypoints(completeness_checklist_filepath: str):
     return completeness_keypoints
 
 
-def retrieve_source_titles_from_chunks(results: dict, all_chunks: list[dict]) -> list[str]:
+def retrieve_source_titles_from_chunks(
+    results: dict, all_chunks: list[dict]
+) -> list[str]:
     """
     Retrieves human-friendly source titles for each returned chunk ID.
     Looks up each id from the results in the provided chunks.
