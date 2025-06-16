@@ -3,9 +3,16 @@ import json
 import tiktoken
 from openai import OpenAI
 
-class GetResponse():
+
+class GetResponse:
     # OpenAI model list: https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
-    def __init__(self, cache_file, model_name: str = "gpt-4o-mini", max_tokens=1000, temperature=0):
+    def __init__(
+        self,
+        cache_file,
+        model_name: str = "gpt-4o-mini",
+        max_tokens=1000,
+        temperature=0,
+    ):
         self.model_name = model_name
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -26,24 +33,34 @@ class GetResponse():
         self.print_interval = 20
 
     # Returns the response from the model given a system message and a prompt text.
-    def get_response(self, system_message, prompt_text, response_format, cost_estimate_only=False):
-
+    def get_response(
+        self,
+        system_message,
+        prompt_text,
+        response_format=None,
+        cost_estimate_only=False,
+        verbose: bool = True,
+    ):
         if cost_estimate_only:
             return None, self.tok_count(prompt_text)
 
         if "gpt" in self.model_name:
-            message = [{"role": "system", "content": system_message},
-                       {"role": "user", "content": prompt_text}]
+            message = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt_text},
+            ]
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=message,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 seed=self.seed,
-                response_format=response_format
+                response_format=response_format,
             )
             response_content = response.choices[0].message.content.strip()
-            total_cost = compute_chatgpt_4o_cost(response, self.model_name, verbose=True)
+            total_cost = compute_chatgpt_4o_cost(
+                response, self.model_name, verbose=verbose
+            )
             return response_content, total_cost
 
     # Returns the number of tokens in a text string.
@@ -67,6 +84,7 @@ class GetResponse():
         else:
             cache = {}
         return cache
+
 
 def compute_chatgpt_4o_cost(response, model, verbose: bool = False) -> float:
     # costs="https://openai.com/api/pricing/"
