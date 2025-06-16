@@ -87,25 +87,6 @@ Sentence to be focused on: They then guided him to the forest, where he passed t
 Facts:
 No verifiable claim.
 
-Text: `<SOS>`The sweet potato or sweetpotato (Ipomoea batatas) is a dicotyledonous plant that belongs to the bindweed or morning glory family, Convolvulaceae.`<EOS>` Its large, starchy, sweet-tasting tuberous roots are used as a root vegetable. The young shoots and leaves are sometimes eaten as greens.
-Sentence to be focused on: The sweet potato or sweetpotato (Ipomoea batatas) is a dicotyledonous plant that belongs to the bindweed or morning glory family, Convolvulaceae.
-Facts:
-- The scientific name of sweet potatoes is Ipomoea batatas.
-- Sweet potatoes are dicotyledonous plants.
-- Sweet potatoes belong to the bindweed or morning glory family, Convolvulaceae.
-
-Text: Pope Julius had an ambitious imagination, parallel to Michelangelo’s, but because of other projects, such as the new building of St. Peter’s and his military campaigns, he evidently became disturbed soon by the cost. Michelangelo believed that Bramante, the equally prestigious architect at St. Peter’s, had influenced the pope to cut off his funds. He left Rome, but the pope brought pressure on the city authorities of Florence to send him back. `<SOS>`He was put to work on a colossal bronze statue of the pope in his newly conquered city of Bologna (which the citizens pulled down soon after when they drove the papal army out) and then on the less expensive project of painting the ceiling of the Sistine Chapel (1508–12).`<EOS>`
-Sentence to be focused on: He was put to work on a colossal bronze statue of the pope in his newly conquered city of Bologna (which the citizens pulled down soon after when they drove the papal army out) and then on the less expensive project of painting the ceiling of the Sistine Chapel (1508–12).
-Facts:
-- Michelangelo was put to work on a colossal bronze statue of Pope Julius II.
-- The city of Bologna was once conquered by Pope Julius II.
-- The colossal bronze statue of Pope Julius II was put in Bologna.
-- The papal army was driven out of Bologna.
-- The citizens of the Bologna pulled down the bronze statue of Pope Julius II after they drove the papal army out.
-- Michelangelo worked on painting the ceiling of the Sistine Chapel from 1508 to 1512.
-
-Extract *verifiable atomic* facts.
-
 Text: {snippet}
 Sentence to be focused on: {sentence}
 Facts:
