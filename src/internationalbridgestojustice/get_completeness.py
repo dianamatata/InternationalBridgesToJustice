@@ -169,14 +169,16 @@ class KeypointEvaluation:
 
 def json_to_markdown(data):
     md = []
-    md.append(f"# Country: {data['Country']}\n")
-    md.append(f"## Keypoint\n{data['Keypoint']}\n")
-    md.append(f"## Keypoint Description\n{data['Keypoint_Description']}\n")
-    md.append(f"## Classification\n{data['Classification']}\n")
-    md.append(f"## Missing or Unclear\n{data['Missing_or_Unclear']}\n")
-    md.append(f"## Legal Provisions Check\n{data['Legal_Provisions_Check']}\n")
-    md.append(f"## Summary of Relevant Laws\n{data['Summary_of_Relevant_Laws']}\n")
-    md.append(f"## Rewritten Wiki Chapter\n{data['Rewritten_Wiki_Chapter']}\n")
+    # md.append(f"# Country: {data['Country']}\n")
+    # md.append(f"## <span style='color:red'>{data['Keypoint']}</span>\n")
+    md.append(f"## {data['Keypoint']}\n")
+    md.append(f"{data['Keypoint_Description']}\n")
+    md.append(f"### Classification: {data['Classification']}\n")
+    md.append(f"{data['Missing_or_Unclear']}\n")
+    md.append(f"### Legal Provisions Check: {data['Legal_Provisions_Check']}\n")
+    md.append(f"### Summary of Relevant Laws\n{data['Summary_of_Relevant_Laws']}\n")
+    md.append(f"### Rewritten Wiki Chapter\n{data['Rewritten_Wiki_Chapter']}\n")
+
     return "\n".join(md)
 
 

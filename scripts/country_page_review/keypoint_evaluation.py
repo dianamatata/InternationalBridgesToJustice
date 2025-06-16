@@ -91,7 +91,7 @@ if batch_submission == True:
     )
 
     with open(
-        "data/completeness/completeness_Burundi_results.md", "a", encoding="utf-8"
+        "data/completeness/completeness_Burundi_results.md", "w", encoding="utf-8"
     ) as f:
         for result in results_list:
             f.write(f"{json_to_markdown(result)}\n\n")
