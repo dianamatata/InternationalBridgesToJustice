@@ -1,6 +1,6 @@
 from src.internationalbridgestojustice.openai_utils import (
     get_openai_response,
-    build_batch_request,
+    build_batch_request_with_schema,
 )
 from src.internationalbridgestojustice.chromadb_utils import (
     perform_similarity_search_in_collection,
@@ -10,6 +10,7 @@ from src.internationalbridgestojustice.file_manager import (
 )
 import json
 from src.internationalbridgestojustice.config import Paths
+from collections import Counter
 
 # __init__ method: Initializes a chunk object with the title, content, mime_type, and metadata.
 # __repr__ method: Provides a formal string representation of the chunk for debugging.
@@ -41,10 +42,6 @@ class KeypointEvaluation:
         self.answer = None
         self.model = model
         self.system_prompt = system_prompt
-        self.response_format = {
-            "type": "json_schema",
-            "json_schema": {"name": "CompletenessCheck", "schema": schema_completeness},
-        }
         if not lazy:
             if collection is None:
                 raise ValueError("collection must be provided if lazy=False")
@@ -103,6 +100,10 @@ class KeypointEvaluation:
         )
 
     def check_completeness(self, client, temperature: float = 0.1):
+        self.response_format = {
+            "type": "json_schema",
+            "json_schema": {"name": "CompletenessCheck", "schema": schema_completeness},
+        }
         self.answer = get_openai_response(
             client=client,
             categorize_system_prompt=self.system_prompt,
@@ -120,14 +121,16 @@ class KeypointEvaluation:
         temperature: float = 0.2,
     ):
         with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
-            request = build_batch_request(
+            request = build_batch_request_with_schema(
                 custom_id=f"completeness {self.country}-{self.keypoint}",
                 system_prompt=self.system_prompt,
                 user_prompt=prompt,
+                schema=schema_completeness_for_batches,
+                schema_name="CompletenessCheck",
                 temperature=temperature,
                 model=self.model,
-                response_format=self.response_format,
             )
+            self.request = request
             outfile.write(json.dumps(request) + "\n")
 
     def save_log_as_json(self):
@@ -164,20 +167,90 @@ class KeypointEvaluation:
             json.dump(self.answer, json_file, indent=2)
 
 
+def json_to_markdown(data):
+    md = []
+    md.append(f"# Country: {data['Country']}\n")
+    md.append(f"## Keypoint\n{data['Keypoint']}\n")
+    md.append(f"## Keypoint Description\n{data['Keypoint_Description']}\n")
+    md.append(f"## Classification\n{data['Classification']}\n")
+    md.append(f"## Missing or Unclear\n{data['Missing_or_Unclear']}\n")
+    md.append(f"## Legal Provisions Check\n{data['Legal_Provisions_Check']}\n")
+    md.append(f"## Summary of Relevant Laws\n{data['Summary_of_Relevant_Laws']}\n")
+    md.append(f"## Rewritten Wiki Chapter\n{data['Rewritten_Wiki_Chapter']}\n")
+    return "\n".join(md)
+
+
+def completeness_statistics(results_list):
+    counter_LPC = Counter()
+    counter_Classification = Counter()
+
+    for data in results_list:
+        count_Legal_Provisions_Check = data.get("Legal_Provisions_Check")
+        counter_LPC[count_Legal_Provisions_Check] += 1
+        count_Classification = data.get("Classification")
+        counter_Classification[count_Classification] += 1
+
+    return counter_LPC, counter_Classification
+
+
 schema_completeness = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "CompletenessCheck",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "description": "Country Page Rewritten after the completeness check",
+            "properties": {
+                "Country": {"type": "string", "description": "The country page."},
+                "Keypoint": {"type": "string", "description": "The original keypoint."},
+                "Keypoint_Description": {
+                    "type": "string",
+                    "description": "The original keypoint description.",
+                },
+                "Classification": {
+                    "type": "string",
+                    "enum": ["Complete", "Needs refinement", "Missing"],
+                    "description": "A brief summary of the article's content and findings.",
+                },
+                "Missing_or_Unclear": {
+                    "type": "string",
+                    "description": "Briefly explain any gaps, ambiguities, or lack of legal grounding",
+                },
+                "Legal_Provisions_Check": {
+                    "type": "string",
+                    "enum": ["Present", "Missing"],
+                    "description": "Are relevant legal provisions available in the database? Answer with Present or Missing.",
+                },
+                "Summary_of_Relevant_Laws": {
+                    "type": "string",
+                    "description": "Clearly list the article numbers, titles, and explain their relevance.",
+                },
+                "Rewritten_Wiki_Chapter": {
+                    "type": "string",
+                    "description": "Rewrite the chapter to incorporate relevant legal content.",
+                },
+            },
+            "required": [
+                "Country",
+                "Keypoint",
+                "Keypoint_Description",
+                "Classification",
+                "Missing_or_Unclear",
+                "Legal_Provisions_Check",
+                "Summary_of_Relevant_Laws",
+                "Rewritten_Wiki_Chapter",
+            ],
+            "additionalProperties": False,  # Required for strict mode
+        },
+    },
+}
+schema_completeness_for_batches = {
     "type": "object",
-    "name": "CountryPageCompleteness",
     "description": "Country Page Rewritten after the completeness check",
     "properties": {
-        "Country": {
-            "type": "string",
-            "description": "The country page.",
-            "default": "Unknown",
-        },
-        "Keypoint": {
-            "type": "string",
-            "description": "The original keypoint.",
-        },
+        "Country": {"type": "string", "description": "The country page."},
+        "Keypoint": {"type": "string", "description": "The original keypoint."},
         "Keypoint_Description": {
             "type": "string",
             "description": "The original keypoint description.",
@@ -185,27 +258,34 @@ schema_completeness = {
         "Classification": {
             "type": "string",
             "enum": ["Complete", "Needs refinement", "Missing"],
-            "description": "A brief summary of the article's content and findings.",
+            "description": "...",
         },
-        "Missing_or_Unclear": {
-            "type": "string",
-            "description": "Briefly explain any gaps, ambiguities, or lack of legal grounding",
-        },
+        "Missing_or_Unclear": {"type": "string", "description": "..."},
         "Legal_Provisions_Check": {
             "type": "string",
             "enum": ["Present", "Missing"],
-            "description": "Are relevant legal provisions available in the database? Answer with Present or Missing.",
+            "description": "...",
         },
-        "Summary_of_Relevant_Laws": {
-            "type": "string",
-            "description": "Clearly list the article numbers, titles, and explain their relevance.",
-        },
-        "Rewritten_Wiki_Chapter": {
-            "type": "string",
-            "description": " Rewrite the chapter to incorporate relevant legal content.",
-        },
+        "Summary_of_Relevant_Laws": {"type": "string", "description": "..."},
+        "Rewritten_Wiki_Chapter": {"type": "string", "description": "..."},
     },
+    "required": [
+        "Country",
+        "Keypoint",
+        "Keypoint_Description",
+        "Classification",
+        "Missing_or_Unclear",
+        "Legal_Provisions_Check",
+        "Summary_of_Relevant_Laws",
+        "Rewritten_Wiki_Chapter",
+    ],
+    "additionalProperties": False,
 }
+
+# Many LLMs don't support the structured output format. i.e. schema_completeness. (especially batches)
+# response_format: {type: "json_schema", ...}.
+# That syntax works for the regular Chat Completions API — but for the batch API you must pass response_format="json", and embed the schema using the tool_choice / tools mechanism.
+# see build_batch_request_with_schema
 
 schema_keypoints = {
     "type": "object",
