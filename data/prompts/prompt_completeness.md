@@ -2,74 +2,51 @@
 
 You are tasked with evaluating whether the following wiki chapter sufficiently and accurately addresses the key point: **{keypoint}** , with is best describe as: **{keypoint_description}**.
 
-Before making your judgment, critically analyze **both** the wiki content and the legal database. Even if the chapter appears thorough, investigate whether specific legal provisions could **strengthen, clarify, or correct** the information. Your assessment should prioritize **clarity, specificity**, and **legal accuracy**.
+### Evaluation Instructions
 
----
+1. Carefully read both the wiki chapter and the legal database content.
+2. Determine whether the wiki chapter fully covers the key point with sufficient legal support.
+3. Consult the legal database to strengthen, clarify, or correct the wiki content if needed.
 
-### **Classification Categories**
+### Inputs:
 
-Choose **one** of the following categories:
+* **Wiki Chapter (to be evaluated):**
+{wiki_content}
+* **Legal Database Content (legal text for potential support):**
+{database_content}
+
+
+### Classification Criteria
 
 * **Complete**:
-  The chapter clearly addresses the key point with sufficient legal detail, citing **specific laws or articles**, and outlining relevant **rights, obligations, procedures, and exceptions**. No major improvements are needed based on the legal database.
+  The chapter addresses the key point fully, referencing relevant legal provisions, and includes sufficient detail about rights, obligations, procedures, and exceptions.
 
 * **Needs Refinement**:
-  The chapter covers the topic, but lacks one or more of the following:
+  The chapter covers the key point but lacks one or more of the following:
 
-  * Clear definitions of legal terms or rights
-  * References to legal texts (e.g. constitution, penal code, procedural law)
-  * Details about procedures, enforcement, or exceptions
+  * Clear legal definitions.
+  * References to specific laws (e.g., constitution, penal code, procedural laws).
+  * Procedural details, enforcement mechanisms, or legal exceptions.
 
-  In this case, consult the legal database to:
+  In this case:
 
-  * Identify and **cite specific articles** that support or clarify the key point
-  * Explain their relevance (i.e., what the law says and how it applies)
-  * Then, **rewrite the chapter**, integrating these legal references into a clear, accurate, and informative version
-
-  *The rewrite should not use vague phrases like “under legal conditions” without explaining what those legal conditions are. Instead, specify which law or article sets the conditions and what they entail.*
+  * Use the legal database to identify and cite relevant legal articles.
+  * Explain their relevance.
+  * Rewrite the wiki chapter incorporating these legal references in clear, accurate, and accessible language.
+  * Avoid vague phrases such as "under legal conditions" — always specify which law and article defines these conditions.
 
 * **Missing**:
-  The chapter does not address the key point at all.
-
----
-
-### **Your Output Must Include**
-
-1. **Classification**: One of the three options above.
-
-2. **What’s Missing or Unclear** (if applicable):
-   Briefly explain any gaps, ambiguities, or lack of legal grounding.
-
-3. **Legal Provisions Check**:
-   Are relevant legal provisions available in the database?
-
-   * **Present**: If specific articles or legal texts apply.
-   * **Missing**: If no relevant legal provisions are found.
-
-4. **Summary of Relevant Laws** (if applicable):
-   Clearly list the article numbers, titles, and explain their relevance.
-   Provide a concise summary of each relevant provision, with:
-
-   * Article citation and a short explanation of what it establishes
-   * How it relates to the wiki chapter and why it's important
-
-5. **Rewritten Wiki Chapter** (if applicable):
-   Rewrite the chapter to incorporate relevant legal content:
-
-   * Use clear, formal legal language accessible to a general audience
-   * Include direct references to laws and explain what they mean in context
-   * If no legal support exists, state this explicitly and explain why the key point may still be significant
-
-*If the chapter appears legally sound but could benefit from stronger legal grounding, classify it as **Needs Refinement**.*
-
----
-
-### Wiki_content (chapter to be evaluated):
-
-{wiki_content}
+  The wiki chapter does not address the key point at all.
 
 
+### Output Instructions
 
-### Database_content (legal text for potential support):
-
-{database_content}
+* You must output your answer as valid JSON
+* Always fill in every field.
+* If no information applies, state "None" or "N/A" explicitly.
+* The JSON output must strictly match the schema with no extra fields.
+* Use clear, formal legal language accessible to a general audience
+* Include direct references to laws and explain what they mean in context
+* If no legal support exists, state this explicitly and explain why the key point may still be significant
+* If the chapter appears legally sound but could benefit from stronger legal grounding, classify it as **Needs Refinement**.*
+* Your final output must be a valid JSON object.
