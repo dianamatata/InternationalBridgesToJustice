@@ -1,6 +1,9 @@
 import json
 import os
 from tqdm import tqdm
+from src.internationalbridgestojustice.chromadb_utils import load_collection
+from src.internationalbridgestojustice.config import Paths
+from src.internationalbridgestojustice.file_manager import save_file
 from src.internationalbridgestojustice.openai_utils import (
     openai_client,
     upload_batch_file_to_openAI,
@@ -10,14 +13,11 @@ from src.internationalbridgestojustice.openai_utils import (
     retrieve_and_save_batch_results,
     retrieve_tool_calls,
 )
-from src.internationalbridgestojustice.chromadb_utils import load_collection
 from src.internationalbridgestojustice.get_completeness import (
     KeypointEvaluation,
     json_to_markdown,
     completeness_statistics,
 )
-from src.internationalbridgestojustice.config import Paths
-from src.internationalbridgestojustice.file_manager import save_file
 
 # MAIN ---------------------------------------------------
 
@@ -71,9 +71,8 @@ if batch_submission == True:
         )
     # RETRIEVE RESULTS ---------------------------------------------------
 
-    # batch_684d683daacc8190acdd08591eabd9fa all burundi
     # TODO retrieve results in other script
-    batch_id = "batch_684d683daacc8190acdd08591eabd9fa"
+    batch_id = "batch_684d683daacc8190acdd08591eabd9fa"  # all burundi
     print(f"Batch job submitted: {batch_id}")
     check_progress_batch_id(batch_id=batch_id)
     result = openai_client.batches.retrieve(batch_id=batch_id)
