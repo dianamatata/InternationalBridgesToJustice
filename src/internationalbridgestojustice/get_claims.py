@@ -1,6 +1,7 @@
 import re
 import os
 import regex
+import json
 from src.internationalbridgestojustice.get_response import GetResponse
 from src.internationalbridgestojustice.chromadb_utils import (
     perform_similarity_search_in_collection,
@@ -8,7 +9,10 @@ from src.internationalbridgestojustice.chromadb_utils import (
 from src.internationalbridgestojustice.query_functions import (
     format_prompt_for_claim_verification,
 )
-from src.internationalbridgestojustice.openai_utils import get_openai_response
+from src.internationalbridgestojustice.openai_utils import (
+    get_openai_response,
+    build_batch_request_with_schema,
+)
 from src.internationalbridgestojustice.file_manager import (
     build_context_string_from_retrieve_documents,
 )
@@ -17,22 +21,22 @@ from src.internationalbridgestojustice.file_manager import (
 class ClaimExtractor:
     def __init__(
         self,
-        model_name: str = "gpt-4o-mini",
+        model: str = "gpt-4o-mini",
         prompt_file: str = "data/prompts/prompt_claim_extraction.md",
         cache_dir: str = "./data/cache/",
     ):
-        self.model = None
+        self.model = model
         self.prompt_file = prompt_file
-        cache_dir = os.path.join(cache_dir, model_name)
+        cache_dir = os.path.join(cache_dir, model)
         os.makedirs(cache_dir, exist_ok=True)
         self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
         self.get_model_response = GetResponse(
             cache_file=self.cache_file,
-            model_name=model_name,
+            model_name=self.model,
             max_tokens=1000,
             temperature=0,
         )
-        self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
+        self.system_prompt = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
     def scan_text_for_claims(self, response, cost_estimate_only=False):
         """
@@ -41,11 +45,13 @@ class ClaimExtractor:
         - snippet = (context1 = 0-3 sentence) <SOS>Sent<EOS> (context2 = 0-1 sentence)
         - call fact_extractor on each snippet
         """
-        sentences = self.clean_text(response)
-        sentences = sentences.split(".")
+        sentences = clean_text(response)
+        sentences = [
+            s.strip() for s in sentences.split(".") if s.strip() != ""
+        ]  # remove empty sentences
 
         all_facts_lst = []
-        prompt_tok_cnt, response_tok_cnt = 0, 0  # keep track of token counts
+        total_cost = 0
 
         snippet_lst = []
         fact_lst_lst = []
@@ -65,36 +71,34 @@ class ClaimExtractor:
 
             snippet_lst.append(snippet)
 
-            facts, prompt_tok_num, response_tok_num = self.fact_extractor_for_snippet(
+            facts, total_cost = self.fact_extractor_for_snippet(
                 snippet, sentences[i].strip(), cost_estimate_only=cost_estimate_only
             )
-            prompt_tok_cnt += prompt_tok_num
-            response_tok_cnt += response_tok_num
+            total_cost += total_cost
 
             if facts == None:
-                fact_lst_lst.append([None])
+                fact_lst_lst.append([])
                 continue
 
-        # deduplication
-        fact_lst = []
-        for fact in facts:
-            if fact.strip() == "":
-                continue
-            # cases where GPT returns its justification
-            elif fact.startswith("Note:"):
-                continue
-            elif fact not in all_facts_lst:
-                all_facts_lst.append(fact.strip())
-            fact_lst.append(fact.strip())
-        fact_lst_lst.append(fact_lst)
+            # deduplication
+            fact_lst = []
+            for fact in facts:
+                fact = fact.strip()
+                if fact == "":
+                    continue
+                elif fact.startswith("Note:"):
+                    continue
+                elif fact not in all_facts_lst:
+                    all_facts_lst.append(fact)
+                fact_lst.append(fact)
+            fact_lst_lst.append(fact_lst)
 
         print("Returning facts and token counts for the whole response ...")
         return (
             snippet_lst,
             fact_lst_lst,
             all_facts_lst,
-            prompt_tok_cnt,
-            response_tok_cnt,
+            total_cost,
         )
 
     def fact_extractor_for_snippet(self, snippet, sentence, cost_estimate_only=False):
@@ -105,50 +109,135 @@ class ClaimExtractor:
 
         prompt_template = open(self.prompt_file, "r").read()
         prompt_text = prompt_template.format(snippet=snippet, sentence=sentence)
-        response, prompt_tok_cnt, response_tok_cnt = (
-            self.get_model_response.get_response(
-                self.system_message, prompt_text, cost_estimate_only
-            )
+        response, total_cost = self.get_model_response.get_response(
+            self.system_prompt,
+            prompt_text,
+            response_format=None,
+            cost_estimate_only=cost_estimate_only,
+            verbose=False,
         )
         if not response or "No verifiable claim." in response:
-            return None, prompt_tok_cnt, response_tok_cnt
+            return None, total_cost
         else:
             # remove itemized list
             claims = [x.strip().replace("- ", "") for x in response.split("\n")]
             # remove numbers in the beginning
             claims = [regex.sub(r"^\d+\.?\s", "", x) for x in claims]
-            return claims, prompt_tok_cnt, response_tok_cnt
+            return claims, total_cost
 
-    def clean_text(text: str) -> str:
-        text = text.strip()
-        text = re.sub(
-            r"\[\[.*?\]\]\(#.*?\)", "", text
-        )  # 1. Remove all [[...]](#cite_note-...) patterns
-        text = text.replace("\n\n", "\n")  # 2. Remove double newlines
-        text = text.replace("**", "")  # 3. Remove bold markers **
-        text = re.sub(r"\s+", " ", text).strip()  # 4. Remove redundant spaces
-        return text
+    def create_batch_file_for_extraction(
+        self,
+        response: str,
+        country: str,
+        keypoint: str,
+        jsonl_output_file_path: str,
+        temperature: float = 0.2,
+    ):
+        """
+        scan_text_for_claims is for direct processing, here we create a batch file for extraction
+        """
+        sentences = clean_text(response)
+        sentences = [
+            s.strip() for s in sentences.split(".") if s.strip() != ""
+        ]  # remove empty sentences
+
+        snippet_lst = []
+
+        for i, sentence in enumerate(sentences):
+            lead_sent = sentences[0]  # 1st sentence of the para
+            context1 = " ".join(sentences[max(0, i - 3) : i])
+            sentence = f"<SOS>{sentences[i].strip()}<EOS>"
+            context2 = " ".join(sentences[i + 1 : i + 2])
+
+            if len(sentences) <= 5:
+                snippet = (
+                    f"{context1.strip()} {sentence.strip()} {context2.strip()}".strip()
+                )
+            else:
+                snippet = f"{lead_sent.strip()} {context1.strip()} {sentence.strip()} {context2.strip()}".strip()
+
+            snippet_lst.append(snippet)
+
+            prompt_template = open(self.prompt_file, "r").read()
+
+            self.prompt = prompt_template.format(
+                snippet=snippet, sentence=sentences[i].strip()
+            )
+
+            with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
+                request = build_batch_request_with_schema(
+                    custom_id=f"claim_extraction {country}-{keypoint}--{i}",
+                    system_prompt=self.system_prompt,
+                    user_prompt=self.prompt,
+                    schema=schema_extraction_for_batches,
+                    schema_name="Extraction",
+                    temperature=temperature,
+                    model=self.model,
+                )
+                self.request = request
+                outfile.write(json.dumps(request) + "\n")
+        return request
+
+
+def clean_text(text: str) -> str:
+    text = text.strip()
+    text = re.sub(
+        r"\[\[.*?\]\]\(#.*?\)", "", text
+    )  # 1. Remove all [[...]](#cite_note-...) patterns
+    text = text.replace("\n\n", "\n")  # 2. Remove double newlines
+    text = text.replace("**", "")  # 3. Remove bold markers **
+    text = re.sub(r"\s+", " ", text).strip()  # 4. Remove redundant spaces
+    return text
+
+
+schema_extraction_for_batches = {
+    "type": "object",
+    "description": "Sentences Extracted",
+    "properties": {
+        "Country": {"type": "string", "description": "The country page."},
+        "Keypoint": {"type": "string", "description": "The original keypoint."},
+        "Claim_List": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {"type": "string"},
+            },
+            "description": " For each sentence, provide a list of extracted claims",
+        },
+        "All_Claims ": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": " All the extracted claims, with duplicates removed.",
+        },
+    },
+    "required": [
+        "Country",
+        "Keypoint",
+        "Claim_List",
+        "All_Claims",
+    ],
+    "additionalProperties": False,
+}
 
 
 class ClaimVerificator:
     def __init__(
         self,
-        model_name: str = "gpt-4o-mini",
+        model: str = "gpt-4o-mini",
         prompt_file: str = "data/prompts/prompt_claim_verification.md",
         cache_dir: str = "./data/cache/",
     ):
-        self.model = None
         self.prompt_file = prompt_file
-        cache_dir = os.path.join(cache_dir, model_name)
+        cache_dir = os.path.join(cache_dir, model)
         os.makedirs(cache_dir, exist_ok=True)
         self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
         self.get_model_response = GetResponse(
             cache_file=self.cache_file,
-            model_name=model_name,
+            model_name=model,
             max_tokens=1000,
             temperature=0,
         )
-        self.system_message = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
+        self.system_prompt = "You are a helpful assistant who can extract verifiable atomic claims from a piece of text. Each atomic fact should be verifiable against reliable external world knowledge (e.g., via Wikipedia)"
 
     def verify_claim(
         self,
