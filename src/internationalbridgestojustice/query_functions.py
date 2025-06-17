@@ -1,9 +1,3 @@
-def format_prompt_for_claim_verification(
-    prompt_template: str, claim: str, context: str
-) -> str:
-    return prompt_template.format(claim=claim, context=context)
-
-
 def get_completeness_keypoints(completeness_checklist_filepath: str):
     with open(completeness_checklist_filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
