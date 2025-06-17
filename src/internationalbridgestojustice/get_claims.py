@@ -6,9 +6,7 @@ from src.internationalbridgestojustice.get_response import GetResponse
 from src.internationalbridgestojustice.chromadb_utils import (
     perform_similarity_search_in_collection,
 )
-from src.internationalbridgestojustice.query_functions import (
-    format_prompt_for_claim_verification,
-)
+
 from src.internationalbridgestojustice.openai_utils import (
     get_openai_response,
     build_batch_request_with_schema,
@@ -127,6 +125,7 @@ class ClaimExtractor:
 
     def create_batch_file_for_extraction(
         self,
+        custom_id: str,
         response: str,
         country: str,
         keypoint: str,
@@ -166,7 +165,7 @@ class ClaimExtractor:
 
             with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
                 request = build_batch_request_with_schema(
-                    custom_id=f"claim_extraction {country}-{keypoint}--{i}",
+                    custom_id=f"{custom_id}--{i}",
                     system_prompt=self.system_prompt,
                     user_prompt=self.prompt,
                     schema=schema_extraction_for_batches,
@@ -196,14 +195,6 @@ schema_extraction_for_batches = {
     "properties": {
         "Country": {"type": "string", "description": "The country page."},
         "Keypoint": {"type": "string", "description": "The original keypoint."},
-        "Claim_List": {
-            "type": "array",
-            "items": {
-                "type": "array",
-                "items": {"type": "string"},
-            },
-            "description": " For each sentence, provide a list of extracted claims",
-        },
         "All_Claims ": {
             "type": "array",
             "items": {"type": "string"},
@@ -213,21 +204,53 @@ schema_extraction_for_batches = {
     "required": [
         "Country",
         "Keypoint",
-        "Claim_List",
         "All_Claims",
     ],
     "additionalProperties": False,
 }
 
 
+# schema_extraction_for_batches = {
+#     "type": "object",
+#     "description": "Sentences Extracted",
+#     "properties": {
+#         "Country": {"type": "string", "description": "The country page."},
+#         "Keypoint": {"type": "string", "description": "The original keypoint."},
+#         "Claim_List": {
+#             "type": "array",
+#             "items": {
+#                 "type": "array",
+#                 "items": {"type": "string"},
+#             },
+#             "description": " For each sentence, provide a list of extracted claims",
+#         },
+#         "All_Claims ": {
+#             "type": "array",
+#             "items": {"type": "string"},
+#             "description": " All the extracted claims, with duplicates removed.",
+#         },
+#     },
+#     "required": [
+#         "Country",
+#         "Keypoint",
+#         "Claim_List",
+#         "All_Claims",
+#     ],
+#     "additionalProperties": False,
+# }
+
+
 class ClaimVerificator:
     def __init__(
         self,
+        claim: str,
         model: str = "gpt-4o-mini",
         prompt_file: str = "data/prompts/prompt_claim_verification.md",
         cache_dir: str = "./data/cache/",
     ):
+        self.claim = claim
         self.prompt_file = prompt_file
+        self.prompt_template = open(self.prompt_file, "r").read()
         cache_dir = os.path.join(cache_dir, model)
         os.makedirs(cache_dir, exist_ok=True)
         self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
@@ -244,6 +267,29 @@ class ClaimVerificator:
         claim: str,
         collection,
         client,
+        country: str,
+    ):
+        # TODO need to check that new collection is organized like that
+        results = perform_similarity_search_in_collection(
+            collection=collection,
+            query_text=claim,
+            metadata_param="country",
+            metadata_value=country,
+            number_of_results_to_retrieve=5,
+        )
+        context_text = build_context_string_from_retrieve_documents(results)
+        prompt = self.format_prompt_for_claim_verification(
+            prompt_template=self.prompt_template, claim=claim, context=context_text
+        )
+        answer = get_openai_response(client, prompt)
+
+        return results, answer
+
+    def create_batch_file_for_verification(
+        self,
+        claim: str,
+        collection,
+        client,
         prompt_claim_verification: str,
         metadata_param: str,
         metadata_value: str,
@@ -256,9 +302,14 @@ class ClaimVerificator:
             number_of_results_to_retrieve=5,
         )
         context_text = build_context_string_from_retrieve_documents(results)
-        prompt = format_prompt_for_claim_verification(
-            prompt_claim_verification, claim=claim, context=context_text
+        prompt = self.format_prompt_for_claim_verification(
+            prompt_template=prompt_claim_verification, claim=claim, context=context_text
         )
-        answer = get_openai_response(client, prompt)
+        # answer = get_openai_response(client, prompt)
 
         return results, answer
+
+    def format_prompt_for_claim_verification(
+        prompt_template: str, claim: str, context: str
+    ) -> str:
+        return prompt_template.format(claim=claim, context=context)
