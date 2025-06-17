@@ -74,16 +74,16 @@ class KeypointEvaluation:
         self.wiki_content = perform_similarity_search_in_collection(
             collection,
             query_text=self.keypoint_description,
-            metadata_param="link",
-            metadata_value=f"https://defensewiki.ibj.org/index.php?title={self.country}",
+            metadata_param="type_country",
+            metadata_value=f"defensewiki_doc_{self.country}",
             number_of_results_to_retrieve=5,
         )
 
         self.database_content = perform_similarity_search_in_collection(
             collection,
             query_text=self.keypoint_description,
-            metadata_param="country",
-            metadata_value=self.country,
+            metadata_param="type_country",
+            metadata_value=f"ground_truth_{self.country}",
             number_of_results_to_retrieve=5,
         )
 
@@ -247,6 +247,7 @@ schema_completeness = {
         },
     },
 }
+
 schema_completeness_for_batches = {
     "type": "object",
     "description": "Country Page Rewritten after the completeness check",
