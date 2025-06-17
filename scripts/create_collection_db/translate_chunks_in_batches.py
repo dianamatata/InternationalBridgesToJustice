@@ -1,3 +1,5 @@
+import json
+from collections import Counter
 from src.internationalbridgestojustice.openai_utils import (
     upload_batch_file_to_openAI,
     submit_batch_job,
@@ -110,20 +112,44 @@ save_file(
     file_type="jsonl1",
 )
 
-# create a new collection with the translated chunks of Burundi + original in enlish
+
+# create a new collection with the translated chunks of Burundi + original in english
 Country_chunks = Country_chunks_in_english + translated_chunks
 
-# V2 will only have chunks in english
-chroma_collection_file_path = "data/chroma_db_v2"
-collection_name = "legal_collection_v2"
-chunk_ids_present_in_chromadb_collection_file_path = "data/chroma_db_v2/seen_ids.txt"
-raw_embeddings = "data/chroma_db_v2/raw_embeddings.jsonl"
+# TODO change chunks metadata before creating the collection # check chunk_structure.py
+# TODO # perform_similarity_search_in_collection only filters on one param, country or legal type to pick!!! so create a fusion metadata entry
+with open(Paths.PATH_TRANSLATED_CHUNKS, "r", encoding="utf-8") as file:
+    translated_chunks = [json.loads(line) for line in file]
+
+for chunk in Country_chunks_in_english + translated_chunks:
+    metadata = chunk["metadata"]
+    if metadata.get("type") == "constitution":
+        metadata["type"] = "ground_truth"
+    elif "type" not in metadata and "legal_type" in metadata:
+        metadata["type"] = "ground_truth"
+    metadata["type_country"] = (
+        f"{metadata.get('type', 'unknown')}_{metadata.get('country', 'unknown')}"
+    )
+
+# v5 will only have chunks in english
+chroma_collection_file_path = "data/chroma_db_v5"
+collection_name = "legal_collection_v5"
+chunk_ids_present_in_chromadb_collection_file_path = "data/chroma_db_v5/seen_ids.txt"
+raw_embeddings = "data/chroma_db_v5/raw_embeddings.jsonl"
 
 collection = load_collection(
     chroma_collection_file_path=chroma_collection_file_path,
     collection_name=collection_name,
     new_collection=True,  # Set to True to create a new collection
 )
+
+# check how many of each type
+type_counter = Counter()
+for country_chunks in [Country_chunks_in_english, translated_chunks]:
+    for chunk in country_chunks:
+        metadata_type = chunk["metadata"].get("type", "missing")
+        type_counter[metadata_type] += 1
+print(type_counter)
 
 # in 2 steps otherwise error: 'Requested 310340 tokens, max 300000 tokens per request'
 for Country_chunks in [Country_chunks_in_english, translated_chunks]:
