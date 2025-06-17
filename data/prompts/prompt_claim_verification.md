@@ -15,16 +15,16 @@ You can find the country name in the `'metadata':'title'` or `'metadata':'countr
 **Does the database provide enough information to fact-check the claim?**
 
 - If **no**, label the claim as `###Inconclusive###`
-- If **yes**, state the judgment as one of the following categories, marked with ###:
+- If **yes**, state the judgment as one of the following categories:
 
-#### `###Supported###`
+* **Supported**:
 A claim is **supported** by the database if everything in the claim is supported and nothing is contradicted by the information in the database.  
 There can be some results that are not fully related to the claim.
 
-#### `###Contradicted###`
+* **Contradicted**:
 A claim is **contradicted** if some part of it directly conflicts with information in the database, and no supporting evidence is provided for that part.
 
-#### `###Inconclusive###`
+* **Inconclusive**:
 A claim is **inconclusive** if:
 - A part of the claim cannot be verified with the available information,  
 - A part of the claim is both supported and contradicted by different sources,  
