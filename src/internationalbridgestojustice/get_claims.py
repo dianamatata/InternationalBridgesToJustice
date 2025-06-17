@@ -8,7 +8,6 @@ from src.internationalbridgestojustice.chromadb_utils import (
 )
 
 from src.internationalbridgestojustice.openai_utils import (
-    get_openai_response,
     build_batch_request_with_schema,
 )
 from src.internationalbridgestojustice.file_manager import (
@@ -165,7 +164,7 @@ class ClaimExtractor:
 
             with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
                 request = build_batch_request_with_schema(
-                    custom_id=f"{custom_id}--{i}",
+                    custom_id=f"{custom_id}--{i}",  # before here country and keypoint
                     system_prompt=self.system_prompt,
                     user_prompt=self.prompt,
                     schema=schema_extraction_for_batches,
@@ -194,7 +193,10 @@ schema_extraction_for_batches = {
     "description": "Sentences Extracted",
     "properties": {
         "Country": {"type": "string", "description": "The country page."},
-        "Keypoint": {"type": "string", "description": "The original keypoint."},
+        "Keypoint": {
+            "type": "string",
+            "description": "The original keypoint.",
+        },  # ends up being the string
         "All_Claims ": {
             "type": "array",
             "items": {"type": "string"},
@@ -210,36 +212,6 @@ schema_extraction_for_batches = {
 }
 
 
-# schema_extraction_for_batches = {
-#     "type": "object",
-#     "description": "Sentences Extracted",
-#     "properties": {
-#         "Country": {"type": "string", "description": "The country page."},
-#         "Keypoint": {"type": "string", "description": "The original keypoint."},
-#         "Claim_List": {
-#             "type": "array",
-#             "items": {
-#                 "type": "array",
-#                 "items": {"type": "string"},
-#             },
-#             "description": " For each sentence, provide a list of extracted claims",
-#         },
-#         "All_Claims ": {
-#             "type": "array",
-#             "items": {"type": "string"},
-#             "description": " All the extracted claims, with duplicates removed.",
-#         },
-#     },
-#     "required": [
-#         "Country",
-#         "Keypoint",
-#         "Claim_List",
-#         "All_Claims",
-#     ],
-#     "additionalProperties": False,
-# }
-
-
 class ClaimVerificator:
     def __init__(
         self,
@@ -248,9 +220,9 @@ class ClaimVerificator:
         prompt_file: str = "data/prompts/prompt_claim_verification.md",
         cache_dir: str = "./data/cache/",
     ):
+        self.model = model
         self.claim = claim
         self.prompt_file = prompt_file
-        self.prompt_template = open(self.prompt_file, "r").read()
         cache_dir = os.path.join(cache_dir, model)
         os.makedirs(cache_dir, exist_ok=True)
         self.cache_file = os.path.join(cache_dir, "claim_extraction_cache.json")
@@ -264,52 +236,110 @@ class ClaimVerificator:
 
     def verify_claim(
         self,
-        claim: str,
         collection,
         client,
         country: str,
     ):
-        # TODO need to check that new collection is organized like that
         results = perform_similarity_search_in_collection(
             collection=collection,
-            query_text=claim,
-            metadata_param="country",
-            metadata_value=country,
+            query_text=self.claim,
+            metadata_param="type_country",
+            metadata_value=f"ground_truth_{country}",
             number_of_results_to_retrieve=5,
         )
         context_text = build_context_string_from_retrieve_documents(results)
-        prompt = self.format_prompt_for_claim_verification(
-            prompt_template=self.prompt_template, claim=claim, context=context_text
-        )
-        answer = get_openai_response(client, prompt)
 
-        return results, answer
+        prompt_template = open(self.prompt_file, "r").read()
+        self.prompt = prompt_template.format(claim=self.claim, context=context_text)
+        self.response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "VerificationCheck",
+                "schema": schema_verification_for_batches,
+            },
+        }
+        response, total_cost = self.get_model_response.get_response(
+            self.system_prompt,
+            self.prompt,
+            response_format=self.response_format,
+            cost_estimate_only=False,
+            verbose=False,
+        )
+
+        return results, response
 
     def create_batch_file_for_verification(
         self,
+        custom_id: str,
         claim: str,
         collection,
         client,
-        prompt_claim_verification: str,
-        metadata_param: str,
-        metadata_value: str,
+        country: str,
+        jsonl_output_file_path: str,
+        temperature: float = 0.1,
     ):
+        self.claim = claim
         results = perform_similarity_search_in_collection(
             collection=collection,
-            query_text=claim,
-            metadata_param=metadata_param,
-            metadata_value=metadata_value,
+            query_text=self.claim,
+            metadata_param="type_country",
+            metadata_value=f"ground_truth_{country}",
             number_of_results_to_retrieve=5,
         )
+
         context_text = build_context_string_from_retrieve_documents(results)
-        prompt = self.format_prompt_for_claim_verification(
-            prompt_template=prompt_claim_verification, claim=claim, context=context_text
-        )
-        # answer = get_openai_response(client, prompt)
+        prompt_template = open(self.prompt_file, "r").read()
+        self.prompt = prompt_template.format(claim=self.claim, context=context_text)
 
-        return results, answer
+        with open(jsonl_output_file_path, "a", encoding="utf-8") as outfile:
+            request = build_batch_request_with_schema(
+                custom_id=custom_id,
+                system_prompt=self.system_prompt,
+                user_prompt=self.prompt,
+                schema=schema_verification_for_batches,
+                schema_name="Verification",
+                temperature=temperature,
+                model=self.model,
+            )
+            self.request = request
+            outfile.write(json.dumps(request) + "\n")
 
-    def format_prompt_for_claim_verification(
-        prompt_template: str, claim: str, context: str
-    ) -> str:
-        return prompt_template.format(claim=claim, context=context)
+        return request
+
+
+schema_verification_for_batches = {
+    "type": "object",
+    "description": "Sentences Extracted",
+    "properties": {
+        "Country": {"type": "string", "description": "The country page."},
+        "Claim": {
+            "type": "string",
+            "description": "The original claim we are assessing.",
+        },
+        "Enough_information": {
+            "type": "boolean",
+            "description": "The context provides sufficient legal information to make a decision.",
+        },
+        "Decision": {
+            "type": "string",
+            "enum": [
+                "Supported",
+                "Contradicted",
+                "Inconclusive",
+            ],
+            "description": "The claim extracted from the sentence.",
+        },
+        "Information": {
+            "type": "string",
+            "description": "The summary of the information (ex: law articles) on which the decision is based",
+        },
+    },
+    "required": [
+        "Country",
+        "Claim",
+        "Enough_information",
+        "Decision",
+        "Information",
+    ],
+    "additionalProperties": False,
+}
