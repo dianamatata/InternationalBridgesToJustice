@@ -129,7 +129,7 @@ def retrieve_and_save_batch_results(
     result = openai_client.batches.retrieve(batch_id=batch_id)
     output_stream = openai_client.files.content(result.output_file_id)
     parsed_results = []
-    with open(output_file_path_jsonl, "a", encoding="utf-8") as f:
+    with open(output_file_path_jsonl, "w", encoding="utf-8") as f:
         lines = output_stream.iter_lines()
         for line in lines:
             if line.strip():  # skip empty lines
@@ -148,7 +148,6 @@ def retrieve_and_save_batch_results(
 def retrieve_tool_calls(parsed_results):
     results_list = []
     for i in range(len(parsed_results)):
-        print(i)
         tool_calls = parsed_results[i]["response"]["body"]["choices"][0]["message"][
             "tool_calls"
         ]
@@ -156,11 +155,16 @@ def retrieve_tool_calls(parsed_results):
         try:
             result = json.loads(arguments_str)
         except json.JSONDecodeError:
-            arguments_str += '"}'
-            arguments_str[9830:]
-            result = json.loads(arguments_str)
+            try:
+                arguments_str += '"}'
+                result = json.loads(arguments_str)
+            except json.JSONDecodeError:
+                arguments_str += '"}'
+                result = json.loads(arguments_str)
+        result = {"custom_id": parsed_results[i]["custom_id"], **result}
         results_list.append(result)
-        return results_list
+
+    return results_list
 
 
 def check_failed_batch(batch_id: str, openai_client):
