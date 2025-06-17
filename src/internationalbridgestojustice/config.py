@@ -56,6 +56,7 @@ class Paths:
     PATH_JSONL_FILE_EXTRACTED_CLAIMS = (
         f"{PATH_FOLDER_CLAIM_EXTRACTION}/claims_chunks_1.jsonl"
     )
+    PATH_FOLDER_CLAIM_VERIFICATION = "data/verified_claims"
 
     # Prompts
     PATH_PROMPTS = "data/prompts"
