@@ -94,3 +94,10 @@ with open(
     Paths.PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS, "w", encoding="utf-8"
 ) as f:
     json.dump(results_keypoints, f, indent=2, ensure_ascii=False)
+
+
+# check result
+with open(
+    Paths.PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS, "r", encoding="utf-8"
+) as f:
+    data_keypoints = json.load(f)
