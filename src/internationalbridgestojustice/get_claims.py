@@ -304,7 +304,7 @@ class ClaimVerificator:
             self.request = request
             outfile.write(json.dumps(request) + "\n")
 
-        return request
+        return request, results
 
 
 schema_verification_for_batches = {
