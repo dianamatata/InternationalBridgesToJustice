@@ -343,3 +343,13 @@ schema_verification_for_batches = {
     ],
     "additionalProperties": False,
 }
+
+
+def json_to_markdown_verified_claim(data):
+    md = []
+    md.append(f"## Claim:  {data['Claim']}\n")
+    md.append(f"* Custom_id:  {data['custom_id']}\n")
+    md.append(f"* Enough_information: {data['Enough_information']}\n")
+    md.append(f"* Decision: {data['Decision']}\n")
+    md.append(f"* Information: {data['Information']}\n")
+    return "\n".join(md)

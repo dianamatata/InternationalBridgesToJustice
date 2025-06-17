@@ -1,5 +1,8 @@
 import json
-from src.internationalbridgestojustice.get_claims import ClaimVerificator
+from src.internationalbridgestojustice.get_claims import (
+    ClaimVerificator,
+    json_to_markdown_verified_claim,
+)
 from src.internationalbridgestojustice.config import Paths
 from src.internationalbridgestojustice.chromadb_utils import load_collection
 from src.internationalbridgestojustice.file_manager import save_file
@@ -87,11 +90,7 @@ if batch_submission == True:
     )
 
     # RETRIEVE RESULTS ---------------------------------------------------
-
-    # TODO retrieve results in other script
-    batch_id = "batch_685138c4a14481909f3d05ce243c5ad6"  # test burundi
-    batch_id = "batch_68513d26c10c8190845a51b0b83cde54"  # all burundi new
-
+    batch_id = "batch_685152df88a48190bf179557d34fa2e7"  # all burundi new
     print(f"Batch job submitted: {batch_id}")
 
     check_progress_batch_id(batch_id=batch_id)
@@ -110,7 +109,13 @@ if batch_submission == True:
         file_type="jsonl1",
     )
 
-
+# save in markdown
+with open(
+    "data/verified_claims/verified_claims_Burundi.md", "w", encoding="utf-8"
+) as f:
+    for data in results_list:
+        f.write(f"{json_to_markdown_verified_claim(data)}\n\n")
+# TODO Burundi is described as landlocked in section 3.3.4 of the context, not acceptable
 # old
 # from src.internationalbridgestojustice.query_functions import (
 #     retrieve_source_titles_from_chunks,
