@@ -6,6 +6,9 @@ class Paths:
     PATH_CHROMADB = "data/chroma_db"
     COLLECTION_NAME = "legal_collection"
     PATH_JSONL_FILE_RAW_EMBEDDINGS = "data/chroma_db/raw_embeddings.jsonl"
+    PATH_CHROMADB_v5 = "data/chroma_db_v5"
+    COLLECTION_NAME_v5 = "legal_collection_v5"
+    PATH_JSONL_FILE_RAW_EMBEDDINGS_v5 = "data/chroma_db_v5/raw_embeddings.jsonl"
 
     # DefenseWiki
     BASE_URL_DEFENSE_WIKI = "https://defensewiki.ibj.org"
