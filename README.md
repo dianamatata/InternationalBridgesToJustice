@@ -147,7 +147,7 @@ Extract claims from the content of the Defense Wiki and save them in a json file
 Right now done for Singapore and 2 pages of Burundi out of 12 files
 * [debug_claim_extraction.py](scripts/debug_claim_extraction.py)
   - <font color="yellow">*TODO: need to debug the Burundi claim extraction as the bullets points are interpreted as new sentences.*</font>
-* [verify_claims_one_country.py](scripts/country_page_review/verify_claims_one_country.py) also helps verify the claims. calls several functions present in query_database.py
+* [verify_claims_one_country.py](scripts/country_page_review/verify_claims.py) also helps verify the claims. calls several functions present in query_database.py
 
 #### C -  Source credibility 
 #### D - Legal relevance
