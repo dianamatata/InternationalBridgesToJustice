@@ -3,10 +3,10 @@ from scripts.country_page_review.keypoint_evaluation import KeypointEvaluation
 
 file_batch_input = "data/interim/batch_input_translation.jsonl"
 file_batch_results = "data/interim/batch_results_translation.jsonl"
+
 # Load the list
 with open(file_batch_input, "r") as input_file:
     file_batch_input_data = [json.loads(line) for line in input_file]
-
     for line in input_file:
         input_data = json.loads(line)
         # TODO load all not just last instance
