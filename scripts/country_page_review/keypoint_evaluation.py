@@ -1,5 +1,4 @@
 import json
-import os
 from tqdm import tqdm
 from src.internationalbridgestojustice.chromadb_utils import load_collection
 from src.internationalbridgestojustice.config import Paths
@@ -30,7 +29,7 @@ with open(Paths.PATH_FILE_SYSTEM_PROMPT_COMPLETENESS, "r") as file:
 with open(Paths.PATH_JSON_FILE_DESCRIPTIVE_COMPLETENESS_KEYPOINTS, "r") as file:
     completeness_keypoints = json.load(file)
 
-legal_collection = load_collection(Paths.PATH_CHROMADB_v2, Paths.COLLECTION_NAME_v2)
+legal_collection = load_collection(Paths.PATH_CHROMADB_v5, Paths.COLLECTION_NAME_v5)
 
 batch_submission = True
 
@@ -38,7 +37,6 @@ if batch_submission == True:
     countries = ["Burundi"]  # TODO remove this line to run for all countries
     for country in countries:
         jsonl_file_completeness_batch = f"{Paths.PATH_FOLDER_COMPLETENESS}/batch_input_completeness_Burundi_all.jsonl"
-        os.remove(jsonl_file_completeness_batch)
         jsonl_file_completeness_batch_output = f"{Paths.PATH_FOLDER_COMPLETENESS}/batch_output_completeness_Burundi_all.jsonl"
 
         for keypoint in tqdm(completeness_keypoints):
@@ -72,13 +70,13 @@ if batch_submission == True:
     # RETRIEVE RESULTS ---------------------------------------------------
 
     # TODO retrieve results in other script
-    batch_id = "batch_684d683daacc8190acdd08591eabd9fa"  # all burundi
+    batch_id = "batch_68511bb57f348190a81e81f4b5083e58"  # all burundi new!!!
     print(f"Batch job submitted: {batch_id}")
     check_progress_batch_id(batch_id=batch_id)
     result = openai_client.batches.retrieve(batch_id=batch_id)
     parsed_results = retrieve_and_save_batch_results(
         batch_id=batch_id,
-        output_file_path_jsonl="data/interim/completeness_Burundi_results.jsonl",
+        output_file_path_jsonl="data/completeness/completeness_Burundi_results.jsonl",
         return_parsed_results=True,
     )
     results_list = retrieve_tool_calls(parsed_results)
