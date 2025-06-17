@@ -12,6 +12,7 @@ from src.internationalbridgestojustice.openai_utils import (
     retrieve_and_save_batch_results,
     retrieve_tool_calls,
 )
+from tqdm import tqdm
 
 
 country = "Burundi"
@@ -28,6 +29,7 @@ legal_collection = load_collection(Paths.PATH_CHROMADB_v5, Paths.COLLECTION_NAME
 batch_submission = True
 if batch_submission == False:
     claim = "The detention of minors is subject to strict judicial oversight."
+    claim = "Burundi is located in the Great Lakes region of Africa."
     claim_verificator = ClaimVerificator(claim=claim)
     results, answer = claim_verificator.verify_claim(
         collection=legal_collection,
@@ -44,20 +46,34 @@ if batch_submission == True:
         claims_extracted = [json.loads(line) for line in file]
 
     claim_set = set()
-    for element in claims_extracted:
+    simil_search_all = []
+    for element in tqdm(claims_extracted):
         if len(element["All_Claims"]) != 0:
             for i, claim in enumerate(element["All_Claims"]):
                 if claim not in claim_set:
                     # print(f"Claim {i}: {claim}")
                     claim_set.add(claim)
-                    request = claim_verificator.create_batch_file_for_verification(
-                        custom_id=f"{element['custom_id'].replace('claimextraction', 'claimverification', 1)}:{i}",
-                        claim=claim,
-                        collection=legal_collection,
-                        client=openai_client,
-                        country=country,
-                        jsonl_output_file_path=jsonl_file_claim_verification_batch_input,
+                    custom_id = f"{element['custom_id'].replace('claimextraction', 'claimverification', 1)}:{i}"
+                    request, simil_search = (
+                        claim_verificator.create_batch_file_for_verification(
+                            custom_id=custom_id,
+                            claim=claim,
+                            collection=legal_collection,
+                            client=openai_client,
+                            country=country,
+                            jsonl_output_file_path=jsonl_file_claim_verification_batch_input,
+                        )
                     )
+                    simil_search = {"custom_id": custom_id, **simil_search}
+                    simil_search_all.append(simil_search)
+
+    with open(
+        f"{Paths.PATH_FOLDER_CLAIM_VERIFICATION}/simil_search.jsonl",
+        "w",
+        encoding="utf-8",
+    ) as jsonl_file:
+        for record in simil_search_all:
+            jsonl_file.write(json.dumps(record) + "\n")
 
     file = upload_batch_file_to_openAI(
         client=openai_client,
@@ -74,11 +90,12 @@ if batch_submission == True:
 
     # TODO retrieve results in other script
     batch_id = "batch_685138c4a14481909f3d05ce243c5ad6"  # test burundi
-    batch_id = "b"  # all burundi new
+    batch_id = "batch_68513d26c10c8190845a51b0b83cde54"  # all burundi new
 
     print(f"Batch job submitted: {batch_id}")
 
     check_progress_batch_id(batch_id=batch_id)
+    # result = openai_client.batches.retrieve(batch_id=batch_id) # if failed:
 
     parsed_results = retrieve_and_save_batch_results(
         batch_id=batch_id,
