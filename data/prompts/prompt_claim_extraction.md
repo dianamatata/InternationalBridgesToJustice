@@ -2,11 +2,37 @@
 
 ### Very important:
 
-You are trying to verify how factual a piece of text is. To do so, you need to break down a sentence and extract as many fine-grained facts mentioned in the sentence as possible. Each of these fine-grained facts should be verifiable against reliable external world knowledge (e.g., via Wikipedia). Any story, personal experiences, hypotheticals (e.g., "would be" or subjunctive), subjective statements (e.g., opinions), suggestions, advice, instructions, and other such content should not be included in the list. Biographical, historical, scientific, and other such texts are not personal experiences or stories. You should extract verifiable facts from them. Each fact should also be describing either one single event (e.g., "Nvidia is founded in 1993 in Sunnyvale, California, U.S.") or single state (e.g., "UMass Amherst has existed for 161 years.") with necessary time and location information. Quotations should be extracted verbatim with the source when available. Listed references should be ignored.
+Here is an improved version of your prompt with clearer structure, more concise language, and a stronger ending that reinforces the constraints:
 
-Extract fine-grained facts from the sentence marked between `<SOS>` and `<EOS>`. You should focus on the named entities and numbers in the sentence and extract relevant information from the sentence. Other sentences are only context for you to recover pronouns, definite phrases (e.g., "the victims" or "the pope"), and so on. Each fact should be understandable on its own and require no additional context. This means that all entities must be referred to by name but not pronoun. Use the name of entities rather than definite noun phrases (e.g., 'the teacher') whenever possible. If a definite noun phrase is used, be sure to add modifiers (e.g., a embedded clause, a prepositional phrase, etc.). Each fact must be situated within relevant temporal and location whenever needed. Keep each fact to one sentence with zero or at most one embedded clause. You do not need to justify what you extract.
+---
 
-If there is no verifiable fact in the sentence, please write "No verifiable claim."
+You are tasked with verifying how factual a sentence is. To do this, extract **fine-grained, verifiable facts** from the sentence marked between `<SOS>` and `<EOS>`.
+
+Each extracted fact should:
+
+* Be **independently verifiable** using reliable sources (e.g., Wikipedia)
+* Describe a **single event or state** (e.g., "Nvidia was founded in 1993 in Sunnyvale, California, U.S.", or "UMass Amherst has existed for 161 years.")
+* Include necessary **named entities, numbers, time, and location** details
+* Be **fully understandable on its own**, without referring to prior sentences
+
+Avoid extracting:
+
+* **Opinions, suggestions, instructions, or hypotheticals** (e.g., subjunctive or conditional statements like “would be”)
+* **Stories, personal experiences**, or **quoted narratives** unless the quotation is sourced and factual
+* **Definite noun phrases** (e.g., "the president") unless fully specified or modified (e.g., "the president of the United States in 2020")
+* **References or citations** (e.g., “Article 12 of the Constitution”)
+
+If a definite phrase is used (e.g., “the teacher”), add modifiers to fully identify it (e.g., “the teacher who led the 2019 protest in Chile”).
+If a quotation is included, it must be **verbatim** and attributed to its **source** if available.
+
+🛑 **If the sentence contains no independently verifiable facts**, output:
+`No verifiable claim.`
+
+**Do not extract vague or context-dependent statements. Every extracted fact must stand alone.**
+example:
+"Provisions for regular reviews of minors' detention status are outlined in Articles 288-290.",
+'These provisions ensure that minors are not held longer than necessary.',
+In this second claim, "these" does not refer to anything out of its context, and cannot be verified.
 
 ---
 
@@ -71,11 +97,6 @@ Facts:
 - Kevin Garnett spent over a decade with the Minnesota Timberwolves.
 - Kevin Garnett was loyal to the Minnesota Timberwolves.
 - Kevin Garnett found little success with the Minnesota Timberwolves.
-
-Text: Garnett had spent well over a decade with the Minnesota Timberwolves, and while he stayed loyal to that team, he found little success there. `<SOS>`When he said “you can’t get your youth back,” he meant it - because from a human standpoint, had he been able to apply his talents somewhere else, NBA history might have been different.`<EOS>`
-Sentence to be focused on: When he said “you can’t get your youth back,” he meant it - because from a human standpoint, had he been able to apply his talents somewhere else, NBA history might have been different.
-Facts:
-- Kevin Garnett said "you can’t get your youth back."
 
 Text: Unity. Unity. In another January in Washington, on New Year’s Day 1863, Abraham Lincoln signed the Emancipation Proclamation. `<SOS>`When he put pen to paper, the President said, “If my name ever goes down into history it will be for this act and my whole soul is in it.”`<EOS>` My whole soul is in it.
 Sentence to be focused on: When he put pen to paper, the President said, “If my name ever goes down into history it will be for this act and my whole soul is in it.”
